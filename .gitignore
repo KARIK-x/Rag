@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Local data (large, regenerable)
+data/raw/
+data/extracted/
+data/chunks/
+data/normalized/
+data/indexes/
+data/structured/
+data/exports/
+*.pdf
+*.docx
+*.xlsx
+
+# Databases / state
+*.db
+*.duckdb
+*.parquet
+*.png
+*.pkl
+*.pickle
+*.jsonl
+
+# Local config
+.env
+.env.*
+credentials.json
+token.pickle
+*.token
+*.secret
+
+# OS
+.DS_Store
