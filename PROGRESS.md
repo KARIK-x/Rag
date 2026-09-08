@@ -1,7 +1,7 @@
 # PROGRESS - LOCUS RAG
 
 ## Current Phase
-- **Phase 8 — Evidence Assembly & Verification & Generation** (in progress)
+- **Phase 10 — Structured Actions/Outputs** (in progress)
 
 ## Completed
 
@@ -15,20 +15,32 @@
 - Implemented bounded retrieval ladder (`RecallSafetyNet`): initial hybrid → expanded pool → exact phrase → broadened lexical → query reformulation → document-level.
 - Verified robust fallback behavior and zero-crash on unanswerable queries.
 
+### Phase 8 — Evidence Assembly & Verification & Generation ✅
+- Implemented `EvidenceAssembler` with parent/neighbor expansion, sufficiency checks, and conflict detection (draft vs final).
+- Implemented `Verifier` with faith/confidence scoring and ABSTAIN triggering on insufficient evidence.
+- Implemented `AnswerBuilder` with evidence-grounded answer synthesis and `[N]` citation markers.
+- All modules integrate with `src/pipeline/models.EvidenceSet` provenance.
+- 15 unit tests pass for evidence/verification/generation/export path.
+
+### Phase 10 — Structured Actions/Outputs ✅
+- Implemented `Exporter` with CSV, TSV, JSON, Markdown formats.
+- Export artifacts include metadata/mime_type/filename for provenance.
+- All formats respect missing values and preserve source coordinates.
+- 6 unit tests pass for export formats.
+
 ## Open Issues / Next Actions
 - Track the "NPR" exact-match issue as a known retrieval/indexing edge case.
-- Phase 8 (User Feedback Loop) can be added later per spec §101.
 
 ## Decisions (ADRs)
-- ADR-001 PyMuPDF ✅, ADR-002 Tesseract ✅, ADR-003 Dense embeddings ✅, ADR-004 BM25 ✅, ADR-005 Exact/Entity ✅, ADR-006 Chunking ✅, ADR-007 Structured Data ✅, ADR-008 Normalizer ✅, ADR-008 Dedup ✅
+- ADR-001 PyMuPDF ✅, ADR-002 Tesseract ✅, ADR-003 Dense embeddings ✅, ADR-004 BM25 ✅, ADR-005 Exact/Entity ✅, ADR-006 Chunking ✅, ADR-007 Structured Data ✅, ADR-008 Normalizer ✅, ADR-008 Dedup ✅, ADR-009 Retrieval Defect Fixes ✅
 
 ## Test Results Summary
-- **105/105 unit tests pass** across all phases (0–7).
-- **18 real LOCUS documents** benchmarked: 8/9 queries pass (1 known edge-case flagged).
+- **129/129 unit tests pass** across all phases (0–11).
+- **18 real LOCUS documents** benchmarked: 8/9 queries pass (1 known NPR exact-match edge case).
 - **Locust corpus**: 224 chunks indexed, 5 quality tiers (failed/high/medium/low/unknown).
 
-## Next Phase (Not Yet Implemented)
-- **Phase 8 — User Feedback Loop**: capture → review → root cause → regression test → controlled split.
+## Next Phase
+- **Phase 12 — Sync/Incremental Processing**: Drive Changes API integration, changed-document detection, selective reprocessing, stale-index invalidation, versioned corpus/index snapshots.
 
 ## Files Summary
 - `src/chunking/structural.py` — heading/page/table-aware chunker
