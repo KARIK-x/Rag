@@ -1,59 +1,19 @@
 # PROGRESS - LOCUS RAG
 
 ## Current Phase
-- **Phase 7: Query Understanding + Retrieval Orchestration** (complete)
+- **Phase 8 — Evidence Assembly & Verification & Generation** (in progress)
 
 ## Completed
 
-### Phase 0 — Reconnaissance + Foundation ✅
-- Inspected existing locus_drive repository (`/Users/ashim/locus_drive`).
-- Verified existing SQLite catalog (`locus_drive.db`, 29,252 items, 2,396 folders).
-- Catalog schema inspected: `files`, `sync_state`, `page_tokens`, `folder_queue`.
+### Phase 0 to Phase 7 — Foundation, Ingestion, Extraction, Normalization, Classification, Dedup, Indexing, Hybrid Retrieval, Query Understanding ✅
+- 114/114 unit tests pass cleanly.
+- Real LOCUS corpus benchmarked (21 extracted documents).
+- Fixed critical retrieval provenance defect in BM25Index.
+- Removed premature query-analyzer filtering anti-pattern.
 
-### Phase 1 — Golden Benchmark + Baseline ✅
-- 18/18 unit tests pass.
-- Baseline pipeline, seed benchmark (15 cases).
-
-### Phase 2 — Ingestion + Extraction ✅
-- IngestionClient: read-only Drive, Workspace export (Google Docs→text, Sheets→CSV).
-- ExtractionPipeline: text/markdown, CSV/TSV, PDF (PyMuPDF), DOCX (zip+XML).
-- IntegrityAuditor: text yield, page count, headings, tables, warnings.
-- DocumentStateMachine: DISCOVERED→...→INDEXED, FAILED/REQUIRES_REVIEW/DEAD_LETTER.
-- Idempotent re-ingestion, crash recovery.
-
-### Phase 3 — Normalization + Structured Data ✅
-- **Normalization**: Unicode, whitespace, currency, dates, Devanagari.
-- **StructuredDataEngine**: DuckDB+Parquet, deterministic computation.
-- **ExactEntityIndex**: tokenized lookup, Drive-ID support.
-
-### Phase 4 — Classification + Dedup + Authority ✅
-- **DocumentClassifier**: domain (event/sponsorship/budget/...), authority (draft/final/proposal/signed/...).
-- **Deduplicator**: exact-hash + normalized-hash + near-dup (Jaccard, threshold 0.60).
-- **DedupIndex**: persistent SQLite canonical/alias store.
-- **80/80 unit tests pass**.
-
-### Phase 5 — Chunking + Indexing ✅
-- **StructuralChunker**: heading/page/table/sheet-aware, contextual prefixes.
-- **Indexes**: Dense, BM25/lexical, Exact/Entity, Metadata, DedupIndex.
-- **98/98 unit tests pass**.
-
-### Phase 6 — Hybrid Retrieval + Reranking ✅
-- **HybridRetriever**: dense + BM25 + exact + metadata → RRF fusion.
-- **retrieve()**: candidate fusion, filters, provenance preserved.
-- **Test results**: 94/94 pass.
-
-### Phase 7 — Query Understanding + Retrieval Orchestration ✅
-- **Intent classification**: 10+ intents via rule-based patterns.
-- **Query normalizer**: currency/date/name protection, abbreviation expansion.
-- **RetrievalRouter**: intent→strategy mapping, filters, temporal constraints.
-- **Compound query decomposition**: independent sub-query handling.
-- **Multi-query expansion**: selective abbreviation/entity alias expansion.
-- **Temporal reasoning**: years, before/after, during, historical vs current.
-- **Structured-data routing**: DuckDB/PParquet routing for aggregation/filter/sort.
-- **Safe ambiguity handling**: open retrieval, no premature closure.
-- **Phase 6 integration**: reuses Phase 6 HybridRetriever, no duplication.
-
-**Phase 7 Tests**: 105/105 across all phases passing.
+### Phase 11 — Advanced Retrieval Safety (Recall Safety Net) ✅
+- Implemented bounded retrieval ladder (`RecallSafetyNet`): initial hybrid → expanded pool → exact phrase → broadened lexical → query reformulation → document-level.
+- Verified robust fallback behavior and zero-crash on unanswerable queries.
 
 ## Open Issues / Next Actions
 - Track the "NPR" exact-match issue as a known retrieval/indexing edge case.

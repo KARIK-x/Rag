@@ -92,7 +92,7 @@ class EvidenceSet:
     is_sufficient: bool
     missing_aspects: List[str]
     conflicts_detected: bool
-    conflict_notes: Optional[str]
+    conflict_notes: Optional[str] = None
 
 @dataclass
 class VerificationResult:
