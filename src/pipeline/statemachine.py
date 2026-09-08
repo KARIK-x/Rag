@@ -156,13 +156,13 @@ class DocumentStateMachine:
         # Update or insert current state
         cursor.execute("""
             INSERT INTO document_states (doc_id, current_state, last_updated, attempt_count, last_error)
-            VALUES (?, ?, ?, 1, ?)
+            VALUES (?, ?, ?, CASE WHEN ? = 'failed' THEN 1 ELSE 0 END, ?)
             ON CONFLICT(doc_id) DO UPDATE SET
                 current_state = excluded.current_state,
                 last_updated = excluded.last_updated,
                 attempt_count = CASE WHEN ? = 'failed' THEN attempt_count + 1 ELSE attempt_count END,
                 last_error = COALESCE(?, last_error)
-        """, (doc_id, to_str, timestamp, error_message, to_str, error_message))
+        """, (doc_id, to_str, timestamp, to_str, error_message, to_str, error_message))
 
         # Log transition
         cursor.execute("""
@@ -183,6 +183,25 @@ class DocumentStateMachine:
         rows = cursor.fetchall()
         conn.close()
         return [r[0] for r in rows]
+
+    def get_attempt_count(self, doc_id: str) -> int:
+        """Return the persistent failed-attempt count for a document.
+
+        Attempt count lives in ``document_states.attempt_count`` and is
+        incremented by ``transition(... to_state=FAILED)`` across runs, so it
+        survives process restarts. No schema change needed — column exists.
+        """
+        conn = self._connect()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT attempt_count FROM document_states WHERE doc_id = ?",
+            (doc_id,),
+        )
+        row = cursor.fetchone()
+        conn.close()
+        if row is None:
+            return 0
+        return int(row[0])
 
     def get_state_counts(self) -> Dict[str, int]:
         conn = self._connect()

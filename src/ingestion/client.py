@@ -206,7 +206,14 @@ class IngestionClient:
         return mime_type in supported
 
     def local_cache_path(self, drive_file_id: str, extension: str) -> Path:
-        return self.raw_dir / f"{drive_file_id}{extension}"
+        """Construct the local cache path for a downloaded file.
+
+        ``drive_file_id`` is trusted input from the catalog but is interpolated
+        into a filesystem path, so it must never be able to escape `raw_dir`
+        (path-traversal guard). Raises UnsafePathError on an unsafe id.
+        """
+        from src.resilience import safe_subpath
+        return safe_subpath(self.raw_dir, f"{drive_file_id}{extension}")
 
     def _hash_bytes(self, data: bytes) -> str:
         return hashlib.sha256(data).hexdigest()
@@ -291,6 +298,8 @@ class IngestionClient:
         if not isinstance(data, bytes):
             data = data.encode("utf-8") if isinstance(data, str) else bytes(data)
 
+        from src.resilience import assert_not_in_locus_drive
+        assert_not_in_locus_drive(local_path)  # never write into the Drive dir
         local_path.write_bytes(data)
         return self._build_ingested_file(row, data, local_path, True)
 
@@ -318,6 +327,8 @@ class IngestionClient:
         if not isinstance(data, bytes):
             data = bytes(data)
 
+        from src.resilience import assert_not_in_locus_drive
+        assert_not_in_locus_drive(local_path)  # never write into the Drive dir
         local_path.write_bytes(data)
         return self._build_ingested_file(row, data, local_path, False)
 

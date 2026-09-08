@@ -32,8 +32,7 @@ from src.integrity.audit import IntegrityAuditor, IntegrityAudit, AuditStatus
 from src.pipeline.statemachine import DocumentStateMachine, DocumentState
 from src.structured_data.engine import StructuredDataEngine
 from src.chunking.structural import StructuralChunker
-from src.chunking.structural import StructuralChunker
-from src.structured_data.engine import StructuredDataEngine
+from src.resilience import retry_with_backoff, assert_not_in_locus_drive
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +111,7 @@ class IngestionOrchestrator:
         folder_path: str = None,
         max_chars: int = 100_000,
         ocr_mode: str = "auto",
+        max_doc_attempts: int = 5,
     ) -> ProcessingResult:
         """
         Process a single document: download/export → extract → audit → state.
@@ -121,23 +121,56 @@ class IngestionOrchestrator:
 
         Args:
             ocr_mode: "auto" (only scanned pages), "always" (all PDF pages), "never"
+            max_doc_attempts: persistent document-level failed-attempt cap.
+                Once a document reaches this many FAILED transitions (the count
+                survives restarts in document_states.attempt_count), it is
+                dead-lettered instead of reprocessed indefinitely.
         """
         sm = self.state_machine
 
         try:
             # Re-processing a previously-failed/review/partial document must
-            # re-enter the discovery flow (spec §51 retry path).
-            # Force-reset any non-terminal state so DOWNLOADING is legal.
+            # re-enter the discovery flow (spec §51 retry path). The persistent
+            # attempt count (survives restarts) caps infinite retry loops:
+            # once a document fails max_doc_attempts times it is dead-lettered
+            # instead of being reprocessed.
             current = sm.get_state(drive_file_id)
             if current is not None and current not in (
                 DocumentState.INDEXED, DocumentState.DEAD_LETTER
             ):
+                if sm.get_attempt_count(drive_file_id) >= max_doc_attempts:
+                    sm.transition(
+                        drive_file_id,
+                        DocumentState.DEAD_LETTER,
+                        error_message=(
+                            f"Exceeded {max_doc_attempts} failed processing attempts"
+                        ),
+                        force=True,
+                    )
+                    return ProcessingResult(
+                        drive_file_id=drive_file_id,
+                        filename=filename or drive_file_id,
+                        mime_type=mime_type,
+                        status="dead_letter",
+                        state=DocumentState.DEAD_LETTER,
+                        error="Exceeded max processing attempts",
+                    )
                 sm.transition(drive_file_id, DocumentState.DISCOVERED, force=True)
 
             sm.transition(drive_file_id, DocumentState.DOWNLOADING)
 
-            # Download / export (read-only)
-            ingested = self.ingestion.download_file(drive_file_id, mime_type)
+            # Download / export (read-only) with bounded transient retry.
+            # Only genuinely transient failures (network/timeout/5xx/rate
+            # limit) are retried with backoff; permanent errors
+            # (auth/permission/unsupported/not-found) fail immediately and are
+            # NOT multiplied by the document-level attempt counter.
+            ingested = retry_with_backoff(
+                lambda: self.ingestion.download_file(drive_file_id, mime_type),
+                attempts=3,
+                base_delay=0.5,
+                max_delay=8.0,
+            )
+            assert_not_in_locus_drive(Path(ingested.local_path))
             sm.transition(drive_file_id, DocumentState.DOWNLOADED)
 
             # Extract — route on the EFFECTIVE mime type (workspace exports
@@ -397,8 +430,15 @@ class IngestionOrchestrator:
     # ─── Persistence ────────────────────────────────────────────────────────
 
     def _save_extracted(self, drive_file_id: str, result: ExtractionResult):
-        """Persist the extracted representation (JSON) for downstream pipelines."""
-        out_path = self.extracted_dir / f"{drive_file_id}.json"
+        """Persist the extracted representation (JSON) for downstream pipelines.
+
+        The file path is derived from ``drive_file_id`` (trusted catalog input),
+        so it is passed through the safe-subpath guard to prevent traversal, and
+        the Drive directory boundary is enforced before any write.
+        """
+        from src.resilience import safe_subpath, assert_not_in_locus_drive
+        out_path = safe_subpath(self.extracted_dir, f"{drive_file_id}.json")
+        assert_not_in_locus_drive(out_path)
         data = result.to_dict()
         data["saved_at"] = datetime.now(timezone.utc).isoformat()
         with open(out_path, "w", encoding="utf-8") as f:
