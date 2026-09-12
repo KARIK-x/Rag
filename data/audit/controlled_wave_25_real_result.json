@@ -1,0 +1,171 @@
+{
+  "wave_size": 25,
+  "results": {
+    "0B8ptdYzYr7_xMm9QMU5mZXlDRHRHeE5SNXJzSWFzdjlzRzk0": {
+      "db": "PRESENT",
+      "mime": "application/pdf",
+      "name": "Locus design.pdf",
+      "download": "FAIL: Failed to download Drive file 0B8ptdYzYr7_xMm9QMU5mZXlDRHRHe"
+    },
+    "0B8ptdYzYr7_xQWtySmQ0X0lNdG9rQjgtWDBSb1RVakhnSXFZ": {
+      "db": "PRESENT",
+      "mime": "application/pdf",
+      "name": "backdrop.pdf",
+      "download": "FAIL: Failed to download Drive file 0B8ptdYzYr7_xQWtySmQ0X0lNdG9rQ"
+    },
+    "0B8ptdYzYr7_xVlpUczJEWXNyLTI1N1UxY1RMamlaeXhsQzk0": {
+      "db": "PRESENT",
+      "mime": "application/pdf",
+      "name": "A4 Wish Advertisement Outlined2.pdf",
+      "download": "FAIL: Failed to download Drive file 0B8ptdYzYr7_xVlpUczJEWXNyLTI1N"
+    },
+    "0B8ptdYzYr7_xajBjQ200X3NoT0JmX2U1V2IwTnYzN2NZdkxB": {
+      "db": "PRESENT",
+      "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "name": "energy-hackathon.docx",
+      "download": "FAIL: Failed to download Drive file 0B8ptdYzYr7_xajBjQ200X3NoT0JmX"
+    },
+    "0B8ptdYzYr7_xc3VzTUctanFheGM3UEkxRW14UHhUWENpZ1Rn": {
+      "db": "PRESENT",
+      "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "name": "sdg_projects.xlsx",
+      "download": "FAIL: Failed to download Drive file 0B8ptdYzYr7_xc3VzTUctanFheGM3U"
+    },
+    "0B8ptdYzYr7_xdHVIc2g2NVJBa0ZoZHg1U3lOTEx0ejFNNHJJ": {
+      "db": "PRESENT",
+      "mime": "application/pdf",
+      "name": "Robo_warz_details.pdf",
+      "download": "FAIL: Failed to download Drive file 0B8ptdYzYr7_xdHVIc2g2NVJBa0ZoZ"
+    },
+    "1--brgwiaMZYzCRlHkIFB-nyPDrZjZmYQLsOLeUc1TNI": {
+      "db": "PRESENT",
+      "mime": "application/vnd.google-apps.form",
+      "name": "Designers Selection",
+      "download": "FAIL: Failed to export Drive file 1--brgwiaMZYzCRlHkIFB-nyPDrZjZmY"
+    },
+    "1-05KO2tozWHrXYDVZ5uMY6r_-r54xAw8zT1bhvo0irI": {
+      "db": "PRESENT",
+      "mime": "application/vnd.google-apps.spreadsheet",
+      "name": "Winner Details",
+      "download": "OK",
+      "local_path": "/Users/ashim/locus_rag/data/raw/1-05KO2tozWHrXYDVZ5uMY6r_-r54xAw8zT1bhvo0irI.csv"
+    },
+    "1-0WQSotPmm9PmnJUZQriW24z_KyqqSfZ": {
+      "db": "PRESENT",
+      "mime": "application/pdf",
+      "name": "Letter to GIZ.pdf",
+      "download": "OK",
+      "local_path": "/Users/ashim/locus_rag/data/raw/1-0WQSotPmm9PmnJUZQriW24z_KyqqSfZ.pdf"
+    },
+    "1-0olWL3vv4t9Z2ZXdJFPPeL6k8y7XquTHB3VK1TUj5E": {
+      "db": "PRESENT",
+      "mime": "application/vnd.google-apps.spreadsheet",
+      "name": "shree girwan sanksrit ma vi ",
+      "download": "OK",
+      "local_path": "/Users/ashim/locus_rag/data/raw/1-0olWL3vv4t9Z2ZXdJFPPeL6k8y7XquTHB3VK1TUj5E.csv"
+    },
+    "1-0yqASydi2BTPPbf5P8Y_HBVjNaU13x1": {
+      "db": "PRESENT",
+      "mime": "application/pdf",
+      "name": "Cert_DataRushP13613.pdf",
+      "download": "FAIL: Failed to download Drive file 1-0yqASydi2BTPPbf5P8Y_HBVjNaU1"
+    },
+    "1-1rdNyMCeMwqyXdmK1wplwQ5JxMXS3tqp96cPz0POFk": {
+      "db": "PRESENT",
+      "mime": "application/vnd.google-apps.spreadsheet",
+      "name": "Sign Language Detection (Electrical H)",
+      "download": "FAIL: Failed to export Drive file 1-1rdNyMCeMwqyXdmK1wplwQ5JxMXS3t"
+    },
+    "1-2qE3O9XjuRKQH6lY__4lU5YFdVb6bHQ": {
+      "db": "PRESENT",
+      "mime": "application/pdf",
+      "name": "receipt_1720959329815 - Pranisha Maharja",
+      "download": "OK",
+      "local_path": "/Users/ashim/locus_rag/data/raw/1-2qE3O9XjuRKQH6lY__4lU5YFdVb6bHQ.pdf"
+    },
+    "1-3ZB2r7fOaK3s6EmGR9Slo5ZQ9ghxwZ9": {
+      "db": "PRESENT",
+      "mime": "application/pdf",
+      "name": "8.pdf",
+      "download": "OK",
+      "local_path": "/Users/ashim/locus_rag/data/raw/1-3ZB2r7fOaK3s6EmGR9Slo5ZQ9ghxwZ9.pdf"
+    },
+    "1-41E7-rwyt0kldqHfcXmFrpVlytBsIWF": {
+      "db": "PRESENT",
+      "mime": "application/pdf",
+      "name": "Copy of big_flex.pdf",
+      "download": "FAIL: Failed to download Drive file 1-41E7-rwyt0kldqHfcXmFrpVlytBs"
+    },
+    "1-4ackhby4XOw3tzu7LT_JXqU2hveO5HH": {
+      "db": "PRESENT",
+      "mime": "application/pdf",
+      "name": "prashant_adhikari_transitpay_poster - Pr",
+      "download": "OK",
+      "local_path": "/Users/ashim/locus_rag/data/raw/1-4ackhby4XOw3tzu7LT_JXqU2hveO5HH.pdf"
+    },
+    "1-4sECLgclQGyqOgj29Vkbpl5wB7nfeNDVZXJ1D_bFU8": {
+      "db": "PRESENT",
+      "mime": "application/vnd.google-apps.form",
+      "name": "Copy of  Hardware Fellowship 2024: Regis",
+      "download": "FAIL: Failed to export Drive file 1-4sECLgclQGyqOgj29Vkbpl5wB7nfeN"
+    },
+    "1-5F45LtRftdB_byPgapeSsRfNflUSoOEFfhbQF-5Qjs": {
+      "db": "PRESENT",
+      "mime": "application/vnd.google-apps.document",
+      "name": "GirlsToCode2025-GiftPartner",
+      "download": "OK",
+      "local_path": "/Users/ashim/locus_rag/data/raw/1-5F45LtRftdB_byPgapeSsRfNflUSoOEFfhbQF-5Qjs.txt"
+    },
+    "1-5aevLsk_jpTyEyfP6a7JuTpv-g5hYAumlgmY6njHuE": {
+      "db": "PRESENT",
+      "mime": "application/vnd.google-apps.document",
+      "name": "Patternverse Invitation",
+      "download": "OK",
+      "local_path": "/Users/ashim/locus_rag/data/raw/1-5aevLsk_jpTyEyfP6a7JuTpv-g5hYAumlgmY6njHuE.txt"
+    },
+    "1-5tC06zsKIzvZZ0RFTcCO95SkoawXnH5": {
+      "db": "PRESENT",
+      "mime": "application/pdf",
+      "name": "ThemeDraft.pdf",
+      "download": "OK",
+      "local_path": "/Users/ashim/locus_rag/data/raw/1-5tC06zsKIzvZZ0RFTcCO95SkoawXnH5.pdf"
+    },
+    "1-6Jxf44S_DkDDQf5kYb1a2VvQotZsVe-xqo9CI_zwPw": {
+      "db": "PRESENT",
+      "mime": "application/vnd.google-apps.document",
+      "name": "First Draft MoU SecurityPal",
+      "download": "OK",
+      "local_path": "/Users/ashim/locus_rag/data/raw/1-6Jxf44S_DkDDQf5kYb1a2VvQotZsVe-xqo9CI_zwPw.txt"
+    },
+    "1-80b92_lfNXE6fvn0sAv06nuY6gAbIcYBxz9sglz1wc": {
+      "db": "PRESENT",
+      "mime": "application/vnd.google-apps.document",
+      "name": "Copy of bank statement",
+      "download": "OK",
+      "local_path": "/Users/ashim/locus_rag/data/raw/1-80b92_lfNXE6fvn0sAv06nuY6gAbIcYBxz9sglz1wc.txt"
+    },
+    "1-881u773vRLyLZXorHMrep5uE8paVpcl": {
+      "db": "PRESENT",
+      "mime": "application/pdf",
+      "name": "ProjectProposal - Leo Pujan Dahal.pdf",
+      "download": "FAIL: Failed to download Drive file 1-881u773vRLyLZXorHMrep5uE8paV"
+    },
+    "1-9FKFWr5IGuSrH4WIPvAzaxG0ltxC-5k": {
+      "db": "PRESENT",
+      "mime": "application/pdf",
+      "name": "Cert_DataRushP13635.pdf",
+      "download": "FAIL: Failed to download Drive file 1-9FKFWr5IGuSrH4WIPvAzaxG0ltxC"
+    },
+    "1-AClprSBB7OiPL9RxyBcbB8seGMpRKvCh5EzLQ6EALA": {
+      "db": "PRESENT",
+      "mime": "application/vnd.google-apps.document",
+      "name": "MoU_InspiringLab",
+      "download": "FAIL: Failed to export Drive file 1-AClprSBB7OiPL9RxyBcbB8seGMpRKv"
+    }
+  },
+  "downloaded": 11,
+  "failed": 14,
+  "executed": true,
+  "timestamp": "2026-09-12 09:07:20",
+  "note": "Real download executed with correct DB IDs; auth/session active (token.pickle valid)"
+}
