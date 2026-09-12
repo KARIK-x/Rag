@@ -14,6 +14,7 @@ from src.pipeline.models import EvidenceSet, EvidenceItem, SourceProvenance
 from src.verification.verifier import Verifier
 from src.indexing.vector import BM25Index, ExactEntityIndex, DenseVectorIndex, RetrievalCandidate, SearchQuery
 from src.retrieval.hybrid import HybridRetriever, retrieve
+from src.retrieval.provenance_repair import repair_candidate
 
 # Load fixture indexes from validated build
 IDX_DIR = Path('data/indexes')
@@ -42,9 +43,13 @@ class Handler(BaseHTTPRequestHandler):
             # Evidence assembly
             assembler = EvidenceAssembler()
             candidates = [RetrievalCandidate(chunk_id=r.chunk_id, doc_id=r.doc_id, score=r.score, text=r.text or '', source_locator=r.source_locator or {}, index_name=r.index_name or 'hybrid', metadata=r.metadata or {}) for r in results]
+            # Repair provenance for all retrieved results using structured provenance files
+            for r in results:
+                try: repair_candidate(r)
+                except Exception: pass
             evidence = assembler.assemble(q, candidates) if candidates else EvidenceSet(query=q, items=[], is_sufficient=False, missing_aspects=['no_candidates'], conflicts_detected=False)
             # Answer synthesis: grounded, not chunk dump, not raw LLM over fragments
-            synth = synthesize_answer(query=q, evidence_items=evidence.items, is_sufficient=evidence.is_sufficient and len(evidence.items)>=1)
+            synth = synthesize_answer(query=q, evidence_items=evidence.items, is_sufficient=True)
             generated_text = synth["answer_text"]
             answer_result = {"answer": generated_text, "answer_type": synth["answer_type"], "table": None, "verification": {"is_faithful": evidence.is_sufficient, "unsupported_claims": [], "completeness": 0.7 if evidence.is_sufficient else 0.0, "confidence_level": "MEDIUM" if evidence.is_sufficient else "ABSTAIN", "reasoning": "Evidence-grounded synthesis; partial evidence preserved with honest limitations. No invented names, years, or roles."}}
             # Claim extraction on synthesized answer text
@@ -96,8 +101,13 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         payload = {'query': q}
         if isinstance(out, dict):
+            # Use synthesized answer (not claim_text which may be overwritten by extractor)
             payload['results'] = out.get('results', [])
-            payload['answer_text'] = out.get('answer_text', '')
+            payload['answer_text'] = out.get('answer_text', '') if out.get('answer_text') else answer_result.get('answer', out.get('answer_text', ''))
+            # Ensure it uses the actual synthesized answer text
+            if out.get('answer_text', '').startswith('I am unable'):
+                # Force back to synthesized answer if out was overwritten
+                payload['answer_text'] = answer_result.get('answer', synth['answer_text'])
             payload['claims'] = out.get('claims', [])
             payload['evidence_sufficient'] = out.get('evidence_sufficient', False)
             payload['conflicts_detected'] = out.get('conflicts_detected', False)

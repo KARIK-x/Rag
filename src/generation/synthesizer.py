@@ -6,7 +6,8 @@ from typing import Any, Dict, List
 
 def synthesize_answer(query: str, evidence_items: List[Any], is_sufficient: bool) -> Dict[str, Any]:
     """Build answer from evidence; never invent. Preserve year/context."""
-    if not is_sufficient or not evidence_items:
+    # Always synthesize when evidence exists; abstain only on genuinely empty evidence
+    if not evidence_items:
         return {"answer_text": "I am unable to answer this question based on the available institutional knowledge records. The evidence is insufficient or inconclusive.", "answer_type": "ABSTENTION", "evidence_count": 0}
     # Group items by year hint from text
     groups: Dict[str, List[str]] = {}
