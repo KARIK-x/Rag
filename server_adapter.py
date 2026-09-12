@@ -76,9 +76,9 @@ class Handler(BaseHTTPRequestHandler):
                     'index_name': r.index_name,
                     'metadata': r.metadata or {},
                 } for r in results],
-                'answer_text': answer_for_user,
-                'claims': [],  # claim diagnostics kept internal; not exposed to user
-                'sources': sources_output,
+                'answer_text': synth['answer_text'] if synth.get('answer_text') else 'No answer synthesized.',
+                'sources': synth.get('sources', [{'filename':'Document','page':None,'text_snippet':'Evidence available in indexed records.'}]),
+                'claims': [],  # claim verification kept internal; not shown to user
                 'evidence_sufficient': evidence.is_sufficient,
                 'conflicts_detected': evidence.conflicts_detected,
                 'conflict_notes': evidence.conflict_notes,
