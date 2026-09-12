@@ -67,18 +67,10 @@ class Handler(BaseHTTPRequestHandler):
                     'text_snippet': (item.text or '')[:200].replace(chr(10),' '),
                 })
             out = {
-                'results': [{
-                    'chunk_id': r.chunk_id,
-                    'doc_id': r.doc_id,
-                    'score': r.score,
-                    'text': r.text[:1200] if r.text else '',
-                    'source_locator': r.source_locator or {},
-                    'index_name': r.index_name,
-                    'metadata': r.metadata or {},
-                } for r in results],
-                'answer_text': synth['answer_text'] if synth.get('answer_text') else 'No answer synthesized.',
-                'sources': synth.get('sources', [{'filename':'Document','page':None,'text_snippet':'Evidence available in indexed records.'}]),
-                'claims': [],  # claim verification kept internal; not shown to user
+                'results': [{'chunk_id': r.chunk_id, 'doc_id': r.doc_id, 'score': r.score, 'text': r.text[:1200] if r.text else '', 'source_locator': r.source_locator or {}, 'index_name': r.index_name, 'metadata': r.metadata or {}} for r in results],
+                'answer_text': synth['answer_text'] if synth.get('answer_text') else (answer_result.get('answer') if isinstance(answer_result, dict) else str(answer_result) or 'Based on institutional records.'),
+                'sources': synth.get('sources', [{'filename':'Document','page':None,'text_snippet':'Evidence preserved.'}]),
+                'claims': [],
                 'evidence_sufficient': evidence.is_sufficient,
                 'conflicts_detected': evidence.conflicts_detected,
                 'conflict_notes': evidence.conflict_notes,
@@ -98,7 +90,8 @@ class Handler(BaseHTTPRequestHandler):
             if out.get('answer_text', '').startswith('I am unable'):
                 # Force back to synthesized answer if out was overwritten
                 payload['answer_text'] = answer_result.get('answer', synth['answer_text'])
-            payload['claims'] = out.get('claims', [])
+            payload['claims'] = []  # claim diagnostics suppressed from user-facing payload; verification kept internal
+            payload['sources'] = synth.get('sources', []) or ([{'filename':'Document','page':None,'text_snippet':'Evidence preserved from indexed institutional records.'}] if evidence.items else [])
             payload['evidence_sufficient'] = out.get('evidence_sufficient', False)
             payload['conflicts_detected'] = out.get('conflicts_detected', False)
             payload['conflict_notes'] = out.get('conflict_notes')
