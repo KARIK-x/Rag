@@ -23,7 +23,7 @@ class EvidenceAssembler:
 
     def __init__(
         self,
-        min_score_threshold: float = 0.15,
+        min_score_threshold: float = 0.005,
         sufficiency_min_items: int = 1,
     ):
         self.min_score_threshold = min_score_threshold

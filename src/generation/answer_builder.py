@@ -48,20 +48,10 @@ class AnswerBuilder:
                 }
             }
 
-        # Synthesize answer text from evidence items
-        answer_parts = []
+        # Build provenance from evidence (preserve for sources display)
         provenance_records = []
-
-        for idx, item in enumerate(evidence.items[:5], start=1):
-            text_snippet = item.text.strip()
-            if len(text_snippet) > 250:
-                text_snippet = text_snippet[:250] + "..."
-
-            filename = item.provenance.filename or "Document"
-            page_str = f" (Page {item.provenance.page})" if item.provenance.page else ""
-            answer_parts.append(f"{text_snippet} [{idx}: {filename}{page_str}]")
-
-            prov_rec = {
+        for item in evidence.items[:5]:
+            provenance_records.append({
                 "drive_file_id": item.provenance.drive_file_id,
                 "filename": item.provenance.filename,
                 "folder_path": item.provenance.folder_path,
@@ -69,10 +59,12 @@ class AnswerBuilder:
                 "row": item.provenance.row_start,
                 "chunk_id": item.chunk_id,
                 "source_view_link": item.provenance.source_view_link,
-            }
-            provenance_records.append(prov_rec)
+            })
 
-        synthesized_text = "Based on institutional records:\n\n" + "\n\n".join(answer_parts)
+        # Synthesize answer text from evidence items — natural language, not chunk dump
+        from src.generation.synthesizer import synthesize_answer
+        synth = synthesize_answer(query="", evidence_items=evidence.items, is_sufficient=verification.confidence_level != "ABSTAIN" and evidence.is_sufficient)
+        synthesized_text = synth["answer_text"]
 
         return {
             "answer_type": "FACTUAL",

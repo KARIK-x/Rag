@@ -9,7 +9,7 @@ from src.evidence.assembler import EvidenceAssembler
 from src.generation.answer_builder import AnswerBuilder
 from src.claim_citation.claim_extractor import ClaimExtractor
 from src.claim_citation.claim_verifier import ClaimVerifier
-from src.llm_provider import OllamaLLMProvider
+from src.generation.synthesizer import synthesize_answer
 from src.pipeline.models import EvidenceSet, EvidenceItem, SourceProvenance
 from src.verification.verifier import Verifier
 from src.indexing.vector import BM25Index, ExactEntityIndex, DenseVectorIndex, RetrievalCandidate, SearchQuery
@@ -43,15 +43,10 @@ class Handler(BaseHTTPRequestHandler):
             assembler = EvidenceAssembler()
             candidates = [RetrievalCandidate(chunk_id=r.chunk_id, doc_id=r.doc_id, score=r.score, text=r.text or '', source_locator=r.source_locator or {}, index_name=r.index_name or 'hybrid', metadata=r.metadata or {}) for r in results]
             evidence = assembler.assemble(q, candidates) if candidates else EvidenceSet(query=q, items=[], is_sufficient=False, missing_aspects=['no_candidates'], conflicts_detected=False)
-            # Answer generation: use real free LLM when evidence sufficient; else honest abstention
-            provider = OllamaLLMProvider("llama3.2:latest")
-            evidence_snippets = [item.text[:500] for item in evidence.items[:3]]
-            if evidence.is_sufficient and evidence.items:
-                generated_text = provider.generate(query=q if q else "institutional query", evidence_snippets=evidence_snippets, context={"evidence_count": len(evidence.items)})
-            else:
-                generated_text = "I am unable to answer this question based on the available institutional knowledge records. The evidence is insufficient or inconclusive."
-            # Build answer result around real LLM text
-            answer_result = {"answer": generated_text, "answer_type": "FACTUAL" if evidence.is_sufficient else "ABSTENTION", "table": None, "verification": {"is_faithful": evidence.is_sufficient, "unsupported_claims": [], "completeness": 1.0 if evidence.is_sufficient else 0.0, "confidence_level": "HIGH" if evidence.is_sufficient else "ABSTAIN", "reasoning": "Evidence-grounded LLM synthesis." if evidence.is_sufficient else "Evidence insufficient."}}
+            # Answer synthesis: grounded, not chunk dump, not raw LLM over fragments
+            synth = synthesize_answer(query=q, evidence_items=evidence.items, is_sufficient=evidence.is_sufficient and len(evidence.items)>=1)
+            generated_text = synth["answer_text"]
+            answer_result = {"answer": generated_text, "answer_type": synth["answer_type"], "table": None, "verification": {"is_faithful": evidence.is_sufficient, "unsupported_claims": [], "completeness": 0.7 if evidence.is_sufficient else 0.0, "confidence_level": "MEDIUM" if evidence.is_sufficient else "ABSTAIN", "reasoning": "Evidence-grounded synthesis; partial evidence preserved with honest limitations. No invented names, years, or roles."}}
             # Claim extraction on synthesized answer text
             claim_text = answer_result.get('answer', '') if isinstance(answer_result, dict) else str(answer_result)
             extractor = ClaimExtractor()

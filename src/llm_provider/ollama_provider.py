@@ -9,8 +9,9 @@ class OllamaLLMProvider:
 
     def generate(self, question: str, evidence_snippets: List[str], context: Optional[Dict] = None) -> str:
         # Build a grounded prompt using ONLY the provided evidence
-        evidence_text = "\n".join(f"- {s}" for s in evidence_snippets)
-        prompt = f"""You are an evidence-first assistant. Answer ONLY using the evidence below. Do not invent facts. If evidence is insufficient for any claim, say so.
+        # If evidence snippets contain real document context (heading + text), synthesize naturally
+        evidence_text = "\n".join(f"- [{i+1}] {s}" for i, s in enumerate(evidence_snippets))
+        prompt = f"""You are an evidence-first assistant. Answer ONLY using the evidence below. Do not invent facts.
 
 Question: {question}
 
@@ -18,10 +19,11 @@ Evidence:
 {evidence_text}
 
 Instructions:
-- Answer in natural language.
-- Each factual claim must be supported by the evidence above.
-- If evidence does not fully support the answer, state the limitation clearly.
-- Do not invent sources, numbers, dates, or names.
+- If the evidence clearly contains the answer, provide a concise natural-language answer summarizing the key point with the source document mentioned.
+- If evidence is partial, say what can be established and what is missing.
+- If evidence does not support a specific claim, state the limitation clearly.
+- Each factual claim must cite its source document where available.
+- Do not invent sources, years, names, or roles not in the evidence.
 
 Answer:"""
         try:

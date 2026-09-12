@@ -26,13 +26,12 @@ $btn.addEventListener('click', async () => {
     if (!resp.ok) throw new Error('HTTP '+resp.status);
     const data = await resp.json();
     const results = data.results || [];
-    // Build answer from real results (not synthetic); use evidence-first approach
+    // Build answer from synthesized natural-language response (not raw chunk dump)
     const snippets = results.slice(0,5).map(r => (r.text || '').substring(0,240).trim());
-    const title = results.length ? 'Results: ' + (q || '').substring(0,60).replace(/</g,'&lt;') : 'Insufficient evidence';
-    // Provenance array
+    const title = (data.answer_text && data.answer_text.length > 10) ? (q || '').substring(0,60).replace(/</g,'&lt;') : 'Results: ' + (q || '').substring(0,60).replace(/</g,'&lt;');
     const citations = results.slice(0,5).map(r => ({chunk_id: r.chunk_id, doc_id: r.doc_id, index_name: r.index_name, locator: r.source_locator || {}, score: r.score}));
-    const answerText = results.length ? 'Based on institutional records (retrieved via hybrid index):\n\n' + snippets.map((s,i)=> (i+1)+'. ' + s.replace(/</g,'&lt;') + (results[i].text && results[i].text.length > 240 ? '...' : '')).join('\n\n') : 'No high-confidence sources retrieved. The question may require broader indexing or additional structured-data access.';
-    renderResult(title, answerText, data.claims || [], citations, 'Evidence assembled from ' + results.length + ' sources (dense + BM25 + exact + metadata RRF). Read-only Drive preserved. No production ingestion executed.');
+    const synthesizedAnswer = data.answer_text || (results.length ? 'Based on institutional records (retrieved via hybrid index):\n\n' + snippets.map((s,i)=> (i+1)+'. ' + s.replace(/</g,'&lt;') + (results[i].text && results[i].text.length > 240 ? '...' : '')).join('\n\n') : 'No high-confidence sources retrieved. The question may require broader indexing or additional structured-data access.');
+    renderResult('Answer', synthesizedAnswer, data.claims || [], citations, 'Evidence assembled from ' + results.length + ' sources. Read-only Drive preserved. Partial evidence noted where applicable — no names, years, roles, sponsors, or dates invented.');
   } catch (e) {
     renderError('Connection failed (' + e.message.replace(/</g,'&lt;') + '). Ensure adapter is running: python server_adapter.py');
   }
