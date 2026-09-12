@@ -110,7 +110,7 @@ def synthesize(query: str, evidence_items: List[Any], is_sufficient: bool = True
             answer = "Institutional records document LOCUS events, team roles, sponsorship structures, themes, and dates. A complete record for all years and categories is not fully established.\n"
 
     # Clean answer of any OCR artifacts in synthesized text
-    answer = clean_text(answer)
+    answer = clean_ocr(answer)
     return {
         "answer_text": answer,
         "answer_type": "FACTUAL",

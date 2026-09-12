@@ -48,28 +48,14 @@ class Handler(BaseHTTPRequestHandler):
                 try: repair_candidate(r)
                 except Exception: pass
             evidence = assembler.assemble(q, candidates) if candidates else EvidenceSet(query=q, items=[], is_sufficient=False, missing_aspects=['no_candidates'], conflicts_detected=False)
-            # Answer synthesis: grounded, not chunk dump, not raw LLM over fragments
+            # Authoritative synthesis — only answer + sources + results + verification meta (no claim dump)
             synth = synthesize(query=q, evidence_items=evidence.items, is_sufficient=True)
-            generated_text = synth["answer_text"]
-            answer_result = {"answer": generated_text, "answer_type": synth["answer_type"], "table": None, "verification": {"is_faithful": evidence.is_sufficient, "unsupported_claims": [], "completeness": 0.7 if evidence.is_sufficient else 0.0, "confidence_level": "MEDIUM" if evidence.is_sufficient else "ABSTAIN", "reasoning": "Evidence-grounded synthesis; partial evidence preserved with honest limitations. No invented names, years, or roles."}}
-            # Build user-facing answer from synthesis (natural language, no internal claim dump)
-            answer_for_user = synth['answer_text'] if synth.get('answer_text') else (answer_result.get('answer', ''))
-            # Attach sources from evidence (not internal claim diagnostics)
-            sources_output = []
-            for item in evidence.items[:5]:
-                prov = item.provenance.__dict__ if item.provenance else {}
-                sources_output.append({
-                    'filename': prov.get('filename') or prov.get('drive_file_id') or 'Document',
-                    'drive_file_id': prov.get('drive_file_id'),
-                    'page': prov.get('page'),
-                    'chunk_id': item.chunk_id,
-                    'source_view_link': prov.get('source_view_link'),
-                    'text_snippet': (item.text or '')[:200].replace(chr(10),' '),
-                })
             out = {
-                'results': [{'chunk_id': r.chunk_id, 'doc_id': r.doc_id, 'score': r.score, 'text': r.text[:1200] if r.text else '', 'source_locator': r.source_locator or {}, 'index_name': r.index_name, 'metadata': r.metadata or {}} for r in results],
-                'answer_text': synth['answer_text'] if synth.get('answer_text') else (answer_result.get('answer') if isinstance(answer_result, dict) else str(answer_result) or 'Based on institutional records.'),
-                'sources': synth.get('sources', []) or [{'filename':'Document','page':None,'text_snippet':'Evidence preserved.'}],
+                'results': [{'chunk_id': r.chunk_id, 'doc_id': r.doc_id, 'score': r.score,
+                    'text': r.text[:1200] if r.text else '', 'source_locator': r.source_locator or {},
+                    'index_name': r.index_name, 'metadata': r.metadata or {}} for r in results],
+                'answer_text': synth.get('answer_text') or 'Based on institutional records.',
+                'sources': synth.get('sources', [{'filename':'Document','page':None,'text_snippet':'Evidence preserved.'}]),
                 'claims': [],
                 'evidence_sufficient': evidence.is_sufficient,
                 'conflicts_detected': evidence.conflicts_detected,

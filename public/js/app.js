@@ -2,7 +2,7 @@ const $d = id => document.getElementById(id);
 const $ = s => document.querySelector(s);
 const $btn = $d('btn');
 function resetW() { $d('q').value=''; $d('out').innerHTML='<div class="empty">Enter a query.</div>'; }
-function renderLoading() { $d('out').innerHTML='<div class="empty">Retrieving from real index (dense + BM25 + exact + metadata via RRF)...</div>'; }
+function renderLoading() { $d('out').innerHTML='<div class="empty">Searching institutional index (dense + BM25 + exact + metadata via RRF)...</div>'; }
 function renderClaimCitation(claim, idx) {
   if (!claim) return '';
   const status = claim.status || 'PENDING';
@@ -28,9 +28,9 @@ $btn.addEventListener('click', async () => {
     const results = data.results || [];
     // Build answer from synthesized natural-language response (not raw chunk dump)
     const snippets = results.slice(0,5).map(r => (r.text || '').substring(0,240).trim());
-    const title = (data.answer_text && data.answer_text.length > 10) ? (q || '').substring(0,60).replace(/</g,'&lt;') : 'Results: ' + (q || '').substring(0,60).replace(/</g,'&lt;');
+    const title = (data.answer_text && data.answer_text.length > 10) ? 'Answer' : 'Results: ' + (q || '').substring(0,60).replace(/</g,'&lt;');
     const citations = results.slice(0,5).map(r => ({chunk_id: r.chunk_id, doc_id: r.doc_id, index_name: r.index_name, locator: r.source_locator || {}, score: r.score}));
-    const synthesizedAnswer = data.answer_text || (results.length ? 'Based on institutional records (retrieved via hybrid index):\n\n' + snippets.map((s,i)=> (i+1)+'. ' + s.replace(/</g,'&lt;') + (results[i].text && results[i].text.length > 240 ? '...' : '')).join('\n\n') : 'No high-confidence sources retrieved. The question may require broader indexing or additional structured-data access.');
+    const synthesizedAnswer = data.answer_text || (results.length ? 'Based on institutional records (retrieved via hybrid index):\n\n' + snippets.map((s,i)=> (i+1)+'. ' + s.replace(/</g,'&lt;') + (results[i].text && results[i].text.length > 240 ? '...' : '')).join('\n\n') : 'No high-confidence sources retrieved — try adjusting the query.. The question may require broader indexing or additional structured-data access.');
     renderResult('Answer', synthesizedAnswer, data.claims || [], citations, 'Evidence assembled from ' + results.length + ' sources. Read-only Drive preserved. Partial evidence noted where applicable — no names, years, roles, sponsors, or dates invented.');
   } catch (e) {
     renderError('Connection failed (' + e.message.replace(/</g,'&lt;') + '). Ensure adapter is running: python server_adapter.py');
