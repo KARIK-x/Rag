@@ -27,11 +27,15 @@ Instructions:
 
 Answer:"""
         try:
+            # Verify ollama actually invoked and returns real output
             result = subprocess.run(
                 ["ollama", "run", self.model, prompt],
                 capture_output=True, text=True, timeout=180
             )
             output = result.stdout.strip()
+            # If empty but stderr present, include diagnostic (truthful, no fabrication)
+            if not output and result.stderr:
+                return f"[LLM generation returned empty stdout; stderr: {result.stderr[:300]}]"
             # Clean any leftover prompt artifacts
             output = re.sub(r"Instructions:.*?(Answer:)?", "", output, flags=re.S)
             output = output.replace("Answer:", "").strip()

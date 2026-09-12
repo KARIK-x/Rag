@@ -110,6 +110,9 @@ def synthesize(query: str, evidence_items: List[Any], is_sufficient: bool = True
         else:
             answer = "Institutional records document LOCUS events, team roles, sponsorship structures, themes, and dates. A complete record for all years and categories is not fully established.\n"
 
+    is_people = plan.intent == "people" or ("team" in query.lower() and "organis" in query.lower())
+    is_sponsor = plan.intent == "sponsor" or ("sponsor" in query.lower())
+    is_prizes = plan.intent == "prizes" or ("prize" in query.lower() or "award" in query.lower())
     # Clean answer of any OCR artifacts in synthesized text
     answer = clean_ocr(answer)
     return {
@@ -117,7 +120,7 @@ def synthesize(query: str, evidence_items: List[Any], is_sufficient: bool = True
         "answer_type": "FACTUAL",
         "format": "table" if is_people else ("table" if (is_sponsor or is_prizes) else "prose"),
         "sources": sources,
-        "evidence_count": len(context_blocks),
+        "evidence_count": len(blocks),
     }
 
 def clean_ocr(t: str) -> str:

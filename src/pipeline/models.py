@@ -36,6 +36,8 @@ class SourceProvenance:
     mime_type: str
     revision_id: Optional[str] = None
     page: Optional[int] = None
+    page_start: Optional[int] = None  # compatibility with Chunk/page fields
+    page_end: Optional[int] = None
     section: Optional[str] = None
     heading_path: List[str] = field(default_factory=list)
     table_id: Optional[str] = None

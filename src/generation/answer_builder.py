@@ -62,7 +62,7 @@ class AnswerBuilder:
             })
 
         # Synthesize answer text from evidence items — natural language, not chunk dump
-        from src.generation.synthesizer import synthesize_answer
+        from src.generation.synthesizer import synthesize as synthesize_answer
         synth = synthesize_answer(query="", evidence_items=evidence.items, is_sufficient=verification.confidence_level != "ABSTAIN" and evidence.is_sufficient)
         synthesized_text = synth["answer_text"]
 
