@@ -207,8 +207,11 @@ class HybridRetriever:
         # 3. Metadata filtering
         fused = self.metadata.filter(fused, search_query.filters)
 
-        # 4. Return top-k
-        return fused[:top_k]
+        # Filter: drop bare fragments; rank provenance-backed chunks higher
+        provenance_filter = lambda c: bool(c.doc_id or (c.source_locator and c.source_locator.get('drive_file_id')))
+        filtered = [c for c in fused if provenance_filter(c)]
+        reranked = sorted(filtered, key=lambda c: (c.score + (0.015 if provenance_filter(c) and c.doc_id else 0), c.score), reverse=True)
+        return reranked[:top_k]
 
 
 # ─── Exports ─────────────────────────────────────────────────────────────────
