@@ -53,7 +53,6 @@ class SearchQuery:
     amounts: List[str] = field(default_factory=list)
     filters: Dict[str, Any] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 # ─── Abstract index interface ───────────────────────────────────────────────
@@ -104,7 +103,6 @@ class ExactEntityIndex(BaseIndex):
         if db_path:
             Path(db_path).parent.mkdir(parents=True, exist_ok=True)
             self._init_db()
-            self._load()
             self._load()
 
     def _init_db(self):
@@ -168,6 +166,7 @@ class ExactEntityIndex(BaseIndex):
         )
         conn.commit()
         conn.close()
+
 
     def _tokenize(self, text: str) -> List[str]:
         """Extract exact-match tokens from text."""
@@ -258,15 +257,6 @@ class ExactEntityIndex(BaseIndex):
                                 candidates[cid] = (candidates[cid][0] + score, self._chunk_texts.get(cid, ""))
                             else:
                                 candidates[cid] = (score, self._chunk_texts.get(cid, ""))
-            # Long alphanumeric token (likely a drive ID) — substring match
-            if len(term) >= 20 and re.match(r"^[a-z0-9_-]+$", term):
-                for tok, cids in self._index.items():
-                    if term in tok or tok in term:
-                        for cid in cids:
-                            if cid in candidates:
-                                candidates[cid] = (candidates[cid][0] + score, self._chunk_texts.get(cid, ""))
-                            else:
-                                candidates[cid] = (score, self._chunk_texts.get(cid, ""))
 
         results = []
         for cid, (sc, txt) in sorted(candidates.items(), key=lambda x: -x[1][0])[:top_k]:
@@ -333,6 +323,7 @@ class BM25Index(BaseIndex):
         if db_path:
             Path(db_path).parent.mkdir(parents=True, exist_ok=True)
             self._init_db()
+            self._load_state()
 
     def _init_db(self):
         conn = sqlite3.connect(self.db_path)
@@ -352,6 +343,32 @@ class BM25Index(BaseIndex):
             )
         """)
         conn.commit()
+        conn.close()
+
+
+
+    def _load_state(self):
+        if not self.db_path or not Path(self.db_path).exists():
+            return
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT chunk_id, text, length FROM bm25_docs")
+            for cid, txt, length in cur.fetchall():
+                self.doc_ids.append(cid)
+                self.doc_texts[cid] = txt
+                self.doc_lens[cid] = length
+            cur.execute("SELECT term, doc_freq, postings FROM bm25_terms")
+            for term, df, postings_json in cur.fetchall():
+                self.doc_freq[term] = df
+                for cid, freq in json.loads(postings_json).items():
+                    if cid not in self.term_freqs:
+                        self.term_freqs[cid] = {}
+                    self.term_freqs[cid][term] = freq
+            self.N = len(self.doc_ids)
+            self.avgdl = sum(self.doc_lens.values()) / self.N if self.N else 0.0
+        except Exception:
+            pass
         conn.close()
 
     def _tokenize(self, text: str) -> List[str]:
@@ -482,6 +499,7 @@ class DenseVectorIndex(BaseIndex):
         if db_path:
             Path(db_path).parent.mkdir(parents=True, exist_ok=True)
             self._init_db()
+            self._load_state()
 
     def _init_db(self):
         conn = sqlite3.connect(self.db_path)
@@ -493,6 +511,19 @@ class DenseVectorIndex(BaseIndex):
             )
         """)
         conn.commit()
+        conn.close()
+
+    def _load_state(self):
+        if not self.db_path or not Path(self.db_path).exists():
+            return
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT chunk_id, embedding FROM dense_index")
+            for cid, emb_json in cur.fetchall():
+                self.embeddings[cid] = json.loads(emb_json)
+        except Exception:
+            pass
         conn.close()
 
     def add(self, chunk_id: str, text: str, metadata: Dict[str, Any]) -> None:
@@ -602,15 +633,9 @@ class MetadataIndex(BaseIndex):
                 out.append(c)
         return out
 
-    def add(self, chunk_id: str, text: str, metadata: Dict[str, Any]) -> None:
-        self.chunk_meta[chunk_id] = metadata
-
     def delete(self, chunk_ids: List[str]) -> None:
         for cid in chunk_ids:
             self.chunk_meta.pop(cid, None)
-
-    def search(self, query: SearchQuery, top_k: int) -> List[RetrievalCandidate]:
-        return []
 
     def clear(self) -> None:
         self.chunk_meta.clear()

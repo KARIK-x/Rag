@@ -55,27 +55,23 @@ def rrf_fusion(
     # Sort by fused score descending
     sorted_ids = sorted(fused_scores.items(), key=lambda x: -x[1])
 
-    # Build Candidate objects from the best-ranked list
-    # Use the first list's candidates as base, overlay fused scores
-    best_list = results_lists[0] if results_lists else []
+    # Search ALL lists so BM25/exact-only keep real text/provenance
+    all_cands: dict = {}
+    for rlist in results_lists:
+        for c in rlist:
+            if c.chunk_id not in all_cands or (not all_cands[c.chunk_id].text and c.text):
+                all_cands[c.chunk_id] = c
     fused: List[RetrievalCandidate] = []
     seen = set()
     for cid, fused_score in sorted_ids:
         if cid in seen:
             continue
         seen.add(cid)
-        # Find the candidate object from the first list
-        cand = next((c for c in best_list if c.chunk_id == cid), None)
+        cand = all_cands.get(cid)
         if cand is None:
-            # Build a minimal candidate from metadata
-            cand = RetrievalCandidate(
-                chunk_id=cid,
-                doc_id="",
-                score=fused_score,
-                text="",
-                source_locator={},
-                index_name="hybrid",
-            )
+            cand = RetrievalCandidate(chunk_id=cid, doc_id="", score=fused_score, text="", source_locator={}, index_name="hybrid")
+        else:
+            cand = RetrievalCandidate(chunk_id=cand.chunk_id, doc_id=cand.doc_id, score=fused_score, text=cand.text, source_locator=cand.source_locator, index_name="hybrid", metadata=cand.metadata)
         fused.append(cand)
 
     return fused

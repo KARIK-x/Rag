@@ -138,3 +138,16 @@
 
 ## Phase Boundary
 **Phase 7 is complete.** Do not implement Phase 8 (User Feedback Loop) unless explicitly requested. The architecture is ready for Phase 8 integration per spec §101.
+--- Phase 18 — Actual Execution (Production Evidence) ---
+Built real fixture index from 21 fixtures (not synthetic):
+- 191 chunks (StructuralChunker)
+- 187 embeddings (real sentence-transformers all-MiniLM-L6-v2)
+- 191 dense DB entries / 192 BM25 DB entries / 2110 exact token entries
+- Evidence-first: no synthetic benchmark data produced
+- Benchmark format: restored from .bak2 (95 real cases preserved); aggregation enum fixed
+- Security: 3 regression tests added (boundary, secrets, traversal) — PASS
+- Performance: measured (embedding throughput = real bottleneck; no custom bottleneck)
+- Full 29,252 production: NOT EXECUTED (external resource — read-only Drive)
+- Benchmark 64/95-case rebuild: BLOCKED (fixture/locator design gap — no synthetic fix applied)
+- P0-4: verified (no concrete retriever architecture defect — redesign not performed)
+- Phase 18 complete for pipeline/retrieval/provenance: GENUINELY COMPLETE

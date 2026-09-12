@@ -192,29 +192,25 @@ class StructuredDataEngine:
         data = [ [row.get(h) for h in table.headers] for row in table.rows ]
 
         if not data:
+            null_sql = ", ".join('NULL AS "{}"'.format(h) for h in table.headers)
             con.execute(
-                f"COPY (SELECT {', '.join(f'NULL AS \"{h}\"' for h in table.headers)} WHERE FALSE)"
-                f" TO '{parquet_path}' (FORMAT PARQUET)"
+                "COPY (SELECT {} WHERE FALSE) TO '{}' (FORMAT PARQUET)".format(
+                    null_sql, parquet_path
+                )
             )
         else:
-            # Infer a DuckDB type per column from non-null values.
             col_types = []
             for c in range(len(table.headers)):
                 col_values = [row[c] for row in data if row[c] is not None and row[c] != ""]
                 col_types.append(self._infer_type(col_values))
-            # Build VALUES with per-value CASTs so NULLs don't force everything VARCHAR.
             values_sql = _values_clause_typed(data, col_types)
-            col_defs = ", ".join(f'"{h}"' for h in table.headers)
-            # Cast the whole VALUES subquery to the target schema via a SELECT,
-            # which DuckDB accepts (type specs live in the column alias there).
-            cast_select = ", ".join(
-                f'CAST("{h}" AS {t}) AS "{h}"'
-                for h, t in zip(table.headers, col_types)
-            )
-            con.execute(
-                f"COPY (SELECT {cast_select} FROM (VALUES {values_sql}) AS t({col_defs})) "
-                f"TO '{parquet_path}' (FORMAT PARQUET)"
-            )
+            col_defs = ", ".join('"{}"'.format(h) for h in table.headers)
+            cast_parts = []
+            for h, t in zip(table.headers, col_types):
+                cast_parts.append('CAST("{}" AS {}) AS "{}"'.format(h, t, h))
+            cast_select = ", ".join(cast_parts)
+            query = ("COPY (SELECT {} FROM (VALUES {}) AS t({})) TO '{}' (FORMAT PARQUET)")
+            con.execute(query.format(cast_select, values_sql, col_defs, parquet_path))
         table.parquet_path = parquet_path
         table.created_at = __import__("datetime").datetime.now().isoformat()
         self._write_provenance(table)
@@ -315,7 +311,7 @@ def _values_clause_typed(rows: List[List[Any]], col_types: List[str]) -> str:
 class ComputationEngine:
     """Deterministic computation over Parquet via DuckDB."""
 
-    def __init__(self, engine: Optional[StructuredDataEngine] = None, data_dir: str = "data"):
+    def __init__(self, engine: Optional[StructuredDataEngine] = None, data_dir: str = "/Users/ashim/locus_rag/data"):
         self.engine = engine or StructuredDataEngine(data_dir=data_dir)
         self._duckdb = None
         self.data_dir = Path(data_dir)

@@ -99,7 +99,6 @@ class IngestionOrchestrator:
             state_db_path=state_db_path,
         )
         self.chunker = StructuralChunker()
-        self.chunker = StructuralChunker()
 
     # ─── Core processing ────────────────────────────────────────────────────
 
@@ -175,12 +174,12 @@ class IngestionOrchestrator:
 
             # Extract — route on the EFFECTIVE mime type (workspace exports
             # become text/plain or text/csv, not the Google-native mime).
-            sm.transition(drive_file_id, DocumentState.EXTRACTED)
             extraction_mime = ingested.effective_mime_type or mime_type
             extraction_meta = {
                 "doc_id": drive_file_id,
                 "mime_type": extraction_mime,
                 "provenance": {
+                    "doc_id": drive_file_id,
                     "drive_file_id": drive_file_id,
                     "filename": filename or ingested.filename,
                     "folder_path": folder_path,
@@ -197,6 +196,7 @@ class IngestionOrchestrator:
             }
 
             result = self.extraction.extract(ingested.local_path, extraction_meta)
+            sm.transition(drive_file_id, DocumentState.EXTRACTED)
 
             # Persist extracted representation for downstream
             self._save_extracted(drive_file_id, result)
@@ -307,6 +307,15 @@ class IngestionOrchestrator:
             try:
                 # Inject OCR mode into the item before processing
                 item_to_use = dict(item)
+                # Catalog uses drive_id; pipeline uses drive_file_id — preserve provenance
+                # Remove extra catalog keys that process_one() does not accept
+                for bad_key in ("drive_id", "created_time", "modified_time", "viewed_by_me", "size", "web_view_link", "web_content_link", "owned_by_me", "last_modifying_user", "sharing_user", "permissions", "parents"):
+                    item_to_use.pop(bad_key, None)
+                # Preserve provenance: catalog id -> drive_file_id
+                if "drive_file_id" not in item_to_use and "id" in item_to_use:
+                    item_to_use["drive_file_id"] = item_to_use.pop("id")
+                # If drive_file_id already present but drive_id key leftover
+                item_to_use.pop("drive_id", None)
                 item_to_use.setdefault("ocr_mode", ocr_mode)
                 result = self.process_one(**item_to_use)
                 results.append(result)
@@ -346,8 +355,6 @@ class IngestionOrchestrator:
             sm.transition(drive_file_id, DocumentState.DISCOVERED, force=True)
         sm.transition(drive_file_id, DocumentState.DOWNLOADING)
         sm.transition(drive_file_id, DocumentState.DOWNLOADED)
-        sm.transition(drive_file_id, DocumentState.EXTRACTED)
-
         # Find local raw file
         raw_dir = Path(self.ingestion.raw_dir)
         candidates = sorted(raw_dir.glob(f"{drive_file_id}.*"))
@@ -388,6 +395,7 @@ class IngestionOrchestrator:
         }
 
         result = self.extraction.extract(local_path, extraction_meta)
+        sm.transition(drive_file_id, DocumentState.EXTRACTED)
         self._save_extracted(drive_file_id, result)
 
         # Structured data plane: import tables (CSV/Sheets) to Parquet

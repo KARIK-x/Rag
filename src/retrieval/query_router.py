@@ -105,15 +105,26 @@ class QueryNormalizer:
 
     def normalize(self, query: str) -> str:
         """Normalize whitespace and case, preserving exact entities."""
-        # Store exact entities for later restoration
+        # Store exact entities for later restoration (in original order)
         entities = self._extract_entities(query)
 
-        # Normalize whitespace
-        normalized = re.sub(r"\s+", " ", query.strip())
+        # Mask entities by their original case before lowercasing.
+        # Use case-insensitive masks so the lowercased string still matches.
+        masked = query.strip()
+        entity_map: List[Tuple[str, str]] = []
+        for mask, value in entities.items():
+            lower_mask = mask.lower()
+            entity_map.append((lower_mask, value))
+            masked = masked.replace(value, lower_mask)
+
+        # Normalize whitespace then case
+        normalized = re.sub(r"\s+", " ", masked)
         normalized = normalized.lower()
 
-        # Protect exact entities by masking them during normalization
-        # We'll re-insert them after normalization
+        # Restore exact entities (case-insensitive via lower_mask match)
+        for lower_mask, value in entity_map:
+            normalized = re.sub(re.escape(lower_mask), value, normalized, flags=re.I)
+
         return normalized
 
     def _extract_entities(self, query: str) -> Dict[str, str]:
@@ -382,7 +393,7 @@ class RetrievalRouter:
         sub_plans = []
         if intent_result.sub_queries:
             for sq in intent_result.sub_queries:
-                sub_intent = self.classify(sq)
+                sub_intent = IntentClassifier().classify(sq)
                 sub_plan = self.build_plan(sub_intent)
                 sub_plans.append(sub_plan)
 
