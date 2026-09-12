@@ -49,7 +49,8 @@ def synthesize(query: str, evidence_items: List[Any], is_sufficient: bool = True
     for b in blocks:
         sources.append({"filename": b.filename, "page": b.page, "doc_id": b.doc_id, "snippet": b.best_text[:200].replace("\n"," ").strip()})
 
-    if plan.intent == "people" or ("team" in query.lower() and "organis" in query.lower()):
+    is_people = plan.intent == "people" or ("team" in query.lower() and "organis" in query.lower())
+    if is_people:
         # Extract names/roles from cleaned text
         roles = []
         for b in blocks:
