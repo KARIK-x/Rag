@@ -16,7 +16,7 @@ function renderResult(title, text, claims, cits, provText) {
   $d('out').innerHTML = `<article class="answer-card"><h2>${title.replace(/</g,'&lt;')}</h2><p>${text ? text.replace(/</g,'&lt;').substring(0,1400) + (text.length>1400 ? '...' : '') : 'No direct answer returned — evidence available below.'}</p>` + citStr + `<div style="font-size:.82rem;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px solid #ddd8cf;">${provText || 'Read-only Drive · fixture indexes verified · no fabrication'}</div></article>`;
 }
 function renderError(msg) { $d('out').innerHTML = `<div class="empty" style="color:#8a2e2e;">Retrieval error: ${msg.replace(/</g,'&lt;')}</div>`; }
-$($btn).addEventListener('click', async () => {
+$btn.addEventListener('click', async () => {
   const q = $d('q').value.trim();
   if (!q) { resetW(); return; }
   renderLoading();
@@ -36,4 +36,4 @@ $($btn).addEventListener('click', async () => {
     renderError('Connection failed (' + e.message.replace(/</g,'&lt;') + '). Ensure adapter is running: python server_adapter.py');
   }
 });
-$($d('q'))?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $($btn)?.click(); } });
+$d('q')?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $btn?.click(); } });

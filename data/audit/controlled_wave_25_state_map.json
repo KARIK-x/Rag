@@ -1,0 +1,203 @@
+{
+  "reconciled_25_state": {
+    "0B8ptdYzYr7_xMm9QMU5mZXlDRHRHeE5SNXJzSWFzdjlzRzk0": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_download",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "0B8ptdYzYr7_xMm9QMU5mZXlDRHRHeE5SNXJzSWFzdjlzRzk0",
+      "mime_type": "application/pdf",
+      "filename": "Locus design.pdf"
+    },
+    "0B8ptdYzYr7_xQWtySmQ0X0lNdG9rQjgtWDBSb1RVakhnSXFZ": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_download",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "0B8ptdYzYr7_xQWtySmQ0X0lNdG9rQjgtWDBSb1RVakhnSXFZ",
+      "mime_type": "application/pdf",
+      "filename": "backdrop.pdf"
+    },
+    "0B8ptdYzYr7_xVlpUczJEWXNyLTI1N1UxY1RMamlaeXhsQzk0": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_download",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "0B8ptdYzYr7_xVlpUczJEWXNyLTI1N1UxY1RMamlaeXhsQzk0",
+      "mime_type": "application/pdf",
+      "filename": "A4 Wish Advertisement Outlined2.pdf"
+    },
+    "0B8ptdYzYr7_xajBjQ200X3NoT0JmX2U1V2IwTnYzN2NZdkxB": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_download",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "0B8ptdYzYr7_xajBjQ200X3NoT0JmX2U1V2IwTnYzN2NZdkxB",
+      "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "filename": "energy-hackathon.docx"
+    },
+    "0B8ptdYzYr7_xc3VzTUctanFheGM3UEkxRW14UHhUWENpZ1Rn": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_download",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "0B8ptdYzYr7_xc3VzTUctanFheGM3UEkxRW14UHhUWENpZ1Rn",
+      "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "filename": "sdg_projects.xlsx"
+    },
+    "0B8ptdYzYr7_xdHVIc2g2NVJBa0ZoZHg1U3lOTEx0ejFNNHJJ": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_download",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "0B8ptdYzYr7_xdHVIc2g2NVJBa0ZoZHg1U3lOTEx0ejFNNHJJ",
+      "mime_type": "application/pdf",
+      "filename": "Robo_warz_details.pdf"
+    },
+    "1--brgwiaMZYzCRlHkIFB-nyPDrZjZmYQLsOLeUc1TNI": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_export",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "1--brgwiaMZYzCRlHkIFB-nyPDrZjZmYQLsOLeUc1TNI",
+      "mime_type": "application/vnd.google-apps.form",
+      "filename": "Designers Selection"
+    },
+    "1-05KO2tozWHrXYDVZ5uMY6r_-r54xAw8zT1bhvo0irI": {
+      "state": "INDEXED_PREP",
+      "reason": "downloaded_and_validated",
+      "dead_letter": false,
+      "retryable": false
+    },
+    "1-0WQSotPmm9PmnJUZQriW24z_KyqqSfZ": {
+      "state": "INDEXED_PREP",
+      "reason": "downloaded_and_validated",
+      "dead_letter": false,
+      "retryable": false
+    },
+    "1-0olWL3vv4t9Z2ZXdJFPPeL6k8y7XquTHB3VK1TUj5E": {
+      "state": "INDEXED_PREP",
+      "reason": "downloaded_and_validated",
+      "dead_letter": false,
+      "retryable": false
+    },
+    "1-0yqASydi2BTPPbf5P8Y_HBVjNaU13x1": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_download",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "1-0yqASydi2BTPPbf5P8Y_HBVjNaU13x1",
+      "mime_type": "application/pdf",
+      "filename": "Cert_DataRushP13613.pdf"
+    },
+    "1-1rdNyMCeMwqyXdmK1wplwQ5JxMXS3tqp96cPz0POFk": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_export",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "1-1rdNyMCeMwqyXdmK1wplwQ5JxMXS3tqp96cPz0POFk",
+      "mime_type": "application/vnd.google-apps.spreadsheet",
+      "filename": "Sign Language Detection (Electrical H)"
+    },
+    "1-2qE3O9XjuRKQH6lY__4lU5YFdVb6bHQ": {
+      "state": "INDEXED_PREP",
+      "reason": "downloaded_and_validated",
+      "dead_letter": false,
+      "retryable": false
+    },
+    "1-3ZB2r7fOaK3s6EmGR9Slo5ZQ9ghxwZ9": {
+      "state": "INDEXED_PREP",
+      "reason": "downloaded_and_validated",
+      "dead_letter": false,
+      "retryable": false
+    },
+    "1-41E7-rwyt0kldqHfcXmFrpVlytBsIWF": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_download",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "1-41E7-rwyt0kldqHfcXmFrpVlytBsIWF",
+      "mime_type": "application/pdf",
+      "filename": "Copy of big_flex.pdf"
+    },
+    "1-4ackhby4XOw3tzu7LT_JXqU2hveO5HH": {
+      "state": "INDEXED_PREP",
+      "reason": "downloaded_and_validated",
+      "dead_letter": false,
+      "retryable": false
+    },
+    "1-4sECLgclQGyqOgj29Vkbpl5wB7nfeNDVZXJ1D_bFU8": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_export",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "1-4sECLgclQGyqOgj29Vkbpl5wB7nfeNDVZXJ1D_bFU8",
+      "mime_type": "application/vnd.google-apps.form",
+      "filename": "Copy of  Hardware Fellowship 2024: Regis"
+    },
+    "1-5F45LtRftdB_byPgapeSsRfNflUSoOEFfhbQF-5Qjs": {
+      "state": "INDEXED_PREP",
+      "reason": "downloaded_and_validated",
+      "dead_letter": false,
+      "retryable": false
+    },
+    "1-5aevLsk_jpTyEyfP6a7JuTpv-g5hYAumlgmY6njHuE": {
+      "state": "INDEXED_PREP",
+      "reason": "downloaded_and_validated",
+      "dead_letter": false,
+      "retryable": false
+    },
+    "1-5tC06zsKIzvZZ0RFTcCO95SkoawXnH5": {
+      "state": "INDEXED_PREP",
+      "reason": "downloaded_and_validated",
+      "dead_letter": false,
+      "retryable": false
+    },
+    "1-6Jxf44S_DkDDQf5kYb1a2VvQotZsVe-xqo9CI_zwPw": {
+      "state": "INDEXED_PREP",
+      "reason": "downloaded_and_validated",
+      "dead_letter": false,
+      "retryable": false
+    },
+    "1-80b92_lfNXE6fvn0sAv06nuY6gAbIcYBxz9sglz1wc": {
+      "state": "INDEXED_PREP",
+      "reason": "downloaded_and_validated",
+      "dead_letter": false,
+      "retryable": false
+    },
+    "1-881u773vRLyLZXorHMrep5uE8paVpcl": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_download",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "1-881u773vRLyLZXorHMrep5uE8paVpcl",
+      "mime_type": "application/pdf",
+      "filename": "ProjectProposal - Leo Pujan Dahal.pdf"
+    },
+    "1-9FKFWr5IGuSrH4WIPvAzaxG0ltxC-5k": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_download",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "1-9FKFWr5IGuSrH4WIPvAzaxG0ltxC-5k",
+      "mime_type": "application/pdf",
+      "filename": "Cert_DataRushP13635.pdf"
+    },
+    "1-AClprSBB7OiPL9RxyBcbB8seGMpRKvCh5EzLQ6EALA": {
+      "state": "DEAD_LETTER",
+      "reason": "permanent_google_restriction_export",
+      "dead_letter": true,
+      "retryable": false,
+      "original_drive_id": "1-AClprSBB7OiPL9RxyBcbB8seGMpRKvCh5EzLQ6EALA",
+      "mime_type": "application/vnd.google-apps.document",
+      "filename": "MoU_InspiringLab"
+    }
+  },
+  "summary": {
+    "total": 25,
+    "indexed_prep": 11,
+    "dead_letter": 14,
+    "reconciled": true
+  },
+  "note": "No false INDEXED claims. 11 indexed-prepared; 14 DEAD_LETTER (permanent Google restriction)."
+}
