@@ -141,4 +141,4 @@ No new dependencies without updating `pyproject.toml`. Strict test-driven change
 Project-specific; refer to repository settings and organizational policy.
 
 ---
-Built and validated by Aadarsha (session). 236 tests pass. 6 confirmed integration defects fixed. Fixture persistence verified. Read-only drive preserved. No production ingestion executed.
+LOCUS RAG — institutional evidence-first retrieval system. Validated V1. Read-only Drive preserved. No production ingestion executed.

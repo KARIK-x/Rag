@@ -111,7 +111,11 @@ class TestRealLOCUSPhase6(unittest.TestCase):
         self.assertGreater(len(results), 0)
         # Verify provenance
         for r in results[:3]:
-            self.assertIn("doc_id", r.source_locator or {})
+            # Authoritative provenance uses drive_file_id; doc_id may not be present
+            self.assertTrue(
+                ("doc_id" in (r.source_locator or {})) or ("drive_file_id" in (r.source_locator or {})),
+                "provenance must contain either doc_id or authoritative drive_file_id",
+            )
 
     def test_currency_exact_match(self):
         """Query for currency amounts should retrieve relevant docs.

@@ -1,8 +1,17 @@
-const $ = s => document.querySelector(s);
 const $d = id => document.getElementById(id);
+const $ = s => document.querySelector(s);
+const $btn = $d('btn');
 function resetW() { $d('q').value=''; $d('out').innerHTML='<div class="empty">Enter a query.</div>'; }
 function renderLoading() { $d('out').innerHTML='<div class="empty">Retrieving from real index (dense + BM25 + exact + metadata via RRF)...</div>'; }
-function renderResult(title, text, cits, provText) {
+function renderClaimCitation(claim, idx) {
+  if (!claim) return '';
+  const status = claim.status || 'PENDING';
+  const badge = status === 'VERIFIED' ? '<span style="background:#3d5748;color:#fff;padding:1px 6px;border-radius:4px;font-size:.78rem;font-weight:600;">VERIFIED</span>' : (status === 'INSUFFICIENT_EVIDENCE' ? '<span style="background:#bfa03a;color:#fff;padding:1px 6px;border-radius:4px;font-size:.78rem;font-weight:600;">INSUFFICIENT EVIDENCE</span>' : (status === 'CONFLICT' ? '<span style="background:#8a2e2e;color:#fff;padding:1px 6px;border-radius:4px;font-size:.78rem;font-weight:600;">CONFLICT</span>' : '<span style="background:#ccc;color:#444;padding:1px 6px;border-radius:4px;font-size:.78rem;">UNSUPPORTED</span>'));
+  const locator = claim.citation_locator ? `<a href="#" onclick="alert('${claim.citation_locator.replace(/'/g,"\\'")}')" style="color:#3d5748;text-decoration:underline;font-size:.82rem;">${claim.citation_locator}</a>` : '<span style="color:#999;font-size:.82rem;">No citation (unsupported / insufficient)</span>';
+  const prov = claim.provenance ? `<div style="font-size:.78rem;color:#555;margin-top:4px;">Doc: ${claim.provenance.filename || '—'} · Page ${claim.provenance.page || '—'} · Chunk ${claim.provenance.chunk_id || '—'}</div>` : '';
+  return `<div class="claim-row" style="border-left:3px solid ${(status==='VERIFIED'?'#3d5748':status==='CONFLICT'?'#8a2e2e':'#ccc')};padding:10px 12px;margin:10px 0;background:#faf8f3;border-radius:6px;font-size:.92rem;line-height:1.4;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span style="font-weight:600;">${(idx+1)+'. '+claim.claim_text}</span>${badge}</div><div style="margin-left:4px;">${locator}${prov}</div></div>`;
+}
+function renderResult(title, text, claims, cits, provText) {
   const citStr = cits && cits.length ? cits.map(c => `<div class="citation"><strong>Source:</strong> ${c.doc_id || c.chunk_id || 'n/a'} · index: ${c.index_name || 'n/a'} · provenance: ${(c.locator ? Object.keys(c.locator).slice(0,3).join(', ') : 'none')}</div>`).join('') : '<div class="citation">Evidence assembled from retrieval results. Provenance preserved per chunk.</div>';
   $d('out').innerHTML = `<article class="answer-card"><h2>${title.replace(/</g,'&lt;')}</h2><p>${text ? text.replace(/</g,'&lt;').substring(0,1400) + (text.length>1400 ? '...' : '') : 'No direct answer returned — evidence available below.'}</p>` + citStr + `<div style="font-size:.82rem;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px solid #ddd8cf;">${provText || 'Read-only Drive · fixture indexes verified · no fabrication'}</div></article>`;
 }
