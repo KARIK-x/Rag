@@ -38,4 +38,5 @@ token.pickle
 *.secret
 
 # OS
-.DS_Store
+.DS_Storegraphify-out/
+.claude/
