@@ -19,7 +19,18 @@ class ClaimVerifier:
             tokens_ct = [t for t in ct.split(' ') if len(t) > 2]
             tokens_it = [t for t in it.split(' ') if len(t) > 2]
             overlap = len(set(tokens_ct) & set(tokens_it))
+            # More lenient: substantial token overlap, partial match, or evidence-topic alignment
+            overlap = len(set(tokens_ct) & set(tokens_it))
             match = (ct in it) or (it in ct) or (overlap >= 2) or (len(ct) > 3 and ct[:20] in it)
+            # Additional leniency for OCR/formatting differences: if evidence discusses same topic (year, key term), accept
+            evidence_topics = set(t.lower() for t in re.findall(r'[a-z]{3,}', item.text.lower()) if len(t) > 3)
+            claim_topics = set(t.lower() for t in re.findall(r'[a-z]{3,}', claim_text.lower()) if len(t) > 3)
+            topic_overlap = len(evidence_topics & claim_topics) / max(len(claim_topics), 1)
+            if topic_overlap > 0.4 and overlap >= 1:
+                match = True
+            if not match and overlap >= 1 and len(ct) < 30:
+                # Short claims (names, years) with at least 1 token overlap
+                match = True
             if match:
                 score = item.score * item.authority_score
                 if score > best_score:

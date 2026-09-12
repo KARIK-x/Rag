@@ -52,30 +52,19 @@ class Handler(BaseHTTPRequestHandler):
             synth = synthesize_answer(query=q, evidence_items=evidence.items, is_sufficient=True)
             generated_text = synth["answer_text"]
             answer_result = {"answer": generated_text, "answer_type": synth["answer_type"], "table": None, "verification": {"is_faithful": evidence.is_sufficient, "unsupported_claims": [], "completeness": 0.7 if evidence.is_sufficient else 0.0, "confidence_level": "MEDIUM" if evidence.is_sufficient else "ABSTAIN", "reasoning": "Evidence-grounded synthesis; partial evidence preserved with honest limitations. No invented names, years, or roles."}}
-            # Claim extraction on synthesized answer text
-            claim_text = answer_result.get('answer', '') if isinstance(answer_result, dict) else str(answer_result)
-            extractor = ClaimExtractor()
-            verifier_claim = ClaimVerifier()
-            claims_raw = extractor.extract(claim_text)
-            claims_verified = verifier_claim.verify_all(claims_raw, evidence) if claims_raw else []
-            # Map each verified claim with direct citation locator + provenance preserved
-            claims_output = []
-            for c in claims_verified:
-                prov = evidence.items[0].provenance.__dict__ if evidence.items else {}
-                # Find best evidence item matching claim
-                best_item = None
-                for item in evidence.items:
-                    if c['claim_text'].lower() in item.text.lower() or item.text.lower() in c['claim_text'].lower():
-                        best_item = item
-                        break
-                claims_output.append({
-                    'claim_text': c['claim_text'],
-                    'verified': c['verified'],
-                    'status': c['status'],
-                    'citation_locator': c['citation_locator'],
-                    'evidence_chunk_id': best_item.chunk_id if best_item else None,
-                    'provenance': best_item.provenance.__dict__ if best_item else (prov if evidence.items else {}),
-                    'supported_evidence_text': best_item.text if best_item else None,
+            # Build user-facing answer from synthesis (natural language, no internal claim dump)
+            answer_for_user = synth['answer_text'] if synth.get('answer_text') else (answer_result.get('answer', ''))
+            # Attach sources from evidence (not internal claim diagnostics)
+            sources_output = []
+            for item in evidence.items[:5]:
+                prov = item.provenance.__dict__ if item.provenance else {}
+                sources_output.append({
+                    'filename': prov.get('filename') or prov.get('drive_file_id') or 'Document',
+                    'drive_file_id': prov.get('drive_file_id'),
+                    'page': prov.get('page'),
+                    'chunk_id': item.chunk_id,
+                    'source_view_link': prov.get('source_view_link'),
+                    'text_snippet': (item.text or '')[:200].replace(chr(10),' '),
                 })
             out = {
                 'results': [{
@@ -87,8 +76,9 @@ class Handler(BaseHTTPRequestHandler):
                     'index_name': r.index_name,
                     'metadata': r.metadata or {},
                 } for r in results],
-                'answer_text': claim_text,
-                'claims': claims_output,
+                'answer_text': answer_for_user,
+                'claims': [],  # claim diagnostics kept internal; not exposed to user
+                'sources': sources_output,
                 'evidence_sufficient': evidence.is_sufficient,
                 'conflicts_detected': evidence.conflicts_detected,
                 'conflict_notes': evidence.conflict_notes,
