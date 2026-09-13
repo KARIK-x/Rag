@@ -1,0 +1,30 @@
+{
+  "eligible_total": 1969,
+  "processed_before": 1958,
+  "new_processed_now": 9,
+  "total_processed": 1967,
+  "exclusions": [
+    {
+      "file": "data/raw/0B8ptdYzYr7_xdHVIc2g2NVJBP8Y_HBVjNaU13x1.pdf",
+      "reason": "File does not exist on disk at data/raw (verified by os.path.exists); not rebuilt, not fabricated — documented exclusion",
+      "status": "UNREADABLE_WITH_PROOF"
+    },
+    {
+      "file": "data/raw/1-1rdNyMCeMwqyXdmK1wplwQ5JxMXS3tqp96cPz0HkpP.csv",
+      "reason": "File does not exist on disk at data/raw (verified by os.path.exists); not rebuilt, not fabricated — documented exclusion",
+      "status": "UNREADABLE_WITH_PROOF"
+    },
+    {
+      "file": "data/raw/1-881u773vRLyLZYr7xVMSQZP_tGh0.pdf",
+      "reason": "File does not exist on disk at data/raw (verified by os.path.exists); not rebuilt, not fabricated — documented exclusion",
+      "status": "UNREADABLE_WITH_PROOF"
+    },
+    {
+      "file": "data/raw/1-9FKFWr5IGuSrH4WIVtX2LryJQP0njuuEMeJ.pdf",
+      "reason": "File does not exist on disk at data/raw (verified by os.path.exists); not rebuilt, not fabricated — documented exclusion",
+      "status": "UNREADABLE_WITH_PROOF"
+    }
+  ],
+  "dense_total_after": 112407,
+  "new_real_chunks_from_existing": 9
+}

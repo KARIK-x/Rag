@@ -180,7 +180,7 @@ class HybridRetriever:
     def retrieve(
         self,
         query: str,
-        top_k: int = 20,
+        top_k: int = 500,
         filters: Optional[Dict[str, Any]] = None,
     ) -> List[RetrievalCandidate]:
         # Build a rich SearchQuery (entities, dates, amounts) so that
@@ -193,13 +193,13 @@ class HybridRetriever:
         lists: List[List[RetrievalCandidate]] = []
 
         if self.dense:
-            lists.append(self.dense.search(search_query, top_k * 2))
+            lists.append(self.dense.search(search_query, 1000))
 
         if self.bm25:
-            lists.append(self.bm25.search(search_query, top_k * 2))
+            lists.append(self.bm25.search(search_query, 1000))
 
         if self.exact:
-            lists.append(self.exact.search(search_query, top_k * 2))
+            lists.append(self.exact.search(search_query, 1000))  # exact/entity at full depth for people/sponsor names
 
         # 2. RRF fusion
         fused = rrf_fusion(lists, self.rrf_k)
@@ -208,10 +208,10 @@ class HybridRetriever:
         fused = self.metadata.filter(fused, search_query.filters)
 
         # Filter: drop bare fragments; rank provenance-backed chunks higher
-        provenance_filter = lambda c: bool(c.doc_id or (c.source_locator and c.source_locator.get('drive_file_id')))
+        provenance_filter = lambda c: bool((c.text and len(c.text) > 5) or c.doc_id or (c.source_locator and c.source_locator.get('drive_file_id')) or (c.chunk_id))  # allow shorter entity chunks (names/roles)
         filtered = [c for c in fused if provenance_filter(c)]
         reranked = sorted(filtered, key=lambda c: (c.score + (0.015 if provenance_filter(c) and c.doc_id else 0), c.score), reverse=True)
-        return reranked[:top_k]
+        return reranked[:500]  # high-recall retrieval; assembly compresses to safe context
 
 
 # ─── Exports ─────────────────────────────────────────────────────────────────

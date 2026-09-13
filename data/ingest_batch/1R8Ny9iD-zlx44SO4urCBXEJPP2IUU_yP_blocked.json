@@ -1,0 +1,10 @@
+{
+  "drive_file_id": "1R8Ny9iD-zlx44SO4urCBXEJPP2IUU_yP",
+  "filename": "WD_02_2026-01-02_21_39_37_260102_214222 - Aseem Nakarmi.pdf",
+  "mime_type": "application/pdf",
+  "status": "blocked",
+  "reason": "Not fully ingested by active ingestion process; requires further processing or review",
+  "timestamp": "2026-09-12T16:27:09",
+  "explicit_classification": true,
+  "authoritative_source_in_eligible_list": true
+}

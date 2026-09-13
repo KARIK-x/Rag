@@ -16,6 +16,7 @@ import hashlib
 import json
 import logging
 import math
+import numpy as np
 import sqlite3
 import re
 from abc import ABC, abstractmethod
@@ -362,9 +363,8 @@ class BM25Index(BaseIndex):
             for term, df, postings_json in cur.fetchall():
                 self.doc_freq[term] = df
                 for cid, freq in json.loads(postings_json).items():
-                    if cid not in self.term_freqs:
-                        self.term_freqs[cid] = {}
-                    self.term_freqs[cid][term] = freq
+                    self.term_freqs.setdefault(term, {})
+                    self.term_freqs[term][cid] = freq  # ponytail: fixed load_state inversion
             self.N = len(self.doc_ids)
             self.avgdl = sum(self.doc_lens.values()) / self.N if self.N else 0.0
         except Exception:
@@ -382,7 +382,8 @@ class BM25Index(BaseIndex):
         self.doc_texts[chunk_id] = text
         self.doc_lens[chunk_id] = len(tokens)
         self.doc_meta[chunk_id] = dict(metadata or {})
-        self.term_freqs[chunk_id] = dict(freq)
+        for term, f in freq.items():
+            self.term_freqs.setdefault(term, {})[chunk_id] = f  # term->chunk (DB/search consistent)
         self.N = len(self.doc_ids)
         self.avgdl = sum(self.doc_lens.values()) / self.N if self.N else 0.0
 
@@ -424,9 +425,9 @@ class BM25Index(BaseIndex):
             idf = self._idf(term)
             if idf == 0:
                 continue
-            # Docs containing term
-            for cid in self.doc_ids:
-                tf = self.term_freqs.get(cid, {}).get(term, 0)
+            # Docs containing term (DB uses term -> chunk_ids)
+            for cid, freq in self.term_freqs.get(term, {}).items():
+                tf = freq
                 if tf == 0:
                     continue
                 dl = self.doc_lens[cid]
@@ -505,6 +506,9 @@ class DenseVectorIndex(BaseIndex):
         self.chunk_texts: Dict[str, str] = {}
         self.chunk_meta: Dict[str, Dict] = {}
         self.db_path = db_path
+        # Cached matrix for vectorized retrieval (load once, rebuilt only on load/clear)
+        self._mat: Optional[np.ndarray] = None
+        self._ids: List[str] = []
         if db_path:
             Path(db_path).parent.mkdir(parents=True, exist_ok=True)
             self._init_db()
@@ -534,6 +538,19 @@ class DenseVectorIndex(BaseIndex):
         except Exception:
             pass
         conn.close()
+        # Build cached matrix after load
+        self._rebuild_matrix()
+
+    def _rebuild_matrix(self):
+        if not self.embeddings:
+            self._mat = None; self._ids = []; return
+        ids = list(self.embeddings.keys())
+        mat = np.array([self.embeddings[cid] for cid in ids], dtype=np.float32)
+        norms = np.linalg.norm(mat, axis=1, keepdims=True)
+        norms[norms == 0] = 1.0
+        mat = mat / norms
+        self._mat = mat
+        self._ids = ids
 
     def add(self, chunk_id: str, text: str, metadata: Dict[str, Any]) -> None:
         # Embedding must be provided in metadata['embedding']
@@ -561,22 +578,25 @@ class DenseVectorIndex(BaseIndex):
         return dot / (na * nb) if na and nb else 0.0
 
     def search(self, query: SearchQuery, top_k: int) -> List[RetrievalCandidate]:
-        # Requires query_embedding in query.metadata
         q_emb = query.metadata.get("query_embedding")
         if not q_emb:
             return []
-
-        scores: Dict[str, float] = {}
-        for cid, emb in self.embeddings.items():
-            sc = self._cosine(q_emb, emb)
-            scores[cid] = sc
-
+        # Vectorized dense retrieval using cached matrix (load once)
+        if self._mat is None or len(self._ids) == 0:
+            return []
+        q = np.array(q_emb, dtype=np.float32)
+        norm = np.linalg.norm(q)
+        if norm > 0:
+            q = q / norm
+        scores = (self._mat @ q)
+        top_idx = np.argsort(-scores)[:top_k]
         results = []
-        for cid, sc in sorted(scores.items(), key=lambda x: -x[1])[:top_k]:
+        for i in top_idx:
+            cid = self._ids[i]
             results.append(RetrievalCandidate(
                 chunk_id=cid,
                 doc_id=self.chunk_meta.get(cid, {}).get("doc_id", ""),
-                score=sc,
+                score=float(scores[i]),
                 text=self.chunk_texts.get(cid, ""),
                 source_locator=self.chunk_meta.get(cid, {}).get("source_locator", {}),
                 index_name="dense",

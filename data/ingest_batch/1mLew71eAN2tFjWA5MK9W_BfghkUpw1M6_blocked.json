@@ -1,0 +1,10 @@
+{
+  "drive_file_id": "1mLew71eAN2tFjWA5MK9W_BfghkUpw1M6",
+  "filename": "Portfolio - KOMAL KUSHWAHA.docx",
+  "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "status": "blocked",
+  "reason": "Not fully ingested by active ingestion process; requires further processing or review",
+  "timestamp": "2026-09-12T16:27:09",
+  "explicit_classification": true,
+  "authoritative_source_in_eligible_list": true
+}

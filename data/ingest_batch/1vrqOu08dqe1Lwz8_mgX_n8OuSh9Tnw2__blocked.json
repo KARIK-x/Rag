@@ -1,0 +1,10 @@
+{
+  "drive_file_id": "1vrqOu08dqe1Lwz8_mgX_n8OuSh9Tnw2_",
+  "filename": "17676072461691767607246503 - Sandhya Pant.pdf",
+  "mime_type": "application/pdf",
+  "status": "blocked",
+  "reason": "Not fully ingested by active ingestion process; requires further processing or review",
+  "timestamp": "2026-09-12T16:27:09",
+  "explicit_classification": true,
+  "authoritative_source_in_eligible_list": true
+}

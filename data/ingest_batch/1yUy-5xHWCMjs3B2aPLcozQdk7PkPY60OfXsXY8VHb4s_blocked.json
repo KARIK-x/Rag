@@ -1,0 +1,10 @@
+{
+  "drive_file_id": "1yUy-5xHWCMjs3B2aPLcozQdk7PkPY60OfXsXY8VHb4s",
+  "filename": "Work Progress",
+  "mime_type": "application/vnd.google-apps.spreadsheet",
+  "status": "blocked",
+  "reason": "Not fully ingested by active ingestion process; requires further processing or review",
+  "timestamp": "2026-09-12T16:27:09",
+  "explicit_classification": true,
+  "authoritative_source_in_eligible_list": true
+}

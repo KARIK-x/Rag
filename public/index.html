@@ -3,36 +3,171 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LOCUS RAG — Institutional Retrieval</title>
-<meta name="description" content="Evidence-first retrieval for LOCUS. Hybrid index. Real provenance. Read-only catalog.">
+<title>LOCUS RAG — Institutional Intelligence</title>
+<meta name="description" content="Evidence-first institutional retrieval for LOCUS.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/main.css">
 </head>
-<body>
-<header class="header" role="banner">
-  <a href="#" class="brand" aria-label="LOCUS home">LOCUS RAG</a>
-  <span class="sub">Evidence-first · Read-only · V1 validated</span>
+<body data-theme="dark">
+<header class="site-header" role="banner">
+  <a href="#" class="brand" onclick="resetToHero();return false;" aria-label="LOCUS RAG home">LOCUS · RAG</a>
+  <span class="brand-sub">Institutional Intelligence</span>
+  <div class="header-actions" aria-label="Header actions">
+    <button class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme">◐</button>
+  </div>
 </header>
-<main class="main" role="main">
-  <section class="workspace" aria-label="Query workspace">
-    <h1>Institutional Knowledge</h1>
-    <p class="subtitle">Retrieve real evidence from indexed institutional records. Hybrid retrieval with provenance preserved.</p>
-    <div class="composer" aria-label="Composer">
-      <label for="q" class="sr-only">Natural-language query</label>
-      <textarea id="q" rows="3" placeholder="Ask about LOCUS sponsorship, events, structured data..."></textarea>
-      <div class="actions">
-        <button id="btn" aria-label="Search institutional knowledge">Search</button>
-        <button onclick="document.getElementById('q').value='';document.getElementById('out').innerHTML='<div class=empty>Enter a query.</div>';">Clear</button>
+
+<main class="stage" role="main" aria-label="Query workspace">
+
+  <!-- Hero / initial -->
+  <section class="hero" id="hero" aria-label="Welcome">
+    <div class="hero-inner" style="max-width:640px;margin:0 auto;text-align:center;">
+    <h1 class="hero-title">Institutional Intelligence</h1>
+    <p class="hero-sub">Evidence-first retrieval for LOCUS. Real provenance. No fabrication.</p>
+
+    <div class="composer" aria-label="Question composer">
+      <label for="q" class="sr-only">Ask anything about LOCUS</label>
+      <div class="input-wrap">
+        <textarea id="q" class="query-input" rows="2" placeholder="Ask anything about LOCUS…" autocomplete="off" aria-label="Natural-language query"></textarea>
+      </div>
+      <div class="action-row">
+        <button id="btn" class="btn-primary" aria-label="Search institutional knowledge">Search</button>
+        <button id="clear" class="btn-ghost" type="button" aria-label="Clear query">Clear</button>
+        <kbd class="kbd-hint" aria-hidden="true">↵ Enter · ⇧↵ Newline</kbd>
       </div>
     </div>
-    <div id="out" aria-live="polite"></div>
+
+    </div>
+
+    <div class="suggestions" aria-label="Example prompts" id="suggestions">
+      <button class="suggest" data-q="Who organizes LOCUS?" onclick="runExample(this)">Who organizes LOCUS?</button>
+      <button class="suggest" data-q="Who were the LOCUS presidents?" onclick="runExample(this)">Who were the LOCUS presidents?</button>
+      <button class="suggest" data-q="What was the theme of LOCUS 2025?" onclick="runExample(this)">What was the theme of LOCUS 2025?</button>
+      <button class="suggest" data-q="Who sponsored LOCUS 2025?" onclick="runExample(this)">Who sponsored LOCUS 2025?</button>
+      <button class="suggest" data-q="What is PDSC?" onclick="runExample(this)">What is PDSC?</button>
+    </div>
+
+    <!-- History -->
+    <section class="history-section" id="history-section" aria-label="Recent searches" hidden>
+      <div class="history-header"><h3>Recent</h3><button onclick="clearHistory()" class="link-btn" aria-label="Clear history">Clear</button></div>
+      <div class="history-list" id="history-list"></div>
+    </section>
   </section>
-  <aside class="evidence" aria-label="Evidence">
-    <h2>Evidence model</h2>
-    <p>Dense · BM25 · Exact/Entity · Metadata · RRF fusion. Provenance: chunk_id, doc_id, file, page, sheet, source_link.</p>
-    <p>Tests: 236 passed · fixture verified · no production ingestion · drive untouched.</p>
-  </aside>
+
+  <!-- Answer area -->
+  <section id="answer-area" class="answer-area" aria-label="Answer" hidden>
+    <article class="answer-card" id="answer-card" aria-live="polite">
+      <header class="answer-header">
+        <h2 class="answer-heading" id="answer-heading">Answer</h2>
+        <div class="answer-meta" id="answer-meta" aria-label="Answer metadata"></div>
+      </header>
+
+      <div class="answer-body" id="answer-body"></div>
+
+      <!-- Action bar -->
+      <nav class="action-bar" aria-label="Answer actions" id="action-bar">
+        <button onclick="copyAnswer()" class="action-btn" aria-label="Copy answer" id="btn-copy">
+          <span aria-hidden="true">⧉</span> Copy
+        </button>
+        <button onclick="regenerateAnswer()" class="action-btn" aria-label="Regenerate answer" id="btn-regen">
+          <span aria-hidden="true">↻</span> Regenerate
+        </button>
+        <button onclick="resetToHero()" class="action-btn" aria-label="New search">
+          <span aria-hidden="true">⊕</span> New search
+        </button>
+      </nav>
+
+      <!-- Evidence summary -->
+      <div class="evidence-summary" id="evidence-summary" hidden>
+        <span id="evidence-text"></span>
+      </div>
+
+      <section class="sources-expand" aria-label="Sources and evidence">
+        <button class="sources-toggle" id="sources-toggle" onclick="toggleSources()" aria-expanded="false" aria-controls="sources-panel">
+          <span>Sources & evidence</span>
+          <span class="chevron" aria-hidden="true"></span>
+          <span class="count-badge" id="source-count">0</span>
+        </button>
+        <div class="sources-panel" id="sources-panel" hidden>
+          <div class="sources-list" id="sources-list"></div>
+          <div class="sources-foot" id="sources-foot"></div>
+        </div>
+      </section>
+
+      <!-- Technical details (collapsible) -->
+      <section class="tech-details" aria-label="Technical details">
+        <button class="tech-toggle" onclick="toggleTech()" aria-expanded="false" aria-controls="tech-panel" id="tech-toggle-btn">
+          <span>Evidence details</span>
+          <span class="chevron" aria-hidden="true"></span>
+        </button>
+        <div class="tech-panel" id="tech-panel" hidden>
+          <div class="tech-body" id="tech-body"></div>
+        </div>
+      </section>
+    </article>
+  </section>
+
+  <!-- Loading -->
+  <section id="loading" class="loading-state" aria-live="assertive" hidden aria-label="Loading">
+    <div class="loader-ring" aria-hidden="true"><span></span></div>
+    <p class="loader-text" id="loader-text">Searching institutional knowledge…</p>
+    <ol class="loader-steps" aria-label="Progress stages" id="loader-steps">
+      <li data-step="search" class="step-active">Searching</li>
+      <li data-step="evidence">Finding evidence</li>
+      <li data-step="reading">Reading sources</li>
+      <li data-step="prepare">Preparing response</li>
+    </ol>
+  </section>
+
+  <!-- No result -->
+  <section id="no-result" class="no-result" aria-label="No result" hidden>
+    <div class="no-result-icon" aria-hidden="true">⊘</div>
+    <h3 style="font-size:1.1rem;font-weight:600;color:var(--ink);margin-bottom:8px;letter-spacing:-0.02em;">Insufficient verified evidence</h3>
+    <p style="color:var(--ink-muted);font-size:.92rem;max-width:420px;margin:0 auto;line-height:1.6;">The institutional index does not contain sufficient verified information to answer this confidently. The catalog remains read-only; no fabrication has been performed.</p>
+    <button class="btn-ghost" onclick="resetToHero()" style="margin-top:14px;">New search</button>
+    <div class="suggestions" style="justify-content:center;margin-top:18px;">
+      <button class="suggest" data-q="Who organizes LOCUS?" onclick="runExample(this)">Who organizes LOCUS?</button>
+      <button class="suggest" data-q="What was the theme of LOCUS 2025?" onclick="runExample(this)">Theme of LOCUS 2025</button>
+    </div>
+  </section>
+
+  <!-- Error -->
+  <section id="error-state" class="error-state" aria-label="Error" hidden>
+    <h3>Connection interrupted</h3>
+    <p>Ensure the retrieval adapter is running (<code>python server_adapter.py</code> on localhost:8765).</p>
+    <button onclick="resetToHero()" class="btn-ghost" style="margin-top:10px;">Try again</button>
+  </section>
+
 </main>
-<footer class="foot">LOCUS RAG · V1 validated · /Users/ashim/locus_drive READ-ONLY · real provenance · no fake answers</footer>
+
+<footer class="foot" role="contentinfo">
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
+    <span class="foot-brand">LOCUS · RAG</span>
+    <span class="foot-divider">|</span>
+    <span>Evidence-first institutional retrieval</span>
+    <span class="foot-divider">|</span>
+    <span>Read-only Drive</span>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:8px;flex-wrap:wrap;">
+    <a href="https://www.locus.com.np" aria-label="LOCUS website" title="Website" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:var(--ink-muted);font-weight:600;font-size:.9rem;transition:color .2s;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--ink-muted)'">Website</a>
+    <a href="#" aria-label="Instagram" title="Instagram" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:var(--ink-muted);font-size:.85rem;transition:color .2s;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--ink-muted)'">Instagram</a>
+    <a href="https://www.facebook.com/locus.ioe/" aria-label="Facebook" title="Facebook" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:var(--ink-muted);font-weight:600;font-size:.9rem;transition:color .2s;" onmouseover="this.style.color='var(--accent-deep)'" onmouseout="this.style.color='var(--ink-muted)'">Facebook</a>
+    <a href="#" aria-label="LinkedIn" title="LinkedIn" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:var(--ink-muted);font-size:.85rem;transition:color .2s;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--ink-muted)'">LinkedIn</a>
+    <a href="#" aria-label="TikTok" title="TikTok" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:var(--ink-muted);font-size:.85rem;transition:color .2s;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--ink-muted)'">TikTok</a>
+  </div>
+  <div style="margin-top:6px;"><a href="#" onclick="alert('Source: /Users/ashim/locus_drive (read-only catalog)');return false;">Catalog preserved</a></div>
+</footer>
+
 <script src="js/app.js"></script>
+
+<!-- Conversation Thread Area -->
+<section id="thread-area" class="thread-area" aria-label="Conversation" hidden>
+  <div id="thread-content"></div>
+</section>
+
 </body>
+</html>
+
 </html>

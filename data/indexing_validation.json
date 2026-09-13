@@ -1,0 +1,9 @@
+{
+  "chunk_files": 112392,
+  "dense_existing": 21903,
+  "bm25_docs": 0,
+  "exact_chunks": 0,
+  "consistency": "rebuild_in_progress",
+  "fix_applied": "bm25_load_state_line366",
+  "protected_path_untouched": true
+}

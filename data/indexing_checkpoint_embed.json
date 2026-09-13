@@ -1,0 +1,7 @@
+{
+  "status": "embedding_completed",
+  "embedding_count": 112392,
+  "expected_total": 112392,
+  "date": "2026-09-12",
+  "note": "batch insert OR IGNORE; existing preserved; protected locus_drive.db untouched; batch resumed after timeout"
+}

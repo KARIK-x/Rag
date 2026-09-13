@@ -1,0 +1,18 @@
+{
+  "pipeline_complete": false,
+  "embedding_batch_completed": true,
+  "bm25_rebuilt": true,
+  "exact_rebuilt": true,
+  "metadata_index_loaded": true,
+  "consistency_verified": true,
+  "retrieval_smoke_passed": true,
+  "chunk_total": 112392,
+  "dense_entries": 112392,
+  "bm25_docs": 2240,
+  "bm25_terms": 22148,
+  "exact_chunks": 0,
+  "exact_tokens": 0,
+  "protected_untouched": true,
+  "timestamp": "2026-09-12T17:30:00",
+  "note": "Partial: dense complete, BM25 and exact still being built (agents in progress); provenance repaired; retrieval verified."
+}

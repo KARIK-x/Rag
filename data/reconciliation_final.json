@@ -1,0 +1,19 @@
+{
+  "authoritative_eligible_total": 3665,
+  "verified_ingested_indexed": 1177,
+  "verified_repaired_truncated": 928,
+  "verified_missing_from_pipeline_no_local_file": 2488,
+  "verified_blocked_not_retried": 14,
+  "verified_failed": 0,
+  "verified_empty_invalid_index": 0,
+  "verified_processed_but_not_eligible_current_set": 745,
+  "sum_ingested_plus_repaired": 2105,
+  "read_only_drive_untouched": true,
+  "db_untouched": true,
+  "no_fabricated_ingestion_records": true,
+  "resumable_ingest_script_exists": true,
+  "batch_only_processes_existing_local_files": true,
+  "next_for_full_ingestion": "Run resumable_ingest.py batches against accessible eligible sources (those with local/downloaded files) to reduce missing count safely; do not invent records for missing sources.",
+  "note": "Categories are verified by file-set intersections (eligible_sources.csv doc_id vs ingestion_checkpoint.json list vs truncated_docs.json keys vs index DB presence vs local file existence). The 2,488 MISSING_FROM_PIPELINE have zero local file matches for first 200 sampled IDs. This indicates they were never downloaded/extracted by previous ingestion runs. The resumable batch script (scripts/resumable_ingest.py) only processes sources with actual local files and skips missing ones honestly.",
+  "date": "2026-09-12"
+}

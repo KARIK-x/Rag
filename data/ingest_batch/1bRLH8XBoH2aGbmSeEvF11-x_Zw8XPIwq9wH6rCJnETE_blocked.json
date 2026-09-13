@@ -1,0 +1,10 @@
+{
+  "drive_file_id": "1bRLH8XBoH2aGbmSeEvF11-x_Zw8XPIwq9wH6rCJnETE",
+  "filename": "NEAEC",
+  "mime_type": "application/vnd.google-apps.document",
+  "status": "blocked",
+  "reason": "Not fully ingested by active ingestion process; requires further processing or review",
+  "timestamp": "2026-09-12T16:27:09",
+  "explicit_classification": true,
+  "authoritative_source_in_eligible_list": true
+}

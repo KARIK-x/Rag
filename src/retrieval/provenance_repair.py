@@ -62,12 +62,17 @@ def repair_candidate(candidate) -> None:
             loc['table_id'] = info['table_id']
         if info.get('sheet_name') and not loc.get('sheet_name'):
             loc['sheet_name'] = info['sheet_name']
-        # Enrich metadata
-        meta['filename'] = info.get('filename')
-        meta['folder_path'] = info.get('folder_path')
-        meta['mime_type'] = info.get('mime_type')
-        meta['drive_file_id'] = info.get('drive_file_id')
-        meta['page_start'] = info.get('page_start')
-        meta['page_end'] = info.get('page_end')
-        meta['table_id'] = info.get('table_id')
-        meta['sheet_name'] = info.get('sheet_name')
+        # Enrich metadata (ensure provenance fields are set)
+        meta['filename'] = info.get('filename') or meta.get('filename')
+        meta['folder_path'] = info.get('folder_path') or meta.get('folder_path')
+        meta['mime_type'] = info.get('mime_type') or meta.get('mime_type')
+        meta['drive_file_id'] = info.get('drive_file_id') or meta.get('drive_file_id')
+        meta['page_start'] = info.get('page_start') if info.get('page_start') is not None else meta.get('page_start')
+        meta['page_end'] = info.get('page_end') if info.get('page_end') is not None else meta.get('page_end')
+        meta['table_id'] = info.get('table_id') or meta.get('table_id')
+        meta['sheet_name'] = info.get('sheet_name') or meta.get('sheet_name')
+        # Write back to candidate by reference mutation
+        if hasattr(candidate, 'metadata'):
+            candidate.metadata = meta
+        if hasattr(candidate, 'source_locator'):
+            candidate.source_locator = loc

@@ -1,0 +1,10 @@
+{
+  "drive_file_id": "1v-x_4xDbtWv_ol-KuOw0NNri__yaK7O0x0lX-8E6qqc",
+  "filename": "flashmob_permit_college",
+  "mime_type": "application/vnd.google-apps.document",
+  "status": "blocked",
+  "reason": "Not fully ingested by active ingestion process; requires further processing or review",
+  "timestamp": "2026-09-12T16:27:09",
+  "explicit_classification": true,
+  "authoritative_source_in_eligible_list": true
+}

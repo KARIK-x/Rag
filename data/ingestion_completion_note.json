@@ -1,0 +1,9 @@
+{
+  "eligible_total": 3665,
+  "batch_files": 4969,
+  "checkpoint_processed": 4402,
+  "blocked_failed_explicit": 0,
+  "chunk_files": 112392,
+  "status": "incomplete_remaining_approx_1177",
+  "timestamp": "2026-09-12T16:11"
+}

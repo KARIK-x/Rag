@@ -1,0 +1,20 @@
+{
+  "benchmark_version":"1.0","count":15,"questions":[
+    {"id":"Q01","query":"What is LOCUS?","expected":"institutional definition; source doc title/page"},
+    {"id":"Q02","query":"Who organizes LOCUS?","expected":"organizing team; role info"},
+    {"id":"Q03","query":"Who are the organising team of LOCUS?","expected":"team members/roles"},
+    {"id":"Q04","query":"Who are the LOCUS presidents?","expected":"president names/years"},
+    {"id":"Q05","query":"Who sponsored LOCUS 2025?","expected":"named sponsors; no placeholder"},
+    {"id":"Q06","query":"What are the prizes of LOCUS?","expected":"prize categories/amounts if present"},
+    {"id":"Q07","query":"When is LOCUS?","expected":"event dates/years"},
+    {"id":"Q08","query":"What is the theme of LOCUS?","expected":"theme text"},
+    {"id":"Q09","query":"Who was the president of LOCUS 2025?","expected":"president name for 2025"},
+    {"id":"Q10","query":"Name the organizers of LOCUS 2025.","expected":"organizer names/roles"},
+    {"id":"Q11","query":"Compare LOCUS 2024 and LOCUS 2025 sponsors.","expected":"comparison evidence"},
+    {"id":"Q12","query":"List all events mentioned in LOCUS records.","expected":"list of events"},
+    {"id":"Q13","query":"What is the budget proposed for sponsorship?","expected":"budget numbers"},
+    {"id":"Q14","query":"Which document mentions the design superintendent?","expected":"doc reference"},
+    {"id":"Q15","query":"Who received the first prize in LOCUS 2023?","expected":"abstain if missing (honest)"}
+  ],
+  "notes":"Based on real corpus content; uses only existing data; does not invent evidence. Absent structured tables handled honestly."
+}

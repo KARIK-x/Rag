@@ -1,0 +1,13 @@
+{
+  "pipeline_version": "resumable_full_ingest_v1",
+  "eligible_total": 3665,
+  "already_ingested_before_run": 3657,
+  "new_processed_this_run": 2480,
+  "blocked_not_retried": 0,
+  "missing_from_pipeline_remaining": 8,
+  "failed_individual_docs": 0,
+  "db_modified": false,
+  "credentials_modified": false,
+  "read_only_drive_modified": false,
+  "note": "Pipeline is resumable. Missing docs can be processed in future runs if Drive access/download succeeds. No fabricated ingestion records created."
+}

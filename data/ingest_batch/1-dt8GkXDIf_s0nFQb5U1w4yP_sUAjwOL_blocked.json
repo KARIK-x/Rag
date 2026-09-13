@@ -1,0 +1,10 @@
+{
+  "drive_file_id": "1-dt8GkXDIf_s0nFQb5U1w4yP_sUAjwOL",
+  "filename": "receipt_1720019650708 - CHITRA RAJ JOSHI THA080BEI018.pdf",
+  "mime_type": "application/pdf",
+  "status": "blocked",
+  "reason": "Not fully ingested by active ingestion process; requires further processing or review",
+  "timestamp": "2026-09-12T16:27:09",
+  "explicit_classification": true,
+  "authoritative_source_in_eligible_list": true
+}

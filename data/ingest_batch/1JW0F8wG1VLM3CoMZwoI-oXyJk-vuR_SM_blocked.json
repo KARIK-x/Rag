@@ -1,0 +1,10 @@
+{
+  "drive_file_id": "1JW0F8wG1VLM3CoMZwoI-oXyJk-vuR_SM",
+  "filename": "inbound4569997972605148611 - Bishleshan Paudel.pdf",
+  "mime_type": "application/pdf",
+  "status": "blocked",
+  "reason": "Not fully ingested by active ingestion process; requires further processing or review",
+  "timestamp": "2026-09-12T16:27:09",
+  "explicit_classification": true,
+  "authoritative_source_in_eligible_list": true
+}

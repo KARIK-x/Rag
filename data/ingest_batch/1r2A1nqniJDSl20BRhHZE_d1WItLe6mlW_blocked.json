@@ -1,0 +1,10 @@
+{
+  "drive_file_id": "1r2A1nqniJDSl20BRhHZE_d1WItLe6mlW",
+  "filename": "inbound4829408653265173780 - Abishek Jaiswal.pdf",
+  "mime_type": "application/pdf",
+  "status": "blocked",
+  "reason": "Not fully ingested by active ingestion process; requires further processing or review",
+  "timestamp": "2026-09-12T16:27:09",
+  "explicit_classification": true,
+  "authoritative_source_in_eligible_list": true
+}

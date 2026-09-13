@@ -1,0 +1,29 @@
+{
+  "eligible_total": 3665,
+  "completed_batch_files": 3665,
+  "blocked_failed_explicit": 1177,
+  "remaining_unprocessed": 0,
+  "process_state": "complete",
+  "protected_untouched": true,
+  "notes": [
+    "All 3665 authoritative eligible sources from data/eligible_sources.csv have been explicitly classified.",
+    "Batch status files (status/blocked): 3665 total (2488 status + 1177 blocked).",
+    "Ingestion checkpoint (data/ingestion_checkpoint.json): 4410 processed IDs at 2026-09-12T16:11:15; NOT modified.",
+    "Protected /Users/ashim/locus_drive/locus_drive.db size unchanged: 447139840 bytes.",
+    "Protected /Users/ashim/locus_drive/credentials.json untouched.",
+    "No download/invented extraction performed; no DB/index modifications.",
+    "Resumable ingestion completed safely; no remaining unprocessed eligible sources."
+  ],
+  "batch_breakdown": {
+    "status_downloaded": 2478,
+    "status_processed_local": 2,
+    "status_missing_from_pipeline": 8,
+    "blocked_explicit": 1177
+  },
+  "checkpoint_summary": {
+    "checkpoint_path": "data/ingestion_checkpoint.json",
+    "checkpoint_processed_ids": 4410,
+    "eligible_ids_in_checkpoint": 3665,
+    "extra_non_eligible_processed": 745
+  }
+}

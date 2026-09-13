@@ -1,0 +1,10 @@
+{
+  "drive_file_id": "1htEvWcHqOY-NxOnA88BmXq-4Amhqs4HF",
+  "filename": "Transaction_Receipt 13 Jul, 2024 09_48 pm - BIBEK GAUTAM.pdf",
+  "mime_type": "application/pdf",
+  "status": "blocked",
+  "reason": "Not fully ingested by active ingestion process; requires further processing or review",
+  "timestamp": "2026-09-12T16:27:09",
+  "explicit_classification": true,
+  "authoritative_source_in_eligible_list": true
+}

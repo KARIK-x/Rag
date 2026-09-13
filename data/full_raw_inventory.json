@@ -1,0 +1,59 @@
+{
+  "total": 1970,
+  "readable": 1970,
+  "unreadable_by_8byte_check": 0,
+  "extensions": {
+    "pdf": {
+      "count": 1124,
+      "bytes": 12464936969,
+      "example_files": [
+        "data/raw/1CsXh6OqPD4f6kAePcGYTc1O2-2dUcJcW.pdf",
+        "data/raw/1g_X50gmEsCuhVFTQ75ee0Ge0YZ7fJBxU.pdf",
+        "data/raw/1tfSuQ9f3Z3wmlhFwd1skhTzSVAC8fTyv.pdf"
+      ]
+    },
+    "txt": {
+      "count": 495,
+      "bytes": 1484653,
+      "example_files": [
+        "data/raw/1W9gzGGAKsQtDq_LNDDtS2BVqxwmFUUzRk3b-qBT4uhk.txt",
+        "data/raw/1yRm9F_YiehJg0d9VoNWCqDVbbRecGe8HkJtoxSfZV08.txt",
+        "data/raw/1aMyFBwyujy_yT41ejU1eNmbo3_Z1_e5VbNdYadpaF-A.txt"
+      ]
+    },
+    "csv": {
+      "count": 261,
+      "bytes": 3798368,
+      "example_files": [
+        "data/raw/1-CxrRqmKoj-eysYedb0ugWlLfWaS5KbSMgE9sH6V2Kg.csv",
+        "data/raw/12DMCwgNEBB-u48QjD433WG-_c1USNZu2rwYFwXkfaM0.csv",
+        "data/raw/1EMqTx6qM0NASxfruPqr4fQ5_OerpW3hK99NbSue7Byc.csv"
+      ]
+    },
+    "xlsx": {
+      "count": 14,
+      "bytes": 1615837,
+      "example_files": [
+        "data/raw/18meKTFW6sNs627djGC8wOizatszoKxeV.xlsx",
+        "data/raw/1J20bxi1CnfpSTd1o7VOzMe0QCkUsLd9y.xlsx",
+        "data/raw/1YlcWbaD_kj02xnQ3jpBjJa3E23yR4bN8.xlsx"
+      ]
+    },
+    "docx": {
+      "count": 75,
+      "bytes": 108575743,
+      "example_files": [
+        "data/raw/1bSOR2fPi9ZX0_qPIqyFaMKLy1W0Iz1oE.docx",
+        "data/raw/1oQlG5NdIjgsIPfOSMyoXCKx6AplRebqV.docx",
+        "data/raw/1nnPSP-ST-9OHT_Qs29G4kbh_VLX9P6pP.docx"
+      ]
+    },
+    "json": {
+      "count": 1,
+      "bytes": 4897,
+      "example_files": [
+        "data/raw/1yB4E2Qt-gdLnD45e7mKYglLPYqYkT-Rz.json"
+      ]
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "drive_file_id": "1Lh-Qt389ATJ6BliGNJW0vvzij6WRDtm0y4ApEH67MT0",
+  "filename": "Singapore beverage",
+  "mime_type": "application/vnd.google-apps.document",
+  "status": "blocked",
+  "reason": "Not fully ingested by active ingestion process; requires further processing or review",
+  "timestamp": "2026-09-12T16:27:09",
+  "explicit_classification": true,
+  "authoritative_source_in_eligible_list": true
+}

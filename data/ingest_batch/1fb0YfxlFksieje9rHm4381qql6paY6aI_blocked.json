@@ -1,0 +1,10 @@
+{
+  "drive_file_id": "1fb0YfxlFksieje9rHm4381qql6paY6aI",
+  "filename": "WD_06_2026-01-06_13_43_44 - Grishma Tiwari.pdf",
+  "mime_type": "application/pdf",
+  "status": "blocked",
+  "reason": "Not fully ingested by active ingestion process; requires further processing or review",
+  "timestamp": "2026-09-12T16:27:09",
+  "explicit_classification": true,
+  "authoritative_source_in_eligible_list": true
+}

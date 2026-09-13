@@ -1,0 +1,10 @@
+{
+  "drive_file_id": "1IzUjBo5s6baGtAmmpP4gCOZoPX7oOnmA",
+  "filename": "2_AI_to _read_blueprints.pdf",
+  "mime_type": "application/pdf",
+  "status": "blocked",
+  "reason": "Not fully ingested by active ingestion process; requires further processing or review",
+  "timestamp": "2026-09-12T16:27:09",
+  "explicit_classification": true,
+  "authoritative_source_in_eligible_list": true
+}
