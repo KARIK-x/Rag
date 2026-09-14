@@ -1,173 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LOCUS RAG — Institutional Intelligence</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LOCUS — Institutional Intelligence</title>
 <meta name="description" content="Evidence-first institutional retrieval for LOCUS.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/main.css">
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
 </head>
 <body data-theme="dark">
 <header class="site-header" role="banner">
-  <a href="#" class="brand" onclick="resetToHero();return false;" aria-label="LOCUS RAG home">LOCUS · RAG</a>
-  <span class="brand-sub">Institutional Intelligence</span>
-  <div class="header-actions" aria-label="Header actions">
-    <button class="icon-btn" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme">◐</button>
-  </div>
+  <a href="#" onclick="resetApp();return false;" aria-label="LOCUS home" class="brand-core"><img src="assets/img/A MAIN_LOGO.png" alt="LOCUS" onerror="this.style.display='none'" style="height:26px;width:auto;vertical-align:middle;opacity:.92;"><span class="brand-word">LOCUS</span></a>
+  <nav class="shell-nav" aria-label="Primary"><a href="#" onclick="showHero();return false;" class="nav-link active">Search</a><a href="#" onclick="showHistoryDock();return false;" class="nav-link">History</a></nav>
+  <div class="header-actions"><button onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme" class="icon-btn">◐</button></div>
 </header>
 
-<main class="stage" role="main" aria-label="Query workspace">
-
-  <!-- Hero / initial -->
+<main class="stage" role="main">
   <section class="hero" id="hero" aria-label="Welcome">
-    <div class="hero-inner" style="max-width:640px;margin:0 auto;text-align:center;">
-    <h1 class="hero-title">Institutional Intelligence</h1>
-    <p class="hero-sub">Evidence-first retrieval for LOCUS. Real provenance. No fabrication.</p>
+    <canvas id="hero-canvas" aria-hidden="true" style="position:absolute;inset:0;z-index:0;pointer-events:none;"></canvas>
+    <div class="hero-inner" style="position:relative;z-index:1;max-width:760px;margin:0 auto;text-align:center;padding:120px 28px 90px;">
+      <div class="brand-orbit"><img src="assets/img/LOGO/A MAIN_LOGO.png" alt="" aria-hidden="true" style="height:56px;width:auto;opacity:.95;filter:drop-shadow(0 0 30px rgba(196,162,101,.4));"></div>
+      <h1 class="hero-title" style="font-weight:300;letter-spacing:-.045em;font-size:clamp(3rem,7vw,4.2rem);line-height:1.05;color:var(--ink);">Institutional Intelligence</h1>
+      <p class="hero-sub" style="font-size:1.15rem;color:var(--ink-muted);max-width:520px;margin:0 auto 40px;line-height:1.6;">Evidence-first retrieval. Real provenance. No fabrication.</p>
 
-    <div class="composer" aria-label="Question composer">
-      <label for="q" class="sr-only">Ask anything about LOCUS</label>
-      <div class="input-wrap">
-        <textarea id="q" class="query-input" rows="2" placeholder="Ask anything about LOCUS…" autocomplete="off" aria-label="Natural-language query"></textarea>
+      <div class="composer" aria-label="Query composer">
+        <label for="q" class="sr-only">Ask anything about LOCUS</label>
+        <div class="input-wrap"><textarea id="q" class="query-input" rows="2" placeholder="Ask anything about LOCUS…" autocomplete="off" aria-label="Natural-language query"></textarea></div>
+        <div class="action-row"><button id="btn" class="btn-primary">Search</button><button id="clear" class="btn-ghost" type="button">Clear</button><kbd class="kbd-hint" aria-hidden="true">↵ Enter · ⇧↵ Newline</kbd></div>
       </div>
-      <div class="action-row">
-        <button id="btn" class="btn-primary" aria-label="Search institutional knowledge">Search</button>
-        <button id="clear" class="btn-ghost" type="button" aria-label="Clear query">Clear</button>
-        <kbd class="kbd-hint" aria-hidden="true">↵ Enter · ⇧↵ Newline</kbd>
+
+      <div class="suggestions" aria-label="Discovery" id="suggestions">
+        <button class="disc-card" data-q="Who organizes LOCUS?" onclick="runExample(this)"><div class="disc-label">Who organizes LOCUS?</div><div class="disc-meta">People · Team</div></button>
+        <button class="disc-card" data-q="Who were the LOCUS presidents?" onclick="runExample(this)"><div class="disc-label">Presidents</div><div class="disc-meta">Leadership</div></button>
+        <button class="disc-card" data-q="What was the theme of LOCUS 2025?" onclick="runExample(this)"><div class="disc-label">Theme 2025</div><div class="disc-meta">Events</div></button>
+        <button class="disc-card" data-q="Who sponsored LOCUS 2025?" onclick="runExample(this)"><div class="disc-label">Sponsors</div><div class="disc-meta">Partnership</div></button>
       </div>
     </div>
-
-    </div>
-
-    <div class="suggestions" aria-label="Example prompts" id="suggestions">
-      <button class="suggest" data-q="Who organizes LOCUS?" onclick="runExample(this)">Who organizes LOCUS?</button>
-      <button class="suggest" data-q="Who were the LOCUS presidents?" onclick="runExample(this)">Who were the LOCUS presidents?</button>
-      <button class="suggest" data-q="What was the theme of LOCUS 2025?" onclick="runExample(this)">What was the theme of LOCUS 2025?</button>
-      <button class="suggest" data-q="Who sponsored LOCUS 2025?" onclick="runExample(this)">Who sponsored LOCUS 2025?</button>
-      <button class="suggest" data-q="What is PDSC?" onclick="runExample(this)">What is PDSC?</button>
-    </div>
-
-    <!-- History -->
-    <section class="history-section" id="history-section" aria-label="Recent searches" hidden>
-      <div class="history-header"><h3>Recent</h3><button onclick="clearHistory()" class="link-btn" aria-label="Clear history">Clear</button></div>
-      <div class="history-list" id="history-list"></div>
-    </section>
   </section>
 
-  <!-- Answer area -->
   <section id="answer-area" class="answer-area" aria-label="Answer" hidden>
     <article class="answer-card" id="answer-card" aria-live="polite">
-      <header class="answer-header">
-        <h2 class="answer-heading" id="answer-heading">Answer</h2>
-        <div class="answer-meta" id="answer-meta" aria-label="Answer metadata"></div>
-      </header>
-
+      <header class="answer-header"><h2 class="answer-heading" id="answer-heading">Answer</h2><div class="answer-meta" id="answer-meta"></div></header>
       <div class="answer-body" id="answer-body"></div>
-
-      <!-- Action bar -->
       <nav class="action-bar" aria-label="Answer actions" id="action-bar">
-        <button onclick="copyAnswer()" class="action-btn" aria-label="Copy answer" id="btn-copy">
-          <span aria-hidden="true">⧉</span> Copy
-        </button>
-        <button onclick="regenerateAnswer()" class="action-btn" aria-label="Regenerate answer" id="btn-regen">
-          <span aria-hidden="true">↻</span> Regenerate
-        </button>
-        <button onclick="resetToHero()" class="action-btn" aria-label="New search">
-          <span aria-hidden="true">⊕</span> New search
-        </button>
+        <button onclick="copyAnswer()" class="action-btn" aria-label="Copy answer" id="btn-copy"><span aria-hidden="true">⧉</span> Copy</button>
+        <button onclick="regenerateAnswer()" class="action-btn" aria-label="Regenerate answer" id="btn-regen"><span aria-hidden="true">↻</span> Regenerate</button>
+        <button onclick="resetApp()" class="action-btn" aria-label="New search"><span aria-hidden="true">⊕</span> New search</button>
       </nav>
-
-      <!-- Evidence summary -->
-      <div class="evidence-summary" id="evidence-summary" hidden>
-        <span id="evidence-text"></span>
-      </div>
-
+      <div class="evidence-summary" id="evidence-summary" hidden><span id="evidence-text"></span></div>
       <section class="sources-expand" aria-label="Sources and evidence">
-        <button class="sources-toggle" id="sources-toggle" onclick="toggleSources()" aria-expanded="false" aria-controls="sources-panel">
-          <span>Sources & evidence</span>
-          <span class="chevron" aria-hidden="true"></span>
-          <span class="count-badge" id="source-count">0</span>
-        </button>
-        <div class="sources-panel" id="sources-panel" hidden>
-          <div class="sources-list" id="sources-list"></div>
-          <div class="sources-foot" id="sources-foot"></div>
-        </div>
-      </section>
-
-      <!-- Technical details (collapsible) -->
-      <section class="tech-details" aria-label="Technical details">
-        <button class="tech-toggle" onclick="toggleTech()" aria-expanded="false" aria-controls="tech-panel" id="tech-toggle-btn">
-          <span>Evidence details</span>
-          <span class="chevron" aria-hidden="true"></span>
-        </button>
-        <div class="tech-panel" id="tech-panel" hidden>
-          <div class="tech-body" id="tech-body"></div>
-        </div>
+        <button class="sources-toggle" id="sources-toggle" onclick="toggleSources()" aria-expanded="false" aria-controls="sources-panel"><span>Sources &amp; evidence</span><span class="chevron"></span><span class="count-badge" id="source-count">0</span></button>
+        <div class="sources-panel" id="sources-panel" hidden><div class="sources-list" id="sources-list"></div><div class="sources-foot" id="sources-foot"></div></div>
       </section>
     </article>
   </section>
 
-  <!-- Loading -->
   <section id="loading" class="loading-state" aria-live="assertive" hidden aria-label="Loading">
-    <div class="loader-ring" aria-hidden="true"><span></span></div>
+    <div class="loader-core" aria-hidden="true"><div class="loader-ring-inner"></div></div>
     <p class="loader-text" id="loader-text">Searching institutional knowledge…</p>
-    <ol class="loader-steps" aria-label="Progress stages" id="loader-steps">
-      <li data-step="search" class="step-active">Searching</li>
-      <li data-step="evidence">Finding evidence</li>
-      <li data-step="reading">Reading sources</li>
-      <li data-step="prepare">Preparing response</li>
-    </ol>
+    <ol class="loader-steps" aria-label="Progress stages" id="loader-steps"><li data-step="search" class="step-active">Searching</li><li data-step="evidence">Finding evidence</li><li data-step="reading">Reading sources</li><li data-step="prepare">Preparing response</li></ol>
   </section>
 
-  <!-- No result -->
   <section id="no-result" class="no-result" aria-label="No result" hidden>
-    <div class="no-result-icon" aria-hidden="true">⊘</div>
-    <h3 style="font-size:1.1rem;font-weight:600;color:var(--ink);margin-bottom:8px;letter-spacing:-0.02em;">Insufficient verified evidence</h3>
-    <p style="color:var(--ink-muted);font-size:.92rem;max-width:420px;margin:0 auto;line-height:1.6;">The institutional index does not contain sufficient verified information to answer this confidently. The catalog remains read-only; no fabrication has been performed.</p>
-    <button class="btn-ghost" onclick="resetToHero()" style="margin-top:14px;">New search</button>
-    <div class="suggestions" style="justify-content:center;margin-top:18px;">
-      <button class="suggest" data-q="Who organizes LOCUS?" onclick="runExample(this)">Who organizes LOCUS?</button>
-      <button class="suggest" data-q="What was the theme of LOCUS 2025?" onclick="runExample(this)">Theme of LOCUS 2025</button>
-    </div>
+    <div class="no-result-visual" aria-hidden="true"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="35" fill="none" stroke="rgba(196,162,101,0.2)" stroke-width="1"/><circle cx="40" cy="40" r="25" fill="none" stroke="rgba(196,162,101,0.15)" stroke-width="0.5"/></svg></div>
+    <h3>Insufficient verified evidence</h3><p>The institutional index does not contain sufficient verified information to answer this confidently. No fabrication has been performed.</p><button class="btn-ghost" onclick="resetApp()">New search</button>
   </section>
 
-  <!-- Error -->
-  <section id="error-state" class="error-state" aria-label="Error" hidden>
-    <h3>Connection interrupted</h3>
-    <p>Ensure the retrieval adapter is running (<code>python server_adapter.py</code> on localhost:8765).</p>
-    <button onclick="resetToHero()" class="btn-ghost" style="margin-top:10px;">Try again</button>
-  </section>
+  <section id="error-state" class="error-state" aria-label="Error" hidden><h3>Connection interrupted</h3><p>Ensure the retrieval adapter is running (<code>python server_adapter.py</code> on localhost:8765).</p><button onclick="resetApp()" class="btn-ghost">Try again</button></section>
 
+  <section class="history-dock" id="history-section" aria-label="Recent searches" hidden>
+    <div class="history-dock-header"><h3>Recent</h3><button onclick="clearHistory()" class="link-btn">Clear</button></div>
+    <div class="history-dock-grid" id="history-list"></div>
+  </section>
 </main>
 
 <footer class="foot" role="contentinfo">
-  <div style="display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;">
-    <span class="foot-brand">LOCUS · RAG</span>
-    <span class="foot-divider">|</span>
-    <span>Evidence-first institutional retrieval</span>
-    <span class="foot-divider">|</span>
-    <span>Read-only Drive</span>
-  </div>
-  <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:8px;flex-wrap:wrap;">
-    <a href="https://www.locus.com.np" aria-label="LOCUS website" title="Website" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:var(--ink-muted);font-weight:600;font-size:.9rem;transition:color .2s;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--ink-muted)'">Website</a>
-    <a href="#" aria-label="Instagram" title="Instagram" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:var(--ink-muted);font-size:.85rem;transition:color .2s;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--ink-muted)'">Instagram</a>
-    <a href="https://www.facebook.com/locus.ioe/" aria-label="Facebook" title="Facebook" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:var(--ink-muted);font-weight:600;font-size:.9rem;transition:color .2s;" onmouseover="this.style.color='var(--accent-deep)'" onmouseout="this.style.color='var(--ink-muted)'">Facebook</a>
-    <a href="#" aria-label="LinkedIn" title="LinkedIn" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:var(--ink-muted);font-size:.85rem;transition:color .2s;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--ink-muted)'">LinkedIn</a>
-    <a href="#" aria-label="TikTok" title="TikTok" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:var(--ink-muted);font-size:.85rem;transition:color .2s;" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--ink-muted)'">TikTok</a>
-  </div>
+  <div class="foot-inner"><span class="foot-brand">LOCUS · RAG</span><span class="foot-div">|</span><span>Evidence-first institutional retrieval</span><span class="foot-div">|</span><span>Read-only Drive</span></div>
+  <div class="foot-inner"><a href="https://www.locus.com.np" target="_blank" rel="noopener noreferrer">Website</a><a href="#" onclick="return false;">Instagram</a><a href="https://www.facebook.com/locus.ioe/" target="_blank" rel="noopener noreferrer">Facebook</a><a href="#" onclick="return false;">LinkedIn</a></div>
   <div style="margin-top:6px;"><a href="#" onclick="alert('Source: /Users/ashim/locus_drive (read-only catalog)');return false;">Catalog preserved</a></div>
 </footer>
 
+<!-- === AWARD-LEVEL 3D: ABSTRACT GEOMETRIC NETWORK (institutional intelligence) === -->
+<script type="module">
+import * as THREE from 'three';
+const canvas = document.getElementById('hero-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+const scene = new THREE.Scene();
+// Soft ambient + directional for cinematic depth
+const ambient = new THREE.AmbientLight(0xede2cf, 0.5); scene.add(ambient);
+const dir = new THREE.DirectionalLight(0xffffff, 1.2); dir.position.set(5, 5, 8); scene.add(dir);
+const cam = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 100);
+cam.position.set(0, 0, 22);
+
+// === GEOMETRIC CORE: abstract node sphere ===
+const coreGeo = new THREE.IcosahedronGeometry(2.5, 1);
+const coreMat = new THREE.MeshStandardMaterial({ color: 0x18161e, roughness: 0.3, metalness: 0.8, emissive: 0xc4a265, emissiveIntensity: 0.45, transparent: true, opacity: 0.98 });
+const core = new THREE.Mesh(coreGeo, coreMat); scene.add(core);
+
+// === ORBITAL NETWORK NODES ===
+const orbitCount = 120;
+const orbitR = 6;
+const nodes = [];
+for (let i = 0; i < orbitCount; i++) {
+  const theta = (i / orbitCount) * Math.PI * 2;
+  const phi = Math.acos(2 * (i % 5) / 5 - 1);
+  const x = orbitR * Math.sin(phi) * Math.cos(theta);
+  const y = orbitR * Math.sin(phi) * Math.sin(theta);
+  const z = orbitR * Math.cos(phi);
+  const geo = new THREE.SphereGeometry(0.08 + Math.random() * 0.12, 12, 12);
+  const mat = new THREE.MeshStandardMaterial({ color: 0xf0e6cf, roughness: 0.3, metalness: 0.85, emissive: 0xc4a265, emissiveIntensity: 0.5, transparent: true, opacity: 0.95 });
+  const node = new THREE.Mesh(geo, mat);
+  node.position.set(x, y, z);
+  node.userData = { theta, phi, baseY: y, speed: 0.2 + Math.random() * 0.3 };
+  scene.add(node); nodes.push(node);
+}
+
+// === NETWORK CONNECTION LINES (edges between nearby nodes) ===
+const lineMat = new THREE.LineBasicMaterial({ color: 0xc4a265, transparent: true, opacity: 0.45 });
+const linePoints = [];
+for (let i = 0; i < nodes.length; i++) {
+  for (let j = i + 1; j < nodes.length; j++) {
+    const d = nodes[i].position.distanceTo(nodes[j].position);
+    if (d < 3.5) { linePoints.push(nodes[i].position); linePoints.push(nodes[j].position); }
+  }
+}
+const linesGeo = new THREE.BufferGeometry().setFromPoints(linePoints);
+const lines = new THREE.LineSegments(linesGeo, lineMat); scene.add(lines);
+
+// === PREMIUM CARTOON CHARACTER (embedded in network, eye-tracking, not cheap beige) ===
+const charGeo = new THREE.SphereGeometry(1.8, 32, 32);
+const charMat = new THREE.MeshStandardMaterial({ color: 0xf0e6cf, roughness: 0.35, metalness: 0.15, emissive: 0xe0c99a, emissiveIntensity: 0.3, transparent:true, opacity:0.96; emissive:0xe8dcc8 });
+const char = new THREE.Mesh(charGeo, charMat); char.position.set(0,0,-3); scene.add(char);
+// Eyes that look at mouse — premium style, not cartoonish colors
+const eyeG = new THREE.SphereGeometry(0.28, 16, 16);
+const eyeM = new THREE.MeshStandardMaterial({ color: 0x1e1a16, roughness: 0.3, metalness: 0.3, emissive: 0x0a0806 });
+const eyeL = new THREE.Mesh(eyeG, eyeM); eyeL.position.set(-0.7, 0.2, -1.82); char.add(eyeL);
+const eyeR = new THREE.Mesh(eyeG, eyeM); eyeR.position.set(0.7, 0.2, -1.82); char.add(eyeR);
+// Eye highlights
+const hlG = new THREE.SphereGeometry(0.06, 8, 8);
+const hlM = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.8 });
+const hlL = new THREE.Mesh(hlG, hlM); hlL.position.set(-0.7, 0.22, -1.76); char.add(hlL);
+const hlR = new THREE.Mesh(hlG, hlM); hlR.position.set(0.7, 0.22, -1.76); char.add(hlR);
+// Subtle mouth
+const mouthGeo = new THREE.TorusGeometry(0.55, 0.06, 8, 24);
+const mouthMat = new THREE.MeshStandardMaterial({ color: 0x2a1e1e, roughness: 0.4, metalness: 0.2, transparent:true, opacity:0.6 });
+const mouth = new THREE.Mesh(mouthGeo, mouthMat); mouth.position.set(0, -0.55, -1.82); mouth.rotation.x = -0.3; char.add(mouth);
+// Eye tracking targets
+let charTargetX = 0, charTargetY = 0;
+window.addEventListener('mousemove', e => {
+  mouseX = (e.clientX/window.innerWidth-0.5)*2;
+  mouseY = (e.clientY/window.innerHeight-0.5)*2;
+  charTargetX = mouseX * 0.4; charTargetY = -mouseY * 0.25;
+}, { passive: true });
+// === CURSOR REACTIVE LIGHTING ===
+let mouseX = 0, mouseY = 0;
+window.addEventListener('mousemove', e => { mouseX = (e.clientX/window.innerWidth-0.5)*2; mouseY = (e.clientY/window.innerHeight-0.5)*2; }, { passive: true });
+
+// === SUBTLE SOUND ===
+let audioCtx = null, soundOsc = null;
+function initSound() {
+  if (audioCtx) return;
+  try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch { return; }
+  soundOsc = audioCtx.createOscillator();
+  const g = audioCtx.createGain(); g.gain.value = 0.012;
+  soundOsc.type = 'sine'; soundOsc.frequency.value = 440;
+  soundOsc.connect(g); g.connect(audioCtx.destination); soundOsc.start();
+}
+document.addEventListener('click', () => { if (!audioCtx) initSound(); if (soundOsc && audioCtx) { soundOsc.frequency.value = 440 + mouseX * 120; } }, { once: true });
+
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+  // Rotate core slowly
+  core.rotation.y = t * 0.15; core.rotation.z = Math.sin(t * 0.2) * 0.05;
+  // Nodes orbit + pulse
+  nodes.forEach((node, i) => {
+    const s = node.userData.speed;
+    node.position.y = node.userData.baseY + Math.sin(t * s + i) * 0.35;
+    node.rotation.y = t * s;
+  });
+  // Cursor-reactive light direction shift
+  dir.position.x = mouseX * 4; dir.position.y = mouseY * 3;
+  // Cartoon eye tracking (premium embedded form — not cheap separate head)
+  eyeL.rotation.y += (charTargetX - eyeL.rotation.y) * 0.06;
+  eyeL.rotation.x += (charTargetY - eyeL.rotation.x) * 0.06;
+  eyeR.rotation.y += (charTargetX - eyeR.rotation.y) * 0.06;
+  eyeR.rotation.x += (charTargetY - eyeR.rotation.x) * 0.06;
+  char.rotation.y = Math.sin(t * 0.5) * 0.02;
+  renderer.render(scene, cam);
+}
+animate();
+window.addEventListener('resize', () => { renderer.setSize(window.innerWidth, window.innerHeight); cam.aspect = window.innerWidth/window.innerHeight; cam.updateProjectionMatrix(); });
+</script>
+
 <script src="js/app.js"></script>
-
-<!-- Conversation Thread Area -->
-<section id="thread-area" class="thread-area" aria-label="Conversation" hidden>
-  <div id="thread-content"></div>
-</section>
-
 </body>
-</html>
-
 </html>

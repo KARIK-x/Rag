@@ -46,13 +46,41 @@ def synthesize(query: str, evidence_items: List[Any], is_sufficient: bool = True
     for item in evidence_items:
         did = getattr(item, "doc_id", None) or "unknown"
         docs.setdefault(did, []).append(item)
-    # 2. Select best blocks (up to 4 docs, best text per doc) — capped for context safety
+    # 2. Select best blocks — prefer query-aligned; fall back to length if relevance 0
+    def block_relevance(b):
+        txt = (getattr(b, 'best_text', '') or '').lower()
+        qlow = query.lower()
+        score = 0
+        for k in qlow.split():
+            if len(k) > 2 and k in txt: score += 3
+        for ent in ["roboevent","robowarz","electro tech","magazine","mou","hack-a-week","code jam"]:
+            if ent in qlow and ent in txt: score += 2
+        try:
+            meta = (getattr(b.items[0], 'metadata', None) or {}) if b.items else {}
+        except Exception:
+            meta = {}
+        if meta.get("authority_status") == "institutional" or meta.get("doc_type") == "structured": score += 1
+        try:
+            if (getattr(b.items[0].provenance, 'drive_file_id', None) or getattr(b.items[0].provenance, 'filename', None)): score += 0.5
+        except Exception:
+            pass
+        return score
     blocks = []
-    for did in sorted(docs, key=lambda d: max(len(getattr(i,"text","") or "") for i in docs[d]), reverse=True)[:4]:  # <=4 doc groups for safe LLM context
-        best = max(docs[did], key=lambda i: len(i.text or ""))
+    # First pass: relevance sort
+    sorted_docs = sorted(docs.items(), key=lambda item: (block_relevance(DocumentBlock(item[0], item[1])), max(len(getattr(i,"text","") or "") for i in item[1])), reverse=True)
+    for did, items in sorted_docs[:4]:
+        best = max(items, key=lambda i: len(i.text or ""))
         txt = clean_ocr(best.text or "")
         if len(txt) > 30:
-            blocks.append(DocumentBlock(did, docs[did]))
+            blocks.append(DocumentBlock(did, items))
+    # Fallback: if no blocks selected (all relevance 0 and length <30), pick longest from any doc
+    if not blocks:
+        for did, items in sorted(docs.items(), key=lambda item: max(len(getattr(i,"text","") or "") for i in item[1]), reverse=True)[:2]:
+            best = max(items, key=lambda i: len(i.text or ""))
+            txt = clean_ocr(best.text or "")
+            if len(txt) > 30:
+                blocks.append(DocumentBlock(did, items))
+                break
     # 3. Answer by intent
     answer = ""
     sources = []

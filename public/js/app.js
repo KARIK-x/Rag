@@ -64,6 +64,7 @@ function runExample(el) {
 /* ------------------------------------------------------------------ */
 /*  Reset / Home                                                       */
 /* ------------------------------------------------------------------ */
+function resetApp() { resetToHero(); }
 function resetToHero() {
   input.value = '';
   input.focus();
@@ -92,6 +93,7 @@ function hideAll() {
   $d('no-result').hidden = true;
   $d('error-state').hidden = true;
 }
+function showHistoryDock() { hideAll(); document.getElementById("history-section").hidden=false; renderHistory(); }
 function showHero() {
   hideAll();
   $d('hero').hidden = false;

@@ -27,6 +27,8 @@ from src.indexing.vector import (
     RetrievalCandidate,
     SearchQuery,
 )
+# Evidence gate: filter candidates by actual query-alignment
+from src.retrieval.evidence_gate import extract_query_plan, evidence_gate
 
 
 # ─── RRF Fusion ───────────────────────────────────────────────────────────────
@@ -250,12 +252,35 @@ class HybridRetriever:
                     boost += 0.15
                 if any(w in text_low for w in ["table", "csv", "spreadsheet", "excel", "xlsx", "rows"]):
                     boost += 0.08
-            # Fallback provenance boost for high-quality institutional docs
+            # Event / RoboEvent / named entity queries — boost exact entity match
+            entity_boost = 0
+            for named in ["roboevent","robowarz","hack-a-week","code jam","electro tech","exhibition","magazine","mou"]:
+                if named in query_low:
+                    if named in text_low: entity_boost += 0.25
+                    if meta.get("doc_type") == "structured" or meta.get("category") == named.replace(" ","_"):
+                        entity_boost += 0.15
+            if entity_boost > 0:
+                boost += entity_boost
+            # Structured/roster preference for company/person 'who' queries
+            if "who" in query_low or any(w in query_low for w in ["president","sponsor","company","team","organizer"]):
+                if meta.get("doc_type") == "structured" or meta.get("format") in ["csv","excel","table","xlsx"] or meta.get("category") in ["sponsor","team","committee","roster","contact","president"]:
+                    boost += 0.20
+                fee_only = any(w in text_low for w in ["price","fee","benefit","privileges","privilege","starting sponsorship","investment","negotiable","registration fee","participant fee"])
+                has_company = any(w in text_low for w in ["company","corporation","group","bank","limited","industrial","engineering","consulting","consultancy","p.c.","ltd","pvt"])
+                if fee_only and not has_company:
+                    boost -= 0.25
             if c.doc_id and meta.get("authority_status") == "institutional":
                 boost += 0.02
             return (c.score + boost, c.score)
         reranked = sorted(filtered, key=rerank_key, reverse=True)
-        return reranked[:100]  # bounded endpoint speed for retest; high-recall internals preserved
+        # EVIDENCE GATE: apply query-plan-based filtering after rerank
+        plan = extract_query_plan(query)
+        gated = [c for c in reranked if evidence_gate(str(c.text or ""), plan)]
+        # Ensure at least some results if gate is too aggressive, but prefer gated
+        if not gated and reranked:
+            # Fallback: return top 5 from reranked if gate filters everything (abstention path)
+            gated = reranked[:5]
+        return gated[:100]  # bounded endpoint speed; evidence-aligned results
 
 
 # ─── Exports ─────────────────────────────────────────────────────────────────
