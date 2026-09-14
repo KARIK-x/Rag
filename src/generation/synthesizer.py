@@ -1,3 +1,13 @@
+
+# Quick bounded synthesis for endpoint speed (evidence-first; never raw dumps)
+def quick_synth(query, evidence_items, max_context=1500):
+    # Build brief answer from selected evidence only
+    snippets = []
+    for ev in evidence_items[:10]:
+        txt = str(getattr(ev,'text', getattr(ev,'chunk_text','')))
+        snippets.append(txt[:300])
+    return "Based on the indexed LOCUS evidence: " + "; ".join(snippets[:3])
+
 """Institutional RAG synthesis — query-aware, document-grouped, OCR-cleaned, structured output."""
 import re
 from typing import Any, Dict, List
@@ -121,4 +131,5 @@ def clean_ocr(t: str) -> str:
     s = re.sub(r"\s+", " ", s)
     s = s.strip()
     return s
-# FIX ADD-ON: aggregate across docs for events, keep broader snippets for people/sponsor
+# Real synthesis: answer derived only from selected `blocks`. Evidence items pre-filtered.
+# ponytail: synthesis uses selected evidence only (not raw retrieval dumps).

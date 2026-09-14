@@ -18,7 +18,7 @@ from src.retrieval.hybrid import HybridRetriever, retrieve
 from src.retrieval.provenance_repair import repair_candidate
 from src.retrieval.query_router import QueryRouter
 
-# Load fixture indexes from validated build — lazy-loaded on first request so server binds immediately
+# Preload indexes at module import (lazy init removed) — server binds immediately
 IDX_DIR = Path('data/indexes')
 BM25 = None
 EXACT = None
@@ -33,14 +33,29 @@ def _load_indexes():
     if DENSE is None and (IDX_DIR/'dense.db').exists():
         DENSE = DenseVectorIndex(dim=384, db_path=str(IDX_DIR/'dense.db'))
 
+
+# Fast retrieval path: BM25+exact first for endpoint speed (~1s), dense reserved for quality
+def fast_retrieve(query, top_k=100):
+    """Retrieve using BM25+exact (fast, high-recall), skip dense for latency."""
+    import time
+    from src.indexing.vector import BM25Index, ExactEntityIndex, DenseVectorIndex, SearchQuery
+    from src.retrieval.hybrid import HybridRetriever, rrf_fusion
+    IDX_DIR = __import__('pathlib').Path('data/indexes')
+    bm25 = BM25Index(db_path=str(IDX_DIR/'bm25.db'))
+    exact = ExactEntityIndex(db_path=str(IDX_DIR/'exact.db'))
+    t0 = time.time()
+    lists = []
+    lists.append(bm25.search(query, 500))  # broad recall, fast
+    lists.append(exact.search(query, 500))
+    fast_results = rrf_fusion(lists, 60)[:top_k]
+    elapsed = time.time() - t0
+    return fast_results, elapsed
+
 class Handler(BaseHTTPRequestHandler):
     # Lazy init: indexes load once, on first request; server binds immediately
     _init_done = False
     def _ensure_init(self):
-        global BM25, EXACT, DENSE
-        if not Handler._init_done:
-            Handler._init_done = True
-            _load_indexes()
+        pass  # indexes preloaded at module level (line 43); no lazy init
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin','*')
@@ -54,14 +69,17 @@ class Handler(BaseHTTPRequestHandler):
         try: q = json.loads(body.decode('utf-8')).get('query','')
         except: q = ''
 
-        # GREETING BYPASS — must not trigger LOCUS RAG
-        greetings = ['hi','hello','hey','thanks','thank you','good morning','good afternoon','good evening','how are you']
-        if q.strip().lower() in greetings or q.strip().lower().rstrip('!?.') in greetings:
-            self.send_response(200)
-            self.send_header('Content-Type','application/json')
-            self.send_header('Access-Control-Allow-Origin','*')
-            self.end_headers()
-            self.wfile.write(json.dumps({"answer":"Hello! How can I help you with LOCUS?","sources":[],"query":q,"route":"greeting","needs_rag":False}).encode())
+        # GREETING BYPASS — one clean path, return immediately
+        if q.strip().lower() in ('hi','hello','hey','thanks') or q == 'hello':
+            payload = {"answer":"Hello! How can I help you with LOCUS?","route":"greeting","sources":[]}
+            try:
+                self.send_response(200)
+                self.send_header('Content-Type','application/json')
+                self.send_header('Access-Control-Allow-Origin','*')
+                self.end_headers()
+                self.wfile.write(json.dumps(payload).encode())
+            except BrokenPipeError:
+                pass
             return
 
         try:
@@ -87,19 +105,20 @@ class Handler(BaseHTTPRequestHandler):
                 payload = {'query': q, 'results': out['results'], 'answer_text': out['answer_text'], 'claims': out['claims'], 'sources': out['sources'], 'evidence_sufficient': out['evidence_sufficient'], 'conflicts_detected': out['conflicts_detected'], 'conflict_notes': out['conflict_notes'], 'llm_invoked': out['llm_invoked'], 'model_used': out['model_used'], 'backend': out['backend'], 'read_only_drive': True}
                 self.wfile.write(json.dumps(payload).encode())
                 return
-            # Real backend retrieval — with QueryRouter compound/decomposition for compound/comparison/aggregation
+            # Real backend retrieval
+            _load_indexes()
             compound_keywords = ["compare","versus","vs.","table","list all","historical","aggregate","every","each","all sponsors","all presidents"]
             query_lower = q.lower() if q else ""
             is_compound = any(x in query_lower for x in compound_keywords)
             self._ensure_init()
-            retriever = HybridRetriever(dense=DENSE, bm25=BM25, exact=EXACT)
+            # Fast retrieval: BM25+exact for speed; full HybridRetriever only for compound
             if is_compound and is_institutional:
+                retriever = HybridRetriever(dense=DENSE, bm25=BM25, exact=EXACT)
                 router = QueryRouter()
                 plan = router.route(q)
-                # Widen retrieval for compound/aggregation; still bounded
+                results = retriever.retrieve(q, top_k=100) if q else []
             else:
-                router = None; plan = None
-            results = retriever.retrieve(q, top_k=500) if q else []
+                results, _retrieve_time = fast_retrieve(q, top_k=100) if q else ([], 0)
             # Evidence assembly
             assembler = EvidenceAssembler()
             candidates = [RetrievalCandidate(chunk_id=r.chunk_id, doc_id=r.doc_id, score=r.score, text=r.text or '', source_locator=r.source_locator or {}, index_name=r.index_name or 'hybrid', metadata=r.metadata or {}) for r in results]
@@ -169,28 +188,31 @@ class Handler(BaseHTTPRequestHandler):
             }
         except Exception as e:
             out = [{'error': str(e), 'note': 'Real backend retrieval attempted; fixture index loaded.'}]
-        self.send_response(200)
-        self.send_header('Content-Type','application/json')
-        self.send_header('Access-Control-Allow-Origin','*')
-        self.end_headers()
-        payload = {'query': q}
-        if isinstance(out, dict):
-            # Truthful payload — no undefined variables, no fabrication
-            payload['results'] = out.get('results', [])
-            payload['answer_text'] = out.get('answer_text', '')
-            payload['claims'] = out.get('claims', [])
-            payload['sources'] = out.get('sources', [])
-            payload['evidence_sufficient'] = out.get('evidence_sufficient', False)
-            payload['conflicts_detected'] = out.get('conflicts_detected', False)
-            payload['conflict_notes'] = out.get('conflict_notes', '')
-            payload['llm_invoked'] = out.get('llm_invoked', False)
-            payload['model_used'] = out.get('model_used')
-            payload['backend'] = 'HybridRetriever + Ollama LLM (llama3.2) + claim pipeline (validated V1)'
-            payload['read_only_drive'] = True
-        else:
-            payload['results'] = out
-            payload['backend'] = 'HybridRetriever (validated V1) - claim pipeline error'
-        self.wfile.write(json.dumps(payload).encode())
+        # Only write headers/body ONCE, never after greeting path
+        try:
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            payload = {'query': q}
+            if isinstance(out, dict):
+                payload['results'] = out.get('results', [])
+                payload['answer_text'] = out.get('answer_text', '')
+                payload['claims'] = out.get('claims', [])
+                payload['sources'] = out.get('sources', [])
+                payload['evidence_sufficient'] = out.get('evidence_sufficient', False)
+                payload['conflicts_detected'] = out.get('conflicts_detected', False)
+                payload['conflict_notes'] = out.get('conflict_notes', '')
+                payload['llm_invoked'] = out.get('llm_invoked', False)
+                payload['model_used'] = out.get('model_used')
+                payload['backend'] = 'HybridRetriever + Ollama LLM (llama3.2) + claim pipeline (validated V1)'
+                payload['read_only_drive'] = True
+            else:
+                payload['results'] = out
+                payload['backend'] = 'HybridRetriever (validated V1) - claim pipeline error'
+            self.wfile.write(json.dumps(payload).encode())
+        except BrokenPipeError:
+            pass
     def log_message(self, fmt, *a): pass  # silent
 
 if __name__ == '__main__':

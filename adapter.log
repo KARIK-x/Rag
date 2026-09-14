@@ -1,1 +1,17 @@
-nohup: python: No such file or directory
+  File "/Users/ashim/locus_rag/server_adapter.py", line 115
+    router = QueryRouter()
+IndentationError: unexpected indent
+  File "/Users/ashim/locus_rag/server_adapter.py", line 115
+    router = QueryRouter()
+IndentationError: unexpected indent
+Traceback (most recent call last):
+  File "/Users/ashim/locus_rag/server_adapter.py", line 219, in <module>
+    s = HTTPServer(('', 8765), Handler)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py", line 457, in __init__
+    self.server_bind()
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/http/server.py", line 136, in server_bind
+    socketserver.TCPServer.server_bind(self)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/socketserver.py", line 473, in server_bind
+    self.socket.bind(self.server_address)
+OSError: [Errno 48] Address already in use
