@@ -1,0 +1,38 @@
+/* LOCUS design tokens — reused physical assets/colors only */
+:root {
+  /* Colors from 2026-09-14 audit / spec */
+  --locus-deep:   #020308;
+  --locus-violet: #92278f;
+  --locus-blue:   #88ccff;
+  --locus-cream:  #f8f5f0;
+  --locus-white:  rgba(255,255,255,.92);
+
+  /* Typography — real fonts from public/index.html Google Fonts link */
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body:    'Space Grotesk', system-ui, sans-serif;
+
+  /* Spacing — reused from index.html .world-overlay / .cmd-world */
+  --space-xs:  4px;
+  --space-sm:  14px;
+  --space-md:  26px;
+  --space-lg:  36px;
+  --padding-vh: 5vh;
+  --padding-vw: 5vw;
+
+  /* Radii — from .cmd-world (16px) / .logo-world / .action-row (12px) */
+  --radius-sm:  8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 18px;
+
+  /* Shadows — from index.html .logo-world / .cmd-world / #node-panel */
+  --shadow-text-sm:  0 0 20px rgba(146,39,143,.2);
+  --shadow-text-md:  0 0 40px rgba(146,39,143,.4);
+  --shadow-card:     0 30px 70px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05);
+  --shadow-card-hover: 0 36px 90px rgba(146,39,143,.15), 0 30px 70px rgba(0,0,0,.4);
+
+  /* Logo assets — physical files in public/assets/logo/ */
+  --logo-main:   url('../assets/logo/A_MAIN_LOGO.png');
+  --logo-horiz:  url('../assets/logo/Horizontal_logo-07.png');
+  --logo-red:    url('../assets/logo/locusredtheme.png');
+}
