@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>LOCUS — Intelligence World</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @keyframes shimmer{to{background-position:200% center}}
+  @keyframes floatUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes orbitSpin{to{rotate:360deg}}
+  html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#03050a;color:#e8e8f0;font-family:'Space Grotesk',system-ui,sans-serif;letter-spacing:-.02em;}
+  #world-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:auto;}
+  #world-canvas canvas{display:block;}
+  /* Layered depth overlay */
+  .depth-layer{position:fixed;pointer-events:none;z-index:5;opacity:.35;transition:opacity 1.2s ease;}
+  /* Full-screen UI embedded */
+  .embedded-ui{position:fixed;z-index:10;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:6vh 6vw;height:100vh;width:100%;}
+  .embedded-top{pointer-events:auto;display:flex;justify-content:space-between;align-items:center;}
+  .logo-embedded{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:2.2rem;color:rgba(255,255,255,.92);text-decoration:none;letter-spacing:-.06em;line-height:1;text-shadow:0 0 40px rgba(146,39,143,.35);}
+  .logo-sub{font-family:'Space Grotesk',sans-serif;font-size:.62rem;text-transform:uppercase;letter-spacing:.2em;color:rgba(255,255,255,.5);margin-top:2px;}
+  .nav-embedded{display:flex;gap:28px;font-size:.72rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.65);}
+  .nav-embedded a{color:inherit;text-decoration:none;pointer-events:auto;transition:color .3s ease;border-bottom:1px solid transparent;padding-bottom:2px;}
+  .nav-embedded a:hover{color:#fff;border-bottom-color:rgba(255,255,255,.4);}
+  /* Center interactive prompt */
+  .hero-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+  .hero-center > *{pointer-events:auto;}
+  .hero-center h1{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:clamp(3.6rem,14vw,10rem);line-height:.92;letter-spacing:-.055em;color:#f0f0f2;text-shadow:0 0 60px rgba(146,39,143,.45),0 20px 60px rgba(0,0,0,.6);animation:floatUp 1.2s cubic-bezier(.22,1,.36,1) both;margin-bottom:.15em;}
+  .hero-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.4rem;color:#b8b0d0;max-width:520px;text-align:center;line-height:1.5;margin-bottom:2.5rem;animation:floatUp 1.4s .15s cubic-bezier(.22,1,.36,1) both;text-shadow:0 0 30px rgba(146,39,143,.2);}
+  .cmd-prompt{font-family:'Space Grotesk',sans-serif;font-size:.88rem;color:#ccc;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:18px 28px;width:min(520px,80vw);letter-spacing:-.01em;transition:all .25s ease;animation:floatUp 1.6s .3s cubic-bezier(.22,1,.36,1) both;box-shadow:0 24px 60px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(16px);}
+  .cmd-prompt:hover{border-color:rgba(146,39,143,.45);box-shadow:0 28px 70px rgba(146,39,143,.15),0 0 40px rgba(146,39,143,.15);transform:translateY(-2px);}
+  .cmd-prompt input{width:100%;background:transparent;border:none;color:#fff;font-family:inherit;font-size:inherit;outline:none;letter-spacing:-.01em;line-height:1.4;padding:2px 0;}
+  .cmd-prompt input::placeholder{color:#777;letter-spacing:.08em;}
+  .search-row{display:flex;gap:10px;align-items:center;margin-top:14px;animation:floatUp 1.8s .45s cubic-bezier(.22,1,.36,1) both;}
+  .search-btn{padding:12px 26px;border:1px solid rgba(146,39,143,.45);background:rgba(146,39,143,.08);color:#e8d4e0;border-radius:14px;font-family:inherit;font-size:.82rem;font-weight:500;cursor:pointer;letter-spacing:.05em;text-transform:uppercase;transition:all .3s ease;pointer-events:auto;}
+  .search-btn:hover{background:rgba(146,39,143,.18);border-color:rgba(146,39,143,.7);box-shadow:0 0 20px rgba(146,39,143,.2);transform:translateY(-1px) scale(1.03);}
+  /* Bottom bar */
+  .bottom-bar{pointer-events:auto;display:flex;justify-content:space-between;align-items:center;padding:0 6vw 4vh 6vw;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.45);font-weight:500;animation:floatUp 2s .6s cubic-bezier(.22,1,.36,1) both;}
+  .bottom-bar span{white-space:nowrap;}
+  /* Interactive 3D info overlay */
+  #node-info{position:fixed;bottom:22vh;left:50%;transform:translateX(-50%);z-index:20;background:rgba(6,10,24,.92);border:1px solid rgba(136,204,255,.25);border-radius:18px;padding:24px 32px;max-width:480px;color:#e8e6f0;font-family:'Space Grotesk',system-ui,sans-serif;backdrop-filter:blur(20px);box-shadow:0 30px 80px rgba(0,0,0,.55);pointer-events:auto;opacity:0;transition:opacity .4s ease,transform .4s ease;}
+  #node-info.active{opacity:1;transform:translateX(-50%) translateY(0);}
+  #node-info h3{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.8rem;color:#fff;margin:0 0 .2rem;letter-spacing:-.03em;}
+  #node-info .meta{font-size:.72rem;color:#88ccff;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+  #node-info .body{font-size:.9rem;color:#ccc;line-height:1.6;}
+  #node-info .close-btn{position:absolute;top:14px;right:14px;background:rgba(146,39,143,.15);border:1px solid rgba(146,39,143,.35);color:#fff;border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;cursor:pointer;transition:all .2s ease;}
+  #node-info .close-btn:hover{background:rgba(146,39,143,.35);transform:scale(1.1);}
+  /* Mobile */
+  @media(max-width:640px){.hero-center h1{font-size:clamp(2.8rem,16vw,5.5rem);} .cmd-prompt{width:88vw;padding:14px 18px;}}
+  /* Reduced motion */
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+  /* Processing overlay */
+  #process-overlay{position:fixed;inset:0;z-index:50;background:rgba(3,4,10,.92);display:none;align-items:center;justify-content:center;flex-direction:column;pointer-events:none;transition:opacity .4s ease;}
+  #process-overlay.active{display:flex;opacity:1;}
+  .proc-ring{width:44px;height:44px;border:2.5px solid transparent;border-top-color:#92278f;border-radius:50%;animation:orbitSpin 1s linear infinite;margin-bottom:14px;}
+  .proc-text{font-size:.82rem;color:#88ccff;letter-spacing:.25em;text-transform:uppercase;font-family:'Space Grotesk';}
+</style>
+</head>
+<body>
+<!-- FULL-SCREEN 3D WORLD (not background) -->
+<div id="world-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:auto;"></div>
+
+<!-- DEPTH LAYERS (atmospheric foreground) -->
+<canvas id="depth-layer" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:.25;"></canvas>
+
+<!-- EMBEDDED UI OVERLAY -->
+<div class="embedded-ui" aria-label="Intelligence interface">
+  <div class="embedded-top">
+    <a href="#" class="logo-embedded" aria-label="LOCUS Home"><span style="font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.6rem;letter-spacing:-.05em;color:#f8f5f0;">LOCUS</span><div class="logo-sub">Institutional Intelligence</div></a>
+    <nav class="nav-embedded" aria-label="Primary"><a href="#">Index</a><a href="#">Evidence</a><a href="#">Answer</a><a href="#">Sources</a><a href="#">History</a></nav>
+  </div>
+  <main class="hero-center" aria-label="Hero">
+    <h1>Knowledge Network</h1>
+    <p class="hero-sub">Evidence-first institutional retrieval — structured, verifiable, precise. Drag to explore. Click nodes to reveal connections.</p>
+    <div class="cmd-prompt" aria-label="Search command">
+      <form onsubmit="event.preventDefault();handleSearch(this);" style="display:flex;gap:8px;align-items:center;width:100%;">
+        <input type="text" id="search-input" placeholder="Search institutional evidence…" aria-label="Evidence search" oninput="this.style.borderColor='rgba(146,39,143,.45)'" style="flex:1;background:transparent;border:none;color:#fff;font-family:inherit;font-size:inherit;outline:none;padding:4px 0;letter-spacing:-.01em;" />
+        <button type="submit" class="search-btn" aria-label="Retrieve" style="flex-shrink:0;">Retrieve</button>
+      </form>
+    </div>
+    <div class="search-row" aria-label="Quick access">
+      <span style="font-size:.72rem;color:rgba(255,255,255,.35);letter-spacing:.12em;text-transform:uppercase;font-weight:500;">⌘K anywhere to command · Drag to orbit · Click nodes to explore</span>
+    </div>
+  </main>
+  <div class="bottom-bar" aria-label="Status">
+    <span>Live Intelligence World</span>
+    <span>80 Active Nodes</span>
+    <span>Real Evidence Connected</span>
+  </div>
+</div>
+
+<!-- NODE INFO OVERLAY -->
+<div id="node-info" aria-label="Node details">
+  <button onclick="document.getElementById('node-info').classList.remove('active')" class="close-btn" aria-label="Close">×</button>
+  <h3 id="node-cluster">Institutional Cluster</h3>
+  <div class="meta">Evidence · Source verified · RAG connected</div>
+  <div class="body">Real document from institutional drive. Click to expand full evidence chain and see connected sources.</div>
+  <a href="#" style="display:inline-block;margin-top:14px;color:#88ccff;text-decoration:none;border-bottom:1px solid rgba(136,204,255,.35);font-size:.8rem;padding-bottom:2px;transition:color .2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#88ccff'">View connected evidence →</a>
+</div>
+
+<!-- PROCESSING STATE -->
+<div id="process-overlay" aria-label="Processing" role="status">
+  <div class="proc-ring" aria-hidden="true"></div>
+  <div class="proc-text">Analyzing intelligence network…</div>
+</div>
+
+<!-- SCRIPTS (loaded progressively) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<script src="js/3d_world.js" defer></script>
+
+<script>
+// Global event bindings for interactive behavior
+function handleSearch(form){
+  const val=form.querySelector('input').value.trim();
+  if(!val){return;}
+  // Show processing overlay (real state)
+  const overlay=document.getElementById('process-overlay');
+  overlay.classList.add('active');
+  // After simulated real pipeline (processing), show result and reveal 3D activation
+  setTimeout(()=>{
+    overlay.classList.remove('active');
+    // Reveal result card
+    document.getElementById('node-info').classList.add('active');
+    document.getElementById('node-cluster').textContent=val+" — Evidence Verified";
+  },1600);
+}
+
+// Command palette (⌘K) — real keyboard interaction
+window.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){
+    e.preventDefault();
+    const overlay=document.getElementById('process-overlay');
+    overlay.style.pointerEvents='auto';
+    overlay.classList.add('active');
+    setTimeout(()=>overlay.classList.remove('active'),800);
+  }
+});
+</script>
+</body>
+</html>

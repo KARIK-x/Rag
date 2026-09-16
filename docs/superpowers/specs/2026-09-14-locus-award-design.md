@@ -14,3 +14,4 @@ Sound: subtle reactive.
 Mobile: adaptive.
 Real assets: LOGO/A MAIN_LOGO.png, Horizontal_logo-07.png, locusredtheme.png.
 Constraints: RAG untouched; drive untouched.
+🤖 Generated with [Claude Code](https://claude.com/claude-code)

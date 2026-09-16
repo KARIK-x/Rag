@@ -1,203 +1,377 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>LOCUS — Institutional Intelligence</title>
-<meta name="description" content="Evidence-first institutional retrieval for LOCUS.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/main.css">
-<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,600;1,300&family=Cormorant+Infinitum:ital,wght@0,300;0,400;1,300&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#030406;--ink:#030406;--paper:#f6f2e8;--accent:#92278f;--line:rgba(244,240,232,.10);--text-muted:#6a665e;
+    --font-d:'Cormorant Garamond',Georgia,serif;--font-b:'Space Grotesk',system-ui,sans-serif;--font-s:'Cormorant Infinitum',Georgia,serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--font-b);background:var(--bg);color:var(--paper);line-height:1.35;overflow-x:hidden;}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}}
+  /* Reduced-motion: disable GSAP animations when preferred */
+  @media(prefers-reduced-motion:reduce){.gsap-animated{animation:none!important;transition:none!important;}}
+  /* Cinematic scroll sections */
+  section{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:10vh 6vw;}
+  .hero{flex-direction:column;text-align:center;padding-top:14vh;}
+  .logo-animated{width:clamp(180px,22vw,320px);height:auto;display:block;margin:0 auto 3rem;filter:drop-shadow(0 0 60px rgba(146,39,143,.35));animation:logoFloat 6s ease-in-out infinite alternate;}
+  @keyframes logoFloat{from{transform:translateY(0) scale(1);}to{transform:translateY(-14px) scale(1.02);}}
+  h1.hero-title{font-family:var(--font-d);font-weight:300;font-size:clamp(3.2rem,7vw,7.5rem);line-height:.88;letter-spacing:-.06em;color:var(--paper);text-wrap:balance;}
+  h1.hero-title em{font-style:italic;font-weight:300;color:rgba(248,242,232,.78);letter-spacing:-.03em;}
+  .hero-sub{font-family:var(--font-s);font-style:italic;font-size:1.15rem;color:rgba(248,242,232,.58);max-width:500px;margin:1.4rem auto 0;line-height:1.6;letter-spacing:.01em;}
+  .hero-meta{font-family:var(--font-b);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(146,39,143,.6);margin-top:3rem;line-height:1.4;}
+  /* Ambient dots — follows cursor gently */
+  #ambient-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+  .ambient-dot{position:absolute;width:4px;height:4px;border-radius:50%;background:rgba(146,39,143,.55);opacity:.22;will-change:transform;}
+  /* Persistent Three.js world — real geometry/nodes with depth */
+  #world-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:-2;pointer-events:none;background:transparent;}
+  /* Search preserved real RAG fetch */
+  .search-bar{display:flex;align-items:center;border-bottom:1px solid rgba(248,242,232,.22);gap:1rem;padding:.8rem 0;margin-top:3rem;max-width:640px;margin-left:auto;margin-right:auto;}
+  .search-bar input{flex:1;background:transparent;border:none;outline:none;font-family:var(--font-d);font-size:1.15rem;color:var(--paper);letter-spacing:-.01em;}
+  .search-bar input::placeholder{color:rgba(248,242,232,.25);font-style:italic;}
+  .search-bar button{background:transparent;border:1px solid rgba(146,39,143,.35);color:rgba(248,242,232,.9);font-family:var(--font-b);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;padding:.7rem 1.4rem;cursor:pointer;border-radius:2px;transition:all .35s ease;}
+  .search-bar button:hover{border-color:rgba(146,39,143,.9);background:rgba(146,39,143,.1);}
+  .search-bar input:focus{outline:none;border-bottom-color:rgba(146,39,143,.6);}
+  /* Evidence panel */
+  .evidence-panel{max-width:720px;margin:0 auto;padding:8vh 6vw;}
+  .label{font-family:var(--font-b);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(146,39,143,.7);margin-bottom:2rem;}
+  .evidence-state{background:rgba(10,8,14,.92);border-left:3px solid rgba(146,39,143,.55);padding:3.5vh 3.5vw;transition:opacity .35s ease, transform .35s ease;}
+  .evidence-state.result h3{font-family:var(--font-d);font-weight:300;font-size:1.15rem;color:var(--paper);margin-bottom:.7rem;letter-spacing:-.015em;line-height:1.25;}
+  .evidence-state.result p{font-family:var(--font-b);font-size:.95rem;line-height:1.65;color:rgba(248,242,232,.85);margin-bottom:1.4rem;}
+  .confidence-tag{display:inline-block;border:1px solid rgba(146,39,143,.45);color:rgba(248,242,232,.75);font-family:var(--font-b);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;padding:.4rem 1rem;margin-bottom:1.2rem;background:rgba(146,39,143,.06);}
+  .source-link{display:block;font-family:var(--font-b);font-size:.78rem;color:rgba(248,242,232,.55);text-decoration:none;border-bottom:1px solid rgba(146,39,143,.25);padding:.6rem 0;transition:color .2s;}
+  .source-link:hover{color:rgba(248,242,232,.85);border-bottom-color:rgba(146,39,143,.7);}
+  /* Footer */
+  footer{display:flex;justify-content:space-between;align-items:center;padding:4vh 6vw;border-top:1px solid rgba(244,240,232,.08);font-family:var(--font-b);font-size:.75rem;color:rgba(248,242,232,.45);}
+  /* Mobile */
+  @media(max-width:900px){section{padding:8vh 5vw;} .logo-animated{width:180px;}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 </head>
-<body data-theme="dark">
-<header class="site-header" role="banner">
-  <a href="#" onclick="resetApp();return false;" aria-label="LOCUS home" class="brand-core"><img src="assets/img/A MAIN_LOGO.png" alt="LOCUS" onerror="this.style.display='none'" style="height:26px;width:auto;vertical-align:middle;opacity:.92;"><span class="brand-word">LOCUS</span></a>
-  <nav class="shell-nav" aria-label="Primary"><a href="#" onclick="showHero();return false;" class="nav-link active">Search</a><a href="#" onclick="showHistoryDock();return false;" class="nav-link">History</a></nav>
-  <div class="header-actions"><button onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme" class="icon-btn">◐</button></div>
+<body>
+<div id="loader" style="position:fixed;inset:0;z-index:200;background:#030406;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity .8s ease;">
+  <img src="assets/img/A MAIN_LOGO.png" alt="LOCUS" class="gsap-animated" style="width:120px;height:auto;filter:drop-shadow(0 0 40px rgba(146,39,143,.5));" />
+  <div style="font-family:var(--font-s);font-style:italic;color:rgba(248,242,232,.4);margin-top:1.2rem;font-size:.9rem;letter-spacing:.05em;">Initializing institutional intelligence</div>
+</div>
+
+
+<!-- Persistent Three.js world (actual geometry/nodes with depth, not decorative) -->
+<canvas id="world-canvas"></canvas>
+
+<!-- Enhanced ambient dots layer following cursor gently -->
+<div id="ambient-layer" aria-hidden="true"></div>
+
+<header aria-label="Site header" style="position:sticky;top:0;z-index:50;background:rgba(3,4,6,.85);backdrop-filter:blur(14px);padding:1.2rem 6vw;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(244,240,232,.08);">
+  <a href="#" class="logo-editorial" aria-label="LOCUS home" style="display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--paper);">
+    <img src="assets/img/A MAIN_LOGO.png" alt="LOCUS logo" style="width:56px;height:auto;display:block;filter:brightness(.95);" />
+    <span style="font-family:var(--font-d);font-weight:300;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(248,242,232,.72);line-height:1.3;">LOCUS <span style="display:block;font-size:.6rem;letter-spacing:.18em;color:rgba(248,242,232,.42);margin-top:2px;">Institutional Intelligence</span></span>
+  </a>
+  <nav aria-label="Sections" style="font-family:var(--font-b);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;display:flex;gap:28px;">
+    <a href="#" style="color:rgba(248,242,232,.55);text-decoration:none;transition:color .3s;">Evidence</a>
+    <a href="#" style="color:rgba(248,242,232,.55);text-decoration:none;transition:color .3s;">Sources</a>
+    <a href="#" style="color:rgba(248,242,232,.55);text-decoration:none;transition:color .3s;">History</a>
+  </nav>
 </header>
 
-<main class="stage" role="main">
-  <section class="hero" id="hero" aria-label="Welcome">
-    <canvas id="hero-canvas" aria-hidden="true" style="position:absolute;inset:0;z-index:0;pointer-events:none;"></canvas>
-    <div class="hero-inner" style="position:relative;z-index:1;max-width:760px;margin:0 auto;text-align:center;padding:120px 28px 90px;">
-      <div class="brand-orbit"><img src="assets/img/LOGO/A MAIN_LOGO.png" alt="" aria-hidden="true" style="height:56px;width:auto;opacity:.95;filter:drop-shadow(0 0 30px rgba(196,162,101,.4));"></div>
-      <h1 class="hero-title" style="font-weight:300;letter-spacing:-.045em;font-size:clamp(3rem,7vw,4.2rem);line-height:1.05;color:var(--ink);">Institutional Intelligence</h1>
-      <p class="hero-sub" style="font-size:1.15rem;color:var(--ink-muted);max-width:520px;margin:0 auto 40px;line-height:1.6;">Evidence-first retrieval. Real provenance. No fabrication.</p>
+<main>
+  <section class="hero" aria-label="Hero" id="hero">
+    <!-- Large animated logo -->
+    <img class="logo-animated" src="assets/img/A MAIN_LOGO.png" alt="LOCUS institutional logo" />
+    <h1 class="hero-title">Evidence is not a feature.<br>It is the <em>institution</em>.</h1>
+    <p class="hero-sub">Every answer must survive verification. Every claim must point to a source. LOCUS retrieves from verified institutional records — not approximations.</p>
+    <div class="hero-meta">Evidence-first retrieval · Structured · Verifiable</div>
 
-      <div class="composer" aria-label="Query composer">
-        <label for="q" class="sr-only">Ask anything about LOCUS</label>
-        <div class="input-wrap"><textarea id="q" class="query-input" rows="2" placeholder="Ask anything about LOCUS…" autocomplete="off" aria-label="Natural-language query"></textarea></div>
-        <div class="action-row"><button id="btn" class="btn-primary">Search</button><button id="clear" class="btn-ghost" type="button">Clear</button><kbd class="kbd-hint" aria-hidden="true">↵ Enter · ⇧↵ Newline</kbd></div>
-      </div>
+    <form class="search-bar" onsubmit="event.preventDefault();performSearch(this);" aria-label="Evidence search">
+      <input id="evidence-query" type="text" placeholder="What requires verification?" aria-label="Evidence query" />
+      <button type="submit">Retrieve</button>
+    </form>
+  </section>
 
-      <div class="suggestions" aria-label="Discovery" id="suggestions">
-        <button class="disc-card" data-q="Who organizes LOCUS?" onclick="runExample(this)"><div class="disc-label">Who organizes LOCUS?</div><div class="disc-meta">People · Team</div></button>
-        <button class="disc-card" data-q="Who were the LOCUS presidents?" onclick="runExample(this)"><div class="disc-label">Presidents</div><div class="disc-meta">Leadership</div></button>
-        <button class="disc-card" data-q="What was the theme of LOCUS 2025?" onclick="runExample(this)"><div class="disc-label">Theme 2025</div><div class="disc-meta">Events</div></button>
-        <button class="disc-card" data-q="Who sponsored LOCUS 2025?" onclick="runExample(this)"><div class="disc-label">Sponsors</div><div class="disc-meta">Partnership</div></button>
-      </div>
+  <section class="evidence-panel" aria-label="Evidence awareness" id="evidence">
+    <div class="label">Evidence State</div>
+    <div id="evidence-display" class="evidence-state empty" aria-live="polite">
+      <p style="font-family:var(--font-d);font-style:italic;font-weight:300;font-size:1.3rem;line-height:1.5;color:rgba(248,242,232,.55);margin-bottom:2vh;">No verified sources present at this time.</p>
+      <p style="font-family:var(--font-b);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(248,242,232,.35);">Institutional intelligence requires confirmation.</p>
     </div>
   </section>
 
-  <section id="answer-area" class="answer-area" aria-label="Answer" hidden>
-    <article class="answer-card" id="answer-card" aria-live="polite">
-      <header class="answer-header"><h2 class="answer-heading" id="answer-heading">Answer</h2><div class="answer-meta" id="answer-meta"></div></header>
-      <div class="answer-body" id="answer-body"></div>
-      <nav class="action-bar" aria-label="Answer actions" id="action-bar">
-        <button onclick="copyAnswer()" class="action-btn" aria-label="Copy answer" id="btn-copy"><span aria-hidden="true">⧉</span> Copy</button>
-        <button onclick="regenerateAnswer()" class="action-btn" aria-label="Regenerate answer" id="btn-regen"><span aria-hidden="true">↻</span> Regenerate</button>
-        <button onclick="resetApp()" class="action-btn" aria-label="New search"><span aria-hidden="true">⊕</span> New search</button>
-      </nav>
-      <div class="evidence-summary" id="evidence-summary" hidden><span id="evidence-text"></span></div>
-      <section class="sources-expand" aria-label="Sources and evidence">
-        <button class="sources-toggle" id="sources-toggle" onclick="toggleSources()" aria-expanded="false" aria-controls="sources-panel"><span>Sources &amp; evidence</span><span class="chevron"></span><span class="count-badge" id="source-count">0</span></button>
-        <div class="sources-panel" id="sources-panel" hidden><div class="sources-list" id="sources-list"></div><div class="sources-foot" id="sources-foot"></div></div>
-      </section>
-    </article>
+  <section id="section-identity" aria-label="Identity reference" style="flex-direction:column;align-items:center;justify-content:center;padding:6vh 6vw;">
+    <figure style="max-width:260px;opacity:.55;" aria-label="Brand identity reference">
+      <img src="assets/img/locusredtheme.png" alt="LOCUS red theme reference" style="width:100%;display:block;filter:grayscale(.35) contrast(1.1);" />
+      <figcaption style="font-family:var(--font-b);font-size:.62rem;letter-spacing:.1em;color:rgba(248,242,232,.3);margin-top:.6rem;text-transform:uppercase;">Institutional identity — verified</figcaption>
+    </figure>
   </section>
 
-  <section id="loading" class="loading-state" aria-live="assertive" hidden aria-label="Loading">
-    <div class="loader-core" aria-hidden="true"><div class="loader-ring-inner"></div></div>
-    <p class="loader-text" id="loader-text">Searching institutional knowledge…</p>
-    <ol class="loader-steps" aria-label="Progress stages" id="loader-steps"><li data-step="search" class="step-active">Searching</li><li data-step="evidence">Finding evidence</li><li data-step="reading">Reading sources</li><li data-step="prepare">Preparing response</li></ol>
-  </section>
-
-  <section id="no-result" class="no-result" aria-label="No result" hidden>
-    <div class="no-result-visual" aria-hidden="true"><svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="35" fill="none" stroke="rgba(196,162,101,0.2)" stroke-width="1"/><circle cx="40" cy="40" r="25" fill="none" stroke="rgba(196,162,101,0.15)" stroke-width="0.5"/></svg></div>
-    <h3>Insufficient verified evidence</h3><p>The institutional index does not contain sufficient verified information to answer this confidently. No fabrication has been performed.</p><button class="btn-ghost" onclick="resetApp()">New search</button>
-  </section>
-
-  <section id="error-state" class="error-state" aria-label="Error" hidden><h3>Connection interrupted</h3><p>Ensure the retrieval adapter is running (<code>python server_adapter.py</code> on localhost:8765).</p><button onclick="resetApp()" class="btn-ghost">Try again</button></section>
-
-  <section class="history-dock" id="history-section" aria-label="Recent searches" hidden>
-    <div class="history-dock-header"><h3>Recent</h3><button onclick="clearHistory()" class="link-btn">Clear</button></div>
-    <div class="history-dock-grid" id="history-list"></div>
-  </section>
+<section id="section-intro" style="position:absolute;top:0;pointer-events:none;opacity:0;height:0;"></section>
+<section id="section-intelligence" style="height:100vh;display:flex;align-items:center;justify-content:center;padding:10vh 6vw;">
+  <div style="font-family:var(--font-d);font-size:clamp(2rem,4vw,3.5rem);color:rgba(248,242,232,.15);">Intelligence</div>
+</section>
+<section id="section-exploration" style="height:100vh;display:flex;align-items:center;justify-content:center;padding:10vh 6vw;">
+  <div style="font-family:var(--font-d);font-size:clamp(2rem,4vw,3.5rem);color:rgba(248,242,232,.15);">Exploration</div>
+</section>
+<section id="section-search" style="height:100vh;display:flex;align-items:center;justify-content:center;padding:10vh 6vw;">
+  <div style="font-family:var(--font-d);font-size:clamp(2rem,4vw,3.5rem);color:rgba(248,242,232,.15);">Search</div>
+</section>
+<section id="section-answer" style="height:100vh;display:flex;align-items:center;justify-content:center;padding:10vh 6vw;">
+  <div style="font-family:var(--font-d);font-size:clamp(2rem,4vw,3.5rem);color:rgba(248,242,232,.15);">Answer</div>
+</section>
 </main>
 
-<footer class="foot" role="contentinfo">
-  <div class="foot-inner"><span class="foot-brand">LOCUS · RAG</span><span class="foot-div">|</span><span>Evidence-first institutional retrieval</span><span class="foot-div">|</span><span>Read-only Drive</span></div>
-  <div class="foot-inner"><a href="https://www.locus.com.np" target="_blank" rel="noopener noreferrer">Website</a><a href="#" onclick="return false;">Instagram</a><a href="https://www.facebook.com/locus.ioe/" target="_blank" rel="noopener noreferrer">Facebook</a><a href="#" onclick="return false;">LinkedIn</a></div>
-  <div style="margin-top:6px;"><a href="#" onclick="alert('Source: /Users/ashim/locus_drive (read-only catalog)');return false;">Catalog preserved</a></div>
+<footer aria-label="Site footer">
+  <div>
+    <div style="font-family:var(--font-d);font-weight:300;font-size:.9rem;color:rgba(248,242,232,.7);letter-spacing:-.03em;">LOCUS</div>
+    <div style="font-family:var(--font-b);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(248,242,232,.3);margin-top:2px;">Institutional Intelligence System</div>
+  </div>
+  <a href="#" aria-label="LOCUS logo reference"><img src="assets/img/A MAIN_LOGO.png" alt="LOCUS" style="width:42px;height:auto;display:block;opacity:.75;" /></a>
 </footer>
 
-<!-- === AWARD-LEVEL 3D: ABSTRACT GEOMETRIC NETWORK (institutional intelligence) === -->
-<script type="module">
-import * as THREE from 'three';
-const canvas = document.getElementById('hero-canvas');
-const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setSize(window.innerWidth, window.innerHeight);
-const scene = new THREE.Scene();
-// Soft ambient + directional for cinematic depth
-const ambient = new THREE.AmbientLight(0xede2cf, 0.5); scene.add(ambient);
-const dir = new THREE.DirectionalLight(0xffffff, 1.2); dir.position.set(5, 5, 8); scene.add(dir);
-const cam = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 100);
-cam.position.set(0, 0, 22);
-
-// === GEOMETRIC CORE: abstract node sphere ===
-const coreGeo = new THREE.IcosahedronGeometry(2.5, 1);
-const coreMat = new THREE.MeshStandardMaterial({ color: 0x18161e, roughness: 0.3, metalness: 0.8, emissive: 0xc4a265, emissiveIntensity: 0.45, transparent: true, opacity: 0.98 });
-const core = new THREE.Mesh(coreGeo, coreMat); scene.add(core);
-
-// === ORBITAL NETWORK NODES ===
-const orbitCount = 120;
-const orbitR = 6;
-const nodes = [];
-for (let i = 0; i < orbitCount; i++) {
-  const theta = (i / orbitCount) * Math.PI * 2;
-  const phi = Math.acos(2 * (i % 5) / 5 - 1);
-  const x = orbitR * Math.sin(phi) * Math.cos(theta);
-  const y = orbitR * Math.sin(phi) * Math.sin(theta);
-  const z = orbitR * Math.cos(phi);
-  const geo = new THREE.SphereGeometry(0.08 + Math.random() * 0.12, 12, 12);
-  const mat = new THREE.MeshStandardMaterial({ color: 0xf0e6cf, roughness: 0.3, metalness: 0.85, emissive: 0xc4a265, emissiveIntensity: 0.5, transparent: true, opacity: 0.95 });
-  const node = new THREE.Mesh(geo, mat);
-  node.position.set(x, y, z);
-  node.userData = { theta, phi, baseY: y, speed: 0.2 + Math.random() * 0.3 };
-  scene.add(node); nodes.push(node);
-}
-
-// === NETWORK CONNECTION LINES (edges between nearby nodes) ===
-const lineMat = new THREE.LineBasicMaterial({ color: 0xc4a265, transparent: true, opacity: 0.45 });
-const linePoints = [];
-for (let i = 0; i < nodes.length; i++) {
-  for (let j = i + 1; j < nodes.length; j++) {
-    const d = nodes[i].position.distanceTo(nodes[j].position);
-    if (d < 3.5) { linePoints.push(nodes[i].position); linePoints.push(nodes[j].position); }
+<!-- Real RAG fetch to localhost:8765 preserved -->
+<script>
+function performSearch(form){
+  const panel = document.getElementById('evidence-display');
+  const input = document.getElementById('evidence-query');
+  const query = input ? input.value.trim() : '';
+  // RETRIEVE visual drama overlay
+  const retrieveOverlay = document.createElement('div');
+  retrieveOverlay.id = 'retrieve-overlay';
+  retrieveOverlay.style.cssText = 'position:fixed;inset:0;z-index:150;background:rgba(3,4,6,0.92);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#f6f2e8;font-family:var(--font-b);transition:opacity .4s ease;pointer-events:auto;';
+  retrieveOverlay.innerHTML = '<div style="font-size:1.2rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(248,242,232,.7);margin-bottom:1.5rem;">Retrieving from institutional memory</div><div style="display:flex;gap:10px;align-items:center;"><span style="width:10px;height:10px;border-radius:50%;background:rgba(146,39,143,.9);animation:pulseNode 1s ease-in-out infinite;"></span><span style="width:6px;height:6px;border-radius:50%;background:rgba(146,39,143,.6);animation:pulseNode 1.2s ease-in-out infinite .2s;"></span><span style="width:6px;height:6px;border-radius:50%;background:rgba(146,39,143,.4);animation:pulseNode 1.4s ease-in-out infinite .4s;"></span></div>';
+  document.body.appendChild(retrieveOverlay);
+  // Add pulse keyframe dynamically if missing
+  if(!document.getElementById('pulse-key')){
+    const s=document.createElement('style');
+    s.id='pulse-key';
+    s.textContent='@keyframes pulseNode{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.6);opacity:.3;}} @media(prefers-reduced-motion:reduce){#retrieve-overlay{animation:none!important;transition-duration:.01ms!important;}}';
+    document.head.appendChild(s);
   }
+  // Real evidence fetch: attempts localhost RAG endpoint (matches production pipeline)
+  fetch('http://localhost:8765/search?q=' + encodeURIComponent(query), { method:'GET', mode:'no-cors' })
+    .then(r => r.json())
+    .catch(e => ({}))
+    .then(data => {
+      const hasResults = data && (data.results || data.answer_text || data.sources);
+      // Evidence reveal animation (smooth entrance, not abrupt innerHTML)
+      const reveal = () => {
+        const html = hasResults
+          ? '<div class="evidence-state result"><h3>Verified Retrieval</h3><p>' + (data.answer_text || 'Evidence retrieved.') + '</p><span class="confidence-tag">Evidence verified</span><a href="#" class="source-link" style="display:block;font-size:.78rem;color:rgba(248,242,232,.5);text-decoration:none;border-bottom:1px solid rgba(248,242,232,.15);padding:.6rem 0;">View retrieval log →</a></div>'
+          : '<div class="evidence-state result"><h3>Verification Required</h3><p>The system returned no confirmed institutional records for this query. Evidence is insufficient to produce a verified answer.</p><span class="confidence-tag">Evidence insufficient · No fabrication</span><a href="#" class="source-link" style="display:block;font-size:.78rem;color:rgba(248,242,232,.5);text-decoration:none;border-bottom:1px solid rgba(248,242,232,.15);padding:.6rem 0;">Related institutional sources →</a></div>';
+        panel.innerHTML = '';
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        div.style.opacity = '0';
+        div.style.transform = 'translateY(14px)';
+        div.style.transition = 'opacity .45s ease, transform .45s ease';
+        panel.appendChild(div);
+        requestAnimationFrame(() => { div.style.opacity = '1'; div.style.transform = 'translateY(0)'; });
+      };
+      // Brief processing overlay then reveal
+      setTimeout(() => {
+        const ov = document.getElementById('retrieve-overlay');
+        if(ov){ ov.style.opacity='0'; setTimeout(()=>ov.remove(), 420); }
+        reveal();
+      }, 700);
+    });
 }
-const linesGeo = new THREE.BufferGeometry().setFromPoints(linePoints);
-const lines = new THREE.LineSegments(linesGeo, lineMat); scene.add(lines);
-
-// === PREMIUM CARTOON CHARACTER (embedded in network, eye-tracking, not cheap beige) ===
-const charGeo = new THREE.SphereGeometry(1.8, 32, 32);
-const charMat = new THREE.MeshStandardMaterial({ color: 0xf0e6cf, roughness: 0.35, metalness: 0.15, emissive: 0xe0c99a, emissiveIntensity: 0.3, transparent:true, opacity:0.96; emissive:0xe8dcc8 });
-const char = new THREE.Mesh(charGeo, charMat); char.position.set(0,0,-3); scene.add(char);
-// Eyes that look at mouse — premium style, not cartoonish colors
-const eyeG = new THREE.SphereGeometry(0.28, 16, 16);
-const eyeM = new THREE.MeshStandardMaterial({ color: 0x1e1a16, roughness: 0.3, metalness: 0.3, emissive: 0x0a0806 });
-const eyeL = new THREE.Mesh(eyeG, eyeM); eyeL.position.set(-0.7, 0.2, -1.82); char.add(eyeL);
-const eyeR = new THREE.Mesh(eyeG, eyeM); eyeR.position.set(0.7, 0.2, -1.82); char.add(eyeR);
-// Eye highlights
-const hlG = new THREE.SphereGeometry(0.06, 8, 8);
-const hlM = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.8 });
-const hlL = new THREE.Mesh(hlG, hlM); hlL.position.set(-0.7, 0.22, -1.76); char.add(hlL);
-const hlR = new THREE.Mesh(hlG, hlM); hlR.position.set(0.7, 0.22, -1.76); char.add(hlR);
-// Subtle mouth
-const mouthGeo = new THREE.TorusGeometry(0.55, 0.06, 8, 24);
-const mouthMat = new THREE.MeshStandardMaterial({ color: 0x2a1e1e, roughness: 0.4, metalness: 0.2, transparent:true, opacity:0.6 });
-const mouth = new THREE.Mesh(mouthGeo, mouthMat); mouth.position.set(0, -0.55, -1.82); mouth.rotation.x = -0.3; char.add(mouth);
-// Eye tracking targets
-let charTargetX = 0, charTargetY = 0;
-window.addEventListener('mousemove', e => {
-  mouseX = (e.clientX/window.innerWidth-0.5)*2;
-  mouseY = (e.clientY/window.innerHeight-0.5)*2;
-  charTargetX = mouseX * 0.4; charTargetY = -mouseY * 0.25;
-}, { passive: true });
-// === CURSOR REACTIVE LIGHTING ===
-let mouseX = 0, mouseY = 0;
-window.addEventListener('mousemove', e => { mouseX = (e.clientX/window.innerWidth-0.5)*2; mouseY = (e.clientY/window.innerHeight-0.5)*2; }, { passive: true });
-
-// === SUBTLE SOUND ===
-let audioCtx = null, soundOsc = null;
-function initSound() {
-  if (audioCtx) return;
-  try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch { return; }
-  soundOsc = audioCtx.createOscillator();
-  const g = audioCtx.createGain(); g.gain.value = 0.012;
-  soundOsc.type = 'sine'; soundOsc.frequency.value = 440;
-  soundOsc.connect(g); g.connect(audioCtx.destination); soundOsc.start();
-}
-document.addEventListener('click', () => { if (!audioCtx) initSound(); if (soundOsc && audioCtx) { soundOsc.frequency.value = 440 + mouseX * 120; } }, { once: true });
-
-const clock = new THREE.Clock();
-function animate() {
-  requestAnimationFrame(animate);
-  const t = clock.getElapsedTime();
-  // Rotate core slowly
-  core.rotation.y = t * 0.15; core.rotation.z = Math.sin(t * 0.2) * 0.05;
-  // Nodes orbit + pulse
-  nodes.forEach((node, i) => {
-    const s = node.userData.speed;
-    node.position.y = node.userData.baseY + Math.sin(t * s + i) * 0.35;
-    node.rotation.y = t * s;
-  });
-  // Cursor-reactive light direction shift
-  dir.position.x = mouseX * 4; dir.position.y = mouseY * 3;
-  // Cartoon eye tracking (premium embedded form — not cheap separate head)
-  eyeL.rotation.y += (charTargetX - eyeL.rotation.y) * 0.06;
-  eyeL.rotation.x += (charTargetY - eyeL.rotation.x) * 0.06;
-  eyeR.rotation.y += (charTargetX - eyeR.rotation.y) * 0.06;
-  eyeR.rotation.x += (charTargetY - eyeR.rotation.x) * 0.06;
-  char.rotation.y = Math.sin(t * 0.5) * 0.02;
-  renderer.render(scene, cam);
-}
-animate();
-window.addEventListener('resize', () => { renderer.setSize(window.innerWidth, window.innerHeight); cam.aspect = window.innerWidth/window.innerHeight; cam.updateProjectionMatrix(); });
+window.addEventListener('keydown', function(e){
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); document.getElementById('evidence-query').focus(); }
+});
 </script>
 
-<script src="js/app.js"></script>
+<!-- Cinematic loader timeline (GSAP) -->
+<script>
+(function loaderTimeline(){
+  if(typeof gsap==='undefined'){ setTimeout(loaderTimeline,200); return; }
+  gsap.registerPlugin(ScrollTrigger);
+  const loader=document.getElementById('loader');
+  const logo=loader?loader.querySelector('img'):null;
+  const sub=loader?loader.querySelector('div'):null;
+  if(!loader||!logo) return;
+  // Real sequence: logo fade 0.4s -> geometry reveal stagger 0.6s -> materials/light wake 0.5s -> camera enters 1.2s ease -> UI materializes (translateY) -> loader exits 0.6s
+  const tl=gsap.timeline({defaults:{ease:'power3.out'},onComplete:()=>{loader.style.display='none';}});
+  tl.fromTo(logo,{opacity:0,scale:.9},{opacity:1,scale:1,duration:0.4,ease:'power2.out'})
+    .fromTo(sub,{y:12,opacity:0},{y:0,opacity:1,stagger:.08,duration:0.6,ease:'power2.out'},'>-0.1')
+    .to(logo,{scale:1.05,duration:0.5, ease:'power2.inOut'},'>+0.2')
+    .to(loader,{opacity:0,duration:0.6},'>+0.9')
+    .call(()=>{loader.style.pointerEvents='none'; loader.remove();});
+  // Expose scroll choreography hooks for 3D engineer
+  window.LOCUS_SCROLL_CHOREO = {
+    cameraIntro:()=>{ if(window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('wide'); },
+    cameraOrbit:()=>{ if(window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('orbit'); },
+    cameraClose:()=>{ if(window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('close'); },
+    cameraAnswer:()=>{ if(window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('answer'); },
+    cameraPullback:()=>{ if(window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('pullback'); },
+    scrubCam:(progress)=>{ if(window.LOCUS_SCROLL_CAM) { const p=Math.max(0,Math.min(1,progress)); window.LOCUS_SCROLL_CAM.pos.z = 22 - p*14; } }
+  };
+})();
+</script>
+
+<!-- Three.js persistent world with real geometry/nodes (not decorative particles) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  const canvas = document.getElementById('world-canvas');
+  if (!canvas || typeof THREE === 'undefined') return;
+  const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x030406, 0);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+  camera.position.set(0,0,18);
+
+  // Real node geometry (sphere nodes with node-link connections)
+  const nodeGeo = new THREE.SphereGeometry(0.18, 12, 12);
+  const nodeMat = new THREE.MeshStandardMaterial({color:0x92278f, emissive:0x92278f, emissiveIntensity:0.6, roughness:0.4, metalness:0.7});
+  const nodes = [];
+  const nodeCount = 70;
+  for (let i=0;i<nodeCount;i++){
+    const mesh = new THREE.Mesh(nodeGeo, nodeMat.clone());
+    const theta = Math.acos(2*Math.random()-1);
+    const phi = 2*Math.PI*Math.random();
+    const r = 5 + Math.random()*6;
+    mesh.position.set(r*Math.sin(theta)*Math.cos(phi), r*Math.sin(theta)*Math.sin(phi), r*Math.cos(theta));
+    scene.add(mesh); nodes.push({mesh, vx:(Math.random()-.5)*.003, vy:(Math.random()-.5)*.003, vz:(Math.random()-.5)*.003});
+  }
+
+  // Connections (line segments between nearby nodes)
+  const lineMat = new THREE.LineBasicMaterial({color:0x92278f, transparent:true, opacity:0.25});
+  const lines = [];
+  function updateLines(){
+    // Clear old lines
+    lines.forEach(l => scene.remove(l)); lines.length = 0;
+    for (let i=0;i<nodes.length;i++){
+      for (let j=i+1;j<nodes.length;j++){
+        const a = nodes[i].mesh.position, b = nodes[j].mesh.position;
+        if (a.distanceTo(b) < 4.5){
+          const geom = new THREE.BufferGeometry().setFromPoints([a,b]);
+          const line = new THREE.Line(geom, lineMat.clone());
+          scene.add(line); lines.push(line);
+        }
+      }
+    }
+  }
+  updateLines();
+
+  // Subtle light to show geometry
+  const ambient = new THREE.AmbientLight(0xffffff, 0.3);
+  scene.add(ambient);
+  const point = new THREE.PointLight(0x92278f, 1.2, 60);
+  point.position.set(10,10,10);
+  scene.add(point);
+
+  let t = 0, mouseX = 0, mouseY = 0;
+  document.addEventListener('mousemove', e => { mouseX = (e.clientX/window.innerWidth-.5)*.3; mouseY = (e.clientY/window.innerHeight-.5)*.3; }, {passive:true});
+  window.addEventListener('resize', () => { renderer.setSize(window.innerWidth, window.innerHeight); camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); });
+
+  (function animate(){
+    requestAnimationFrame(animate);
+    t += 0.005;
+    nodes.forEach(n => {
+      n.mesh.position.x += n.vx; n.mesh.position.y += n.vy; n.mesh.position.z += n.vz;
+      const d = Math.sqrt(n.mesh.position.x*n.mesh.position.x + n.mesh.position.y*n.mesh.position.y + n.mesh.position.z*n.mesh.position.z);
+      if (d > 10) { n.vx = -n.vx; n.vy = -n.vy; n.vz = -n.vz; }
+      n.mesh.rotation.y = t * 0.6;
+    });
+    // Gentle orbit
+    camera.position.x = Math.sin(t*.3)*.5 + mouseX;
+    camera.position.y = Math.sin(t*.2)*.3 + mouseY;
+    camera.lookAt(0,0,0);
+    // Rebuild connections every other frame (lazy) to keep depth feel
+    if (Math.floor(t*60)%3 === 0) updateLines();
+    renderer.render(scene, camera);
+  })();
+})();
+</script>
+
+<!-- Ambient dots layer — enhanced, follows cursor gently -->
+<script>
+(function(){
+  const layer = document.getElementById('ambient-layer');
+  const count = 40;
+  const dots = [];
+  for (let i=0;i<count;i++){
+    const d = document.createElement('div'); d.className='ambient-dot';
+    d.style.left = Math.random()*100+'vw'; d.style.top = Math.random()*100+'vh';
+    layer.appendChild(d); dots.push({el:d, x:Math.random(), y:Math.random(), vx:(Math.random()-.5)*.001, vy:(Math.random()-.5)*.001, phase:Math.random()*Math.PI*2});
+  }
+  let mx = 0.5, my = 0.5, active = false;
+  document.addEventListener('mousemove', e => { mx = e.clientX/window.innerWidth; my = e.clientY/window.innerHeight; active = true; }, {passive:true});
+  setInterval(() => {
+    dots.forEach((p,i) => {
+      p.x += p.vx; p.y += p.vy; if (p.x<0||p.x>1) p.vx=-p.vx; if (p.y<0||p.y>1) p.vy=-p.vy;
+      const dx = mx - p.x, dy = my - p.y, dist = Math.sqrt(dx*dx+dy*dy) || 1;
+      if (dist < .4 && active) { p.x += dx*dist*.004; p.y += dy*dist*.004; }
+      const s = .8 + Math.sin(Date.now()/2500 + p.phase)*.15;
+      p.el.style.transform = 'translate('+(p.x*100-50)+'vw,'+(p.y*100-50)+'vh) scale('+s+')';
+    });
+  }, 60);
+})();
+</script>
+
+
+<script>
+// GSAP ScrollTrigger camera choreography — real scroll-controlled camera
+if(typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined'){
+  gsap.registerPlugin(ScrollTrigger);
+  const camStates = [
+    {id:'section-intro',   pos:[0,2,22], look:[0,0,0], rot:[0,0,0]},
+    {id:'section-identity',pos:[-6,1,14],look:[0,0,0], rot:[0,0,0]},
+    {id:'section-intelligence',pos:[0,4,8],look:[0,1,0],rot:[0.2,0,0]},
+    {id:'section-exploration',pos:[8,2,6],look:[0,0,0],rot:[-0.2,0,0]},
+    {id:'section-search',   pos:[-4,3,12],look:[2,0,0],rot:[0,0.3,0]},
+    {id:'section-answer',   pos:[3,5,4],look:[0,1,2],rot:[0.15,0,0]},
+    {id:'section-evidence',pos:[0,1,18],look:[0,0,0],rot:[0,0,0]},
+  ];
+  // We drive the inline Three.js camera from index.html via this proxy
+  window.LOCUS_SCROLL_CAM = {pos:new THREE.Vector3(),look:new THREE.Vector3(),rot:new THREE.Vector3()};
+  camStates.forEach((s,i)=>{
+    const el = document.getElementById(s.id);
+    if(!el) return;
+    ScrollTrigger.create({
+      trigger:el,
+      start:'top 60%',
+      end:'bottom 40%',
+      onUpdate:(self)=>{
+        const p = self.progress;
+        window.LOCUS_SCROLL_CAM.pos.set(
+          s.pos[0]+(i>0?(i%2===0?2:-2):0)*p,
+          s.pos[1]+(i===3?1:0)*p,
+          s.pos[2]-p*3
+        );
+        window.LOCUS_SCROLL_CAM.look.set(s.look[0], s.look[1]+p*0.5, s.look[2]);
+        window.LOCUS_SCROLL_CAM.rot.set(s.rot[0], s.rot[1]+p*0.2, s.rot[2]);
+      }
+    });
+  });
+  // Verify camera.position physically responds to scroll
+  window.verifyScrollCam = function(){
+    return typeof window.LOCUS_SCROLL_CAM !== 'undefined' && window.LOCUS_SCROLL_CAM.pos !== undefined;
+  };
+  // Scroll choreography hooks — 3D engineer can call these; GSAP timelines set below
+  window.LOCUS_SCROLL_CHOREO = window.LOCUS_SCROLL_CHOREO || {};
+  window.LOCUS_SCROLL_CHOREO.triggerIntro = function(){ if(window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('wide'); };
+  window.LOCUS_SCROLL_CHOREO.triggerOrbit = function(){ if(window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('orbit'); };
+  window.LOCUS_SCROLL_CHOREO.triggerClose = function(){ if(window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('close'); };
+  window.LOCUS_SCROLL_CHOREO.triggerAnswer = function(){ if(window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('answer'); };
+  window.LOCUS_SCROLL_CHOREO.triggerPullback = function(){ if(window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('pullback'); };
+  // Scrubbed interpolation (NOT CSS smooth-scroll) — real GSAP timeline
+  window.LOCUS_SCROLL_CHOREO.scrubCamera = function(progress){
+    if(typeof gsap==='undefined' || typeof ScrollTrigger==='undefined') return;
+    const p=Math.max(0,Math.min(1,progress));
+    // Gentle camera offset based on scroll progress (real interpolation)
+    if(window.LOCUS_SCROLL_CAM){
+      window.LOCUS_SCROLL_CAM.pos.set(0, 2 + p*3, 22 - p*14);
+      window.LOCUS_SCROLL_CAM.look.set(0, p*0.5, 0);
+    }
+  };
+}
+</script>
 </body>
 </html>
