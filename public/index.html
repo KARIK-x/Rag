@@ -6,6 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cormorant+Infinitum:ital,wght@0,300;0,400;1,300&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/arch_sim.css">
+<link rel="stylesheet" href="css/loader_transition.css">
 <style>
 :root{--bg:#030406;--ink:#030406;--paper:#fdfcfb;--paper-d:#f6f2e8;--muted:#cfc8b8;--line:rgba(253,252,251,.12);--accent:#92278f;--font-d:'Cormorant Garamond',Georgia,serif;--font-b:'Space Grotesk',system-ui,sans-serif;--font-s:'Cormorant Infinitum',Georgia,serif;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -63,9 +64,9 @@ footer img{width:44px;height:auto;opacity:.8;filter:brightness(.95);}
 <body>
 
 <!-- Loader -->
-<div id="loader" style="position:fixed;inset:0;z-index:200;background:#030406;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity .8s ease;">
-  <img src="assets/img/A MAIN_LOGO.png" alt="LOCUS" style="width:200px;height:auto;filter:drop-shadow(0 0 40px rgba(146,39,143,.4));opacity:.95;" />
-  <div style="font-family:var(--font-d);font-size:.9rem;color:rgba(253,252,251,.6);margin-top:1rem;letter-spacing:.06em;">Initializing institutional intelligence</div>
+<div id="loader" class="boot-identity active" aria-label="Boot identity">
+  <img id="boot-logo" class="boot-logo" src="assets/img/A MAIN_LOGO.png" alt="LOCUS 2027" />
+  <div id="boot-sub" class="boot-sub">Initializing institutional intelligence</div>
 </div>
 
 <!-- Persistent WebGL world -->
@@ -87,7 +88,7 @@ footer img{width:44px;height:auto;opacity:.8;filter:brightness(.95);}
 <main>
 
 <!-- HOME -->
-<section class="hero" id="section-hero" aria-label="Hero">
+<section class="hero visible" id="section-hero" aria-label="Hero">
   <img class="logo-animated" src="assets/img/A MAIN_LOGO.png" alt="LOCUS institutional logo" />
   <h1 class="hero-title">Evidence is not a feature.<br>It is the <em>institution</em>.</h1>
   <p class="hero-sub">Every claim points to a source. Every answer survives verification. LOCUS searches the indexed archive of institutional knowledge — not approximations.</p>
@@ -96,6 +97,26 @@ footer img{width:44px;height:auto;opacity:.8;filter:brightness(.95);}
     <input id="evidence-query" type="text" placeholder="What requires verification?" aria-label="Evidence query" />
     <button type="submit">Retrieve</button>
   </form>
+</section>
+
+
+<!-- CINEMATIC SCROLL — 6 scenes, real video layer, sticky stage -->
+<section class="cinematic-scroll" aria-label="Cinematic archive film" style="position:relative;min-height:720vh;z-index:3;">
+  <div id="film-track" style="position:relative;height:720vh;">
+    <div id="film-stage" style="position:sticky;top:0;height:100vh;width:100%;overflow:hidden;background:#030406;">
+      <canvas id="world-canvas" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.92;pointer-events:auto;"></canvas>
+      <video id="film-layer-a" preload="auto" muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;opacity:.92;z-index:1;pointer-events:none;background:#030406;" aria-label="Cinematic layer A"></video>
+      <video id="film-layer-b" preload="auto" muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;opacity:0;z-index:2;pointer-events:none;background:#030406;transition:opacity .45s ease;" aria-label="Cinematic layer B"></video>
+      <div id="vignette" style="position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse 65% 70% at 50% 50%,transparent 55%,rgba(3,4,6,.88) 98%),linear-gradient(to right,rgba(3,4,6,.85),transparent 12%,transparent 88%,rgba(3,4,6,.85));"></div>
+      <div class="caption cap-top" data-in="0.020" data-hold="0.083" data-out="0.146"><h2>Enter the <em>Archive</em></h2><p>01 — Enter the Archive</p></div>
+      <div class="caption cap-left" data-in="0.186" data-hold="0.250" data-out="0.313"><h2>Source <em>Document</em></h2><p>02 — Source Document</p></div>
+      <div class="caption cap-right" data-in="0.353" data-hold="0.417" data-out="0.480"><h2>Information <em>Transformation</em></h2><p>03 — Information Transformation</p></div>
+      <div class="caption cap-bottom" data-in="0.520" data-hold="0.583" data-out="0.646"><h2>Knowledge <em>Machine</em></h2><p>04 — Knowledge Machine / Index</p></div>
+      <div class="caption cap-top" data-in="0.686" data-hold="0.750" data-out="0.813"><h2>Retrieval → <em>Evidence</em></h2><p>05 — Retrieval / Evidence</p></div>
+      <div class="caption cap-top" data-in="0.853" data-hold="0.917" data-out="0.980"><h2>Answer / <em>Resolution</em></h2><p>06 — Answer Resolution</p></div>
+      <div id="scroll-cue" style="position:absolute;bottom:4.5vh;left:50%;transform:translateX(-50%);z-index:10;display:flex;flex-direction:column;align-items:center;gap:8px;color:rgba(242,239,233,.4);font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:.3em;text-transform:uppercase;"><div>Scroll</div><div style="width:1px;height:28px;background:linear-gradient(to bottom,#92278f,transparent);animation:cue 1.8s ease-in-out infinite;"></div></div>
+    </div>
+  </div>
 </section>
 
 <!-- ABOUT THE RAG -->
@@ -252,10 +273,50 @@ footer img{width:44px;height:auto;opacity:.8;filter:brightness(.95);}
   <a href="#section-hero" aria-label="LOCUS home"><img src="assets/img/A MAIN_LOGO.png" alt="LOCUS" /></a>
 </footer>
 
+<script>
+(function bootSequence(){
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const loader = document.getElementById('loader');
+  const logo = document.getElementById('boot-logo');
+  const sub = document.getElementById('boot-sub');
+  const canvas = document.getElementById('world-canvas');
+  const hero = document.getElementById('section-hero');
+  const MAX = 4200;
+  let done = false, t0 = Date.now();
+
+  function finish(){ if(done) return; done = true;
+    if(loader){ loader.style.pointerEvents='none'; loader.style.opacity='0'; setTimeout(()=>{loader.style.display='none';},800); }
+    if(logo){ logo.classList.add('move'); }
+    if(sub){ sub.classList.add('fade'); }
+    if(canvas){ canvas.classList.add('wake'); }
+    // Hero already has .visible; ensure search visible
+  }
+
+  // Phase 1: identity holds (1s)
+  setTimeout(()=>{
+    // Phase 2: world wake + logo transition (1.2s)
+    if(canvas) canvas.style.filter = 'brightness(1) contrast(1.05)';
+    if(logo) logo.style.transform = 'scale(.75) translateY(-25px)';
+    if(sub) sub.style.opacity = '0';
+  }, 1200);
+
+  // Phase 3: camera handoff + typography reveal (3.2s total)
+  setTimeout(()=>{
+    if(loader) loader.style.opacity = '0';
+    setTimeout(finish, 600);
+  }, 3400);
+
+  // Reduced motion: skip choreography, jump to finished state quickly
+  if(prefersReduced){ setTimeout(()=>{ finish(); }, 300); return; }
+})();
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
 <script src="js/3d_world.js" type="module"></script>
+<script src="js/film_scrubber.js"></script>
 <script>
 function performSearch(form){
   const panel=document.getElementById('evidence-display');

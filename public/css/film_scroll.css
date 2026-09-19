@@ -1,0 +1,53 @@
+/* LOCUS Cinematic Scroll Film — 6 scenes, scroll-scrubbed video layer */
+:root{--bg:#030406;--text:#f2efe9;--text-dim:rgba(242,239,233,.55);--accent:#92278f;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:auto;} /* JS controls scroll physics */
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+@media(prefers-reduced-motion:reduce){#film-track{animation:none!important;transition:none!important;} #film-stage{transform:none!important;} video{animation:none!important;}}
+
+/* Loader — robust state machine, never blocks */
+#loader{position:fixed;inset:0;z-index:200;background:#030406;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .8s ease;pointer-events:auto;}
+#loader.done{opacity:0;pointer-events:none;}
+#loader .mark{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:13px;letter-spacing:.5em;text-indent:.5em;color:#92278f;text-transform:uppercase;}
+#loader .bar{width:180px;height:1px;background:rgba(146,39,143,.2);overflow:hidden;position:relative;}
+#loader .bar i{position:absolute;left:0;top:0;bottom:0;width:0%;background:#92278f;display:block;transition:width .2s ease;}
+
+/* Track — 6 chapters × ~120vh = 720vh scroll distance */
+#track{position:relative;height:720vh;}
+#stage{position:sticky;top:0;height:100vh;width:100%;overflow:hidden;background:#030406;}
+
+/* Video film layer — z behind typography, above 3D background */
+#film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:.92;z-index:1;pointer-events:none;}
+
+/* Vignette / depth overlay — hides edges, creates cinematic frame */
+#vignette{position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse 65% 70% at 50% 50%,transparent 55%,rgba(3,4,6,.88) 98%),linear-gradient(to right,rgba(3,4,6,.85),transparent 12%,transparent 88%,rgba(3,4,6,.85));}
+
+/* Chapter captions — editorial typography over video (real DOM, not in video) */
+.caption{position:absolute;z-index:10;opacity:0;pointer-events:none;will-change:opacity,transform;transition:opacity .65s ease,transform .65s ease;padding:0 7vw;}
+.caption.in{opacity:1;}
+.caption h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:clamp(2.2rem,5vw,4.2rem);line-height:.95;letter-spacing:-.05em;color:#fffdf7;color:#f2efe9;}
+.caption h2 em{font-family:'Cormorant Infinitum',Georgia,serif;font-style:italic;font-weight:300;color:rgba(242,239,233,.82);}
+.caption p{font-family:'Space Grotesk',system-ui,sans-serif;font-size:clamp(.85rem,1.2vw,1.05rem);color:rgba(242,239,233,.65);line-height:1.55;max-width:520px;margin-top:.6rem;letter-spacing:.01em;}
+
+/* Caption positions — open negative space, never at extreme edges */
+.cap-left{left:7vw;top:50%;transform:translateY(-50%);text-align:left;}
+.cap-right{right:7vw;top:50%;transform:translateY(-50%);text-align:right;}
+.cap-top{left:50%;top:12vh;transform:translateX(-50%);text-align:center;max-width:640px;}
+.cap-bottom{left:50%;bottom:10vh;transform:translateX(-50%);text-align:center;max-width:640px;}
+
+/* Scroll cue */
+#scroll-cue{position:absolute;bottom:4.5vh;left:50%;transform:translateX(-50%);z-index:10;display:flex;flex-direction:column;align-items:center;gap:8px;color:rgba(242,239,233,.4);font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:.3em;text-transform:uppercase;transition:opacity .5s ease;}
+#scroll-cue::after{content:"";width:1px;height:28px;background:linear-gradient(to bottom,#92278f,transparent);animation:cue 1.8s ease-in-out infinite;}
+@keyframes cue{0%,100%{transform:translateY(0);opacity:1;}50%{transform:translateY(8px);opacity:.4;}}
+
+/* Section markers for scroll choreography mapping */
+.chapter-label{position:absolute;z-index:3;pointer-events:none;font-family:'Space Grotesk',sans-serif;font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(242,239,233,.35);padding:1rem 1.2rem;}
+.chapter-label.hl{color:rgba(146,39,143,.7);}
+
+/* Below-film: architecture / evidence / answer — real DOM content continues */
+#outro{background:#030406;padding:14vh 7vw;position:relative;z-index:5;}
+#outro .section-label{font-family:'Space Grotesk',sans-serif;font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:#92278f;margin-bottom:1.5rem;}
+#outro h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:clamp(2.4rem,4vw,4.6rem);line-height:.95;letter-spacing:-.05em;color:#fffdf7;}
+#outro .read-zone{max-width:800px;margin:0 auto;line-height:1.65;color:rgba(242,239,233,.85);font-family:'Space Grotesk',sans-serif;font-size:1.05rem;}
+
+@media(max-width:900px){.caption h2{font-size:clamp(1.6rem,8vw,2.8rem);}.cap-left,.cap-right{left:5vw;right:5vw;transform:none;top:50%;text-align:center;}}
