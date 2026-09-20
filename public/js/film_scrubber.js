@@ -80,9 +80,11 @@
     if (cue) cue.style.opacity = p < 0.015 ? '1' : '0';
   }
 
-  // ── Master update — called ONLY by ScrollTrigger onUpdate ──
+  // ── Scene-state choreography mapped to master progress ──
   window.CINEMATIC_UPDATE = function(self) {
     progress = Math.max(0, Math.min(1, self ? self.progress : progress));
+
+    // Scene selection by master progress (6 scenes, 0→1)
     const idx = getSceneIdx(progress);
     if (idx !== currentScene) {
       currentScene = idx;
@@ -91,8 +93,37 @@
     } else {
       seekLayer(vid, getSceneSub(progress));
     }
+
+    // Typography choreography: enter/exit transformed per state
     updateCaptions(progress);
+
+    // State choreography drives 3D + lighting via progress
+    updateSceneState(progress);
   };
+
+  // ── Six-state archive choreography (one master progress drives all) ──
+  function updateSceneState(p) {
+    // 01 ENTER (0.00–0.17): archive wakes, cinematic dominates, large editorial title
+    // 02 SOURCE (0.17–0.33): fragments emerge, connections to network begin
+    // 03 TRANSFORM (0.33–0.50): fragments reorganize, RAW→STRUCTURED, topology changes
+    // 04 MACHINE (0.50–0.67): network dominant, camera travels, video atmospheric
+    // 05 RETRIEVAL (0.67–0.83): paths illuminate, nodes converge, RETRIEVAL→EVIDENCE
+    // 06 RESOLUTION (0.83–1.00): settles, evidence resolves, atmospheric
+    if (p < 0.17) {
+      if (window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('wide');
+    } else if (p < 0.33) {
+      if (window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('orbit');
+    } else if (p < 0.50) {
+      if (window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('close');
+    } else if (p < 0.67) {
+      if (window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('orbit');
+    } else if (p < 0.83) {
+      if (window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('close');
+    } else {
+      if (window.LOCUS_3D && window.LOCUS_3D.setPhase) window.LOCUS_3D.setPhase('answer');
+    }
+    // Pointer/parallax interaction: subtle mouse influence preserved by 3D animate loop
+  }
 
   // ── Init ───────────────────────────────────────────────
   function init() {
