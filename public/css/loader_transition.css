@@ -1,0 +1,19 @@
+/* Cinematic Boot → Home Transition — only loader/hero; rest untouched */
+.boot-identity{position:fixed;inset:0;z-index:200;background:#030406;display:flex;align-items:center;justify-content:center;flex-direction:column;pointer-events:none;}
+.boot-identity.active{pointer-events:auto;}
+.boot-logo{width:220px;height:auto;filter:drop-shadow(0 0 60px rgba(146,39,143,.45));transition:transform 2.8s cubic-bezier(.22,.61,.36,1), opacity 1.2s ease;transform-origin:center center;opacity:1;}
+.boot-logo.move{transform:scale(.7) translateY(-30px) translateZ(-60px);opacity:.4;}
+.boot-sub{font-family:var(--font-d);font-size:1rem;color:rgba(253,252,251,.65);margin-top:1.2rem;letter-spacing:.06em;transition:opacity 1.2s ease;opacity:1;}
+.boot-sub.fade{opacity:0;}
+/* World wake — existing canvas gets subtle opacity/pulse via CSS overlay */
+#world-canvas{transition:opacity 3s ease,filter 3.8s ease;opacity:.92;filter:brightness(.7);}
+#world-canvas.wake{opacity:.95;filter:brightness(1) contrast(1.05);}
+/* Hero entrance */
+.hero{opacity:0;transform:translateY(30px);transition:opacity 1.4s ease 1s, transform 1.4s ease 1s;}
+.hero.visible{opacity:1;transform:translateY(0);}
+.hero-title{opacity:0;transform:translateY(20px);animation:heroSlide 1s ease 1.6s forwards;}
+.hero-sub{opacity:0;animation:heroSlide 1s ease 1.9s forwards;}
+.hero-meta{opacity:0;animation:heroSlide 1s ease 2.2s forwards;}
+.search-bar{opacity:0;animation:heroSlide 1s ease 2.6s forwards;}
+@keyframes heroSlide{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+@media(prefers-reduced-motion:reduce){.boot-logo,.boot-sub,.hero,.hero-title,.hero-sub,.hero-meta,.search-bar{animation:none!important;transition:none!important;transform:none!important;opacity:1!important;}}

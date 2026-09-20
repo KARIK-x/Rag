@@ -1,53 +1,274 @@
-/* LOCUS Cinematic Scroll Film — 6 scenes, scroll-scrubbed video layer */
-:root{--bg:#030406;--text:#f2efe9;--text-dim:rgba(242,239,233,.55);--accent:#92278f;}
+/* LOCUS Cinematic — Editorial / Warm Canvas Visual System
+ * Keeps 6-scene scroll-pin architecture intact (film_scrubber.js master progress unchanged).
+ * Redesign: warm ivory canvas, near-black ink, restrained purple accent, huge editorial type,
+ * physical spatial layers, refined 3D as dark-line network, no generic SaaS cards/glass.
+ */
+:root{
+  /* Warm editorial palette — off-white / warm ivory */
+  --warm-paper:#F3F1EC;         /* primary background */
+  --warm-deep:#ECEAE5;         /* slightly deeper warm layer */
+  --ink:#111111;               /* near-black primary text */
+  --ink-muted:#5A5650;         /* muted body text */
+  --line-subtle:#D8D5CC;       /* fine structural lines */
+  --line-strong:#B8B4A8;       /* stronger dividers */
+  --accent:#7A1F6B;            /* restrained deep purple */
+  --accent-soft:rgba(122,31,107,.14);
+  --accent-glow:rgba(122,31,107,.22);
+  --font-d:'Cormorant Garamond','Cormorant Infinitum','Georgia',serif; /* display */
+  --font-e:'Cormorant Garamond','Cormorant Infinitum','Georgia',serif; /* editorial italic */
+  --font-b:'Space Grotesk',system-ui,sans-serif;
+  --font-m:'SF Mono',ui-monospace,monospace;
+}
+
 *{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:auto;} /* JS controls scroll physics */
-body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
-@media(prefers-reduced-motion:reduce){#film-track{animation:none!important;transition:none!important;} #film-stage{transform:none!important;} video{animation:none!important;}}
 
-/* Loader — robust state machine, never blocks */
-#loader{position:fixed;inset:0;z-index:200;background:#030406;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .8s ease;pointer-events:auto;}
-#loader.done{opacity:0;pointer-events:none;}
-#loader .mark{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:13px;letter-spacing:.5em;text-indent:.5em;color:#92278f;text-transform:uppercase;}
-#loader .bar{width:180px;height:1px;background:rgba(146,39,143,.2);overflow:hidden;position:relative;}
-#loader .bar i{position:absolute;left:0;top:0;bottom:0;width:0%;background:#92278f;display:block;transition:width .2s ease;}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+body{
+  font-family:var(--font-b);
+  background:var(--warm-paper);
+  color:var(--ink);
+  overflow-x:hidden;
+  line-height:1.45;
+}
 
-/* Track — 6 chapters × ~120vh = 720vh scroll distance */
-#track{position:relative;height:720vh;}
-#stage{position:sticky;top:0;height:100vh;width:100%;overflow:hidden;background:#030406;}
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}
+  #film-stage,#film-track{transform:none!important;}
+}
 
-/* Video film layer — z behind typography, above 3D background */
-#film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:.92;z-index:1;pointer-events:none;}
+/* ====== PERSISTENT CINEMATIC FILM LAYER ====== */
+/* The cinematic scroll section stays pinned; video lives inside it. */
+#track{position:relative;height:720vh;background:linear-gradient(180deg,#F3F1EC 0%,#ECEAE5 40%,#F3F1EC 80%,#ECEAE5 100%);}
+#stage{
+  position:sticky;top:0;height:100vh;width:100%;overflow:hidden;background:#F3F1EC;
+  z-index:5;
+  border-bottom:1.5px solid var(--line-subtle);
+}
+/* Video with subtle film treatment — no black box */
+#film-layer{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:.88;z-index:1;pointer-events:none;
+  filter:contrast(1.05) brightness(.97) saturate(.88);
+  mix-blend-mode:multiply; /* blends video tones into warm paper */
+}
+/* Dark overlay to keep caption contrast without pure black */
+#film-stage::after{
+  content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(ellipse 72% 68% at 50% 55%,transparent 45%,rgba(17,17,17,.35) 100%);
+  mix-blend-mode:multiply;
+}
 
-/* Vignette / depth overlay — hides edges, creates cinematic frame */
-#vignette{position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse 65% 70% at 50% 50%,transparent 55%,rgba(3,4,6,.88) 98%),linear-gradient(to right,rgba(3,4,6,.85),transparent 12%,transparent 88%,rgba(3,4,6,.85));}
+/* ====== EDITORIAL VIGNETTE / SPATIAL OVERLAY ====== */
+#vignette{
+  position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:radial-gradient(ellipse 65% 72% at 50% 50%,transparent 50%,rgba(243,241,236,.92) 98%),
+              linear-gradient(to right,rgba(243,241,236,.88),transparent 14%,transparent 86%,rgba(243,241,236,.88));
+}
 
-/* Chapter captions — editorial typography over video (real DOM, not in video) */
-.caption{position:absolute;z-index:10;opacity:0;pointer-events:none;will-change:opacity,transform;transition:opacity .65s ease,transform .65s ease;padding:0 7vw;}
+/* ====== HUGE EDITORIAL CAPTIONS ====== */
+.caption{
+  position:absolute;z-index:10;opacity:0;pointer-events:none;will-change:opacity,transform;
+  transition:opacity .7s ease,transform .7s ease;padding:0 7vw;
+}
 .caption.in{opacity:1;}
-.caption h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:clamp(2.2rem,5vw,4.2rem);line-height:.95;letter-spacing:-.05em;color:#fffdf7;color:#f2efe9;}
-.caption h2 em{font-family:'Cormorant Infinitum',Georgia,serif;font-style:italic;font-weight:300;color:rgba(242,239,233,.82);}
-.caption p{font-family:'Space Grotesk',system-ui,sans-serif;font-size:clamp(.85rem,1.2vw,1.05rem);color:rgba(242,239,233,.65);line-height:1.55;max-width:520px;margin-top:.6rem;letter-spacing:.01em;}
 
-/* Caption positions — open negative space, never at extreme edges */
-.cap-left{left:7vw;top:50%;transform:translateY(-50%);text-align:left;}
-.cap-right{right:7vw;top:50%;transform:translateY(-50%);text-align:right;}
-.cap-top{left:50%;top:12vh;transform:translateX(-50%);text-align:center;max-width:640px;}
+/* Typography scaled much larger — editorial scale */
+.caption h2{
+  font-family:var(--font-d);font-weight:300;
+  font-size:clamp(3.6rem,9vw,8.5rem);line-height:.88;letter-spacing:-.055em;
+  color:var(--ink);text-shadow:0 2px 40px rgba(17,17,17,.08);
+}
+.caption h2 em{
+  font-family:var(--font-e);font-style:italic;font-weight:300;color:var(--ink-muted);
+}
+.caption p{
+  font-family:var(--font-b);font-size:clamp(.9rem,1.3vw,1.15rem);
+  color:var(--ink-muted);line-height:1.55;max-width:540px;margin-top:1.1rem;letter-spacing:.01em;
+}
+
+/* Caption positions — open negative space */
+.cap-left  {left:6vw;top:50%;transform:translateY(-50%);text-align:left;max-width:46vw;}
+.cap-right {right:6vw;top:50%;transform:translateY(-50%);text-align:right;max-width:46vw;}
+.cap-top   {left:50%;top:10vh;transform:translateX(-50%);text-align:center;max-width:740px;}
 .cap-bottom{left:50%;bottom:10vh;transform:translateX(-50%);text-align:center;max-width:640px;}
 
-/* Scroll cue */
-#scroll-cue{position:absolute;bottom:4.5vh;left:50%;transform:translateX(-50%);z-index:10;display:flex;flex-direction:column;align-items:center;gap:8px;color:rgba(242,239,233,.4);font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:.3em;text-transform:uppercase;transition:opacity .5s ease;}
-#scroll-cue::after{content:"";width:1px;height:28px;background:linear-gradient(to bottom,#92278f,transparent);animation:cue 1.8s ease-in-out infinite;}
-@keyframes cue{0%,100%{transform:translateY(0);opacity:1;}50%{transform:translateY(8px);opacity:.4;}}
+/* ====== SCROLL CUE ====== */
+#scroll-cue{
+  position:absolute;bottom:5vh;left:50%;transform:translateX(-50%);z-index:10;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  color:var(--ink-muted);font-family:var(--font-b);font-size:11px;letter-spacing:.3em;text-transform:uppercase;
+  transition:opacity .5s ease;opacity:.65;
+}
+#scroll-cue::after{
+  content:'';width:1px;height:30px;background:linear-gradient(to bottom,var(--accent),transparent);
+  animation:cuePulse 2.2s ease-in-out infinite;
+}
+@keyframes cuePulse{
+  0%,100%{transform:translateY(0);opacity:.9;}
+  50%{transform:translateY(10px);opacity:.3;}
+}
 
-/* Section markers for scroll choreography mapping */
-.chapter-label{position:absolute;z-index:3;pointer-events:none;font-family:'Space Grotesk',sans-serif;font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(242,239,233,.35);padding:1rem 1.2rem;}
-.chapter-label.hl{color:rgba(146,39,143,.7);}
+/* ====== SCENE CHAPTER LABELS (fine structure) ====== */
+.chapter-label{
+  position:absolute;z-index:3;pointer-events:none;
+  font-family:var(--font-b);font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--line-subtle);padding:1rem 1.2rem;
+}
+.chapter-label.hl{color:var(--accent);}
 
-/* Below-film: architecture / evidence / answer — real DOM content continues */
-#outro{background:#030406;padding:14vh 7vw;position:relative;z-index:5;}
-#outro .section-label{font-family:'Space Grotesk',sans-serif;font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:#92278f;margin-bottom:1.5rem;}
-#outro h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:clamp(2.4rem,4vw,4.6rem);line-height:.95;letter-spacing:-.05em;color:#fffdf7;}
-#outro .read-zone{max-width:800px;margin:0 auto;line-height:1.65;color:rgba(242,239,233,.85);font-family:'Space Grotesk',sans-serif;font-size:1.05rem;}
+/* ====== HEADERS / NAV OVER CINEMATIC ====== */
+/* Sticky header over warm film — refined, no heavy glass */
+.header{
+  position:sticky;top:0;z-index:60;
+  background:rgba(243,241,236,.82);backdrop-filter:blur(18px) saturate(110%);
+  -webkit-backdrop-filter:blur(18px) saturate(110%);
+  padding:1rem 7vw;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--line-subtle);
+  transition:background .35s ease;
+}
+.header a{color:var(--ink);text-decoration:none;font-family:var(--font-d);font-weight:300;font-size:.82rem;letter-spacing:.06em;transition:color .2s;}
+.header a:hover{color:var(--accent);}
+.header nav{font-family:var(--font-b);font-size:.65rem;letter-spacing:.13em;text-transform:uppercase;display:flex;gap:2rem;}
+.header nav a{color:var(--ink-muted);text-decoration:none;transition:color .25s;}
+.header nav a:hover{color:var(--ink);}
 
-@media(max-width:900px){.caption h2{font-size:clamp(1.6rem,8vw,2.8rem);}.cap-left,.cap-right{left:5vw;right:5vw;transform:none;top:50%;text-align:center;}}
+/* ====== HERO — EDITORIAL, HUGE TYPE ====== */
+.hero{
+  position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:16vh 7vw 14vh;text-align:center;z-index:15;overflow:hidden;
+  background:linear-gradient(180deg,rgba(243,241,236,.92) 0%,rgba(243,241,236,.8) 100%);
+}
+.hero::before{
+  content:'';position:absolute;inset:0;z-index:-1;
+  background:radial-gradient(ellipse at 60% 30%,rgba(122,31,107,.05) 0%,transparent 60%);
+}
+.hero .logo-animated{
+  width:clamp(160px,22vw,300px);height:auto;display:block;margin:0 auto 3.5rem;
+  filter:drop-shadow(0 0 60px rgba(122,31,107,.18));animation:logoFloat 8s ease-in-out infinite alternate;
+}
+@keyframes logoFloat{from{transform:translateY(0) scale(1);}to{transform:translateY(-16px) scale(1.02);}}
+
+h1.hero-title{
+  font-family:var(--font-d);font-weight:300;
+  font-size:clamp(4.2rem,11vw,9.5rem);line-height:.88;letter-spacing:-.065em;
+  color:var(--ink);max-width:14ch;margin-left:auto;margin-right:auto;
+}
+h1.hero-title em{
+  font-style:italic;font-family:var(--font-e);font-weight:300;color:var(--ink-muted);
+}
+.hero-sub{
+  font-family:var(--font-e);font-style:italic;font-size:clamp(1.1rem,2vw,1.35rem);
+  color:var(--ink-muted);max-width:640px;margin:2rem auto 0;line-height:1.65;letter-spacing:.01em;
+}
+.hero-meta{
+  font-family:var(--font-b);font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--accent);margin-top:2.5rem;font-weight:500;
+}
+
+/* ====== SEARCH / ASK THE ARCHIVE — EDITORIAL FORM ====== */
+.search-bar{
+  display:flex;align-items:center;gap:1rem;max-width:720px;margin:4rem auto 0;
+  padding:1.2rem 1.4rem;background:rgba(243,241,236,.95);
+  border:1.5px solid var(--line-subtle);border-radius:2px;
+  transition:border-color .3s, box-shadow .3s, transform .25s;
+  box-shadow:0 2px 30px rgba(17,17,17,.04);
+}
+.search-bar:focus-within{
+  border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft),0 6px 28px rgba(122,31,107,.08);
+  transform:translateY(-2px);
+}
+.search-bar input{
+  flex:1;background:transparent;border:none;
+  font-family:var(--font-d);font-size:clamp(1.15rem,2.2vw,1.4rem);color:var(--ink);
+  letter-spacing:-.015em;outline:none;padding:.2rem 0;
+}
+.search-bar input::placeholder{color:var(--line-strong);font-style:italic;font-family:var(--font-e);}
+.search-bar button{
+  background:var(--ink);border:1px solid var(--ink);color:var(--warm-paper);
+  font-family:var(--font-b);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+  padding:1rem 2.4rem;cursor:pointer;border-radius:1px;transition:all .3s ease;font-weight:500;
+}
+.search-bar button:hover{background:var(--accent);border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 20px rgba(122,31,107,.28);}
+
+/* ====== BELOW FILM SECTIONS — EDITORIAL SPATIAL ====== */
+#outro{
+  background:linear-gradient(180deg,#F3F1EC 0%,#ECEAE5 30%,#F3F1EC 100%);
+  padding:14vh 7vw;position:relative;z-index:10;overflow:hidden;
+}
+#outro::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 10%,var(--line-subtle) 40%,var(--line-subtle) 60%,transparent 90%);
+}
+
+/* Section label — restrained accent */
+.section-label{
+  font-family:var(--font-b);font-size:.58rem;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:.8rem;font-weight:500;
+}
+.section-title{
+  font-family:var(--font-d);font-weight:300;
+  font-size:clamp(3.2rem,6.5vw,5.8rem);line-height:.92;letter-spacing:-.045em;
+  color:var(--ink);margin-bottom:1rem;text-align:left;
+}
+.section-body{
+  font-family:var(--font-b);font-size:1.05rem;color:var(--ink-muted);max-width:720px;line-height:1.65;text-align:left;letter-spacing:.005em;
+}
+
+/* ====== EVIDENCE PANEL ====== */
+.evidence-panel{max-width:780px;margin:0 auto;padding:8vh 7vw;}
+.evidence-state{
+  background:#F9F7F4;border-left:3px solid var(--accent);
+  padding:3.5vh 3.5vw;transition:opacity .35s ease,box-shadow .3s;
+  border-top:1px solid var(--line-subtle);border-right:1px solid var(--line-subtle);border-bottom:1px solid var(--line-subtle);
+  border-radius:1px;box-shadow:0 4px 30px rgba(17,17,17,.03);
+}
+.evidence-state h3{font-family:var(--font-d);font-weight:300;font-size:1.45rem;color:var(--ink);margin-bottom:.8rem;letter-spacing:-.015em;line-height:1.1;}
+.evidence-state p{font-family:var(--font-b);font-size:1.05rem;line-height:1.65;color:var(--ink-muted);margin-bottom:1.2rem;}
+.confidence-tag{
+  display:inline-block;border:1px solid var(--accent);color:var(--ink);
+  font-family:var(--font-b);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;padding:.45rem 1.1rem;margin-bottom:1.2rem;border-radius:1px;
+}
+.source-link{
+  display:block;font-family:var(--font-b);font-size:.82rem;color:var(--ink-muted);text-decoration:none;
+  border-bottom:1px solid var(--line-subtle);padding:.8rem 0;transition:color .2s, border-color .3s;letter-spacing:.01em;
+}
+.source-link:hover{color:var(--ink);border-color:var(--accent);}
+
+/* ====== ARCHITECTURE / PIPELINE — SPATIAL GRID ====== */
+.pipeline-stage{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  padding:2rem 1.2rem;border-bottom:1px solid var(--line-subtle);
+  transition:background .3s,border-color .3s;cursor:pointer;
+}
+.pipeline-stage:hover{background:rgba(122,31,107,.04);border-bottom-color:rgba(122,31,107,.3);}
+.stage-label{font-family:var(--font-d);font-weight:300;font-size:1.3rem;color:var(--ink);letter-spacing:-.02em;line-height:1.15;}
+.stage-desc{font-family:var(--font-b);font-size:.82rem;color:var(--ink-muted);max-width:480px;margin-left:1.2rem;line-height:1.45;}
+
+/* ====== RAG / SEARCH / ANSWER — NATURAL CONTINUATION ====== */
+#section-rag,#section-architecture,#section-locus,#section-search,#section-answer{
+  position:relative;z-index:10;background:linear-gradient(180deg,#F3F1EC 0%,#ECEAE5 20%,#F3F1EC 100%);
+}
+
+/* ====== FOOTER ====== */
+footer{
+  position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;
+  padding:5vh 7vw;background:#F3F1EC;border-top:1px solid var(--line-subtle);
+  font-family:var(--font-b);font-size:.78rem;color:var(--ink-muted);letter-spacing:.02em;
+}
+footer img{width:44px;height:auto;opacity:.9;filter:brightness(.9) contrast(1.05);}
+
+/* ====== OVERLAP / SPATIAL LAYERS FOR EDITORIAL COMPOSITION ====== */
+/* Asymmetry via offset margins and overlapping zones */
+.read-zone{position:relative;z-index:10;}
+.read-zone > *{position:relative;z-index:2;}
+
+/* Subtle decorative vertical lines — physical/spatial reference */
+.read-zone::before{
+  content:'';position:absolute;left:7vw;top:0;height:100%;width:1px;background:linear-gradient(180deg,transparent 5%,var(--line-subtle) 30%,var(--line-subtle) 70%,transparent 95%);pointer-events:none;z-index:0;opacity:.7;
+}
+
+/* ====== SMALL REFINEMENTS ====== */
+@media(max-width:900px){
+  .caption h2{font-size:clamp(3rem,11vw,6rem);letter-spacing:-.04em;}
+  .caption p{font-size:clamp(.8rem,3vw,1rem);max-width:80vw;}
+  .cap-left,.cap-right{left:5vw;right:5vw;transform:none;top:55%;text-align:center;}
+}
