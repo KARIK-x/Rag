@@ -1,418 +1,1711 @@
-<!doctype html>
-<html lang="en" data-theme="light">
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>LOCUS — The Archive Machine</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cormorant+Infinitum:ital,wght@0,300;0,400;1,300&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<style>
-:root{--bg:#F3F1EC;--ink:#111;--ink-muted:#85827C;--line:rgba(17,17,17,.10);--line-strong:rgba(17,17,17,.22);--accent:#7A1F6B;--accent-soft:rgba(122,31,107,.55);--font-d:'Cormorant Garamond','Cormorant Infinitum','Georgia',serif;--font-b:'Space Grotesk',system-ui,sans-serif;--font-s:'Cormorant Infinitum','Georgia',serif;}
-[data-theme="dark"]{--bg:#0D0B0F;--ink:#F0EFE8;--ink-muted:#7A7672;--line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.18);--accent:#92278f;}
-*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
-body{font-family:var(--font-b);background:var(--bg);color:var(--ink);line-height:1.35;overflow-x:hidden;}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}}
-html,body,.header,section,footer,#world-canvas{transition:background-color .55s ease,color .55s ease,border-color .55s ease;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LOCUS Institutional Archive — Physical Retrieval Engine</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            parchment: '#F6F3EC',
+            charcoal: '#0C0C0D',
+            iron: '#18181A',
+            lead: '#26262B',
+            concrete: '#3E3E44',
+            bronze: '#8C7A65',
+            plum: '#221324',
+            accentPlum: '#4A2A54',
+            warmPaper: '#E8E3D7',
+            inkGold: '#C5A880',
+          },
+          fontFamily: {
+            serif: ['Newsreader', 'Didot', 'Georgia', 'serif'],
+            mono: ['Space Mono', 'JetBrains Mono', 'Courier New', 'monospace'],
+            sans: ['Inter', '-apple-system', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,600;1,6..72,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Three.js (standard global build) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
-/* Header — no glassmorphism, restrained */
-.header{position:sticky;top:0;z-index:100;background:rgba(243,241,236,.88);border-bottom:1px solid var(--line-strong);padding:.85rem 4vw;display:flex;align-items:center;justify-content:space-between;}
-[data-theme="dark"] .header{background:rgba(13,11,15,.88);border-bottom-color:rgba(255,255,255,.10);}
-.header a.logo{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink);font-family:var(--font-b);font-weight:500;letter-spacing:.04em;font-size:.9rem;text-transform:uppercase;}
-.header a.logo img{width:40px;height:auto;display:block;filter:brightness(.92) contrast(1.05);opacity:.8;}
-.header nav{font-family:var(--font-b);font-size:.68rem;letter-spacing:.10em;text-transform:uppercase;display:flex;gap:24px;}
-.header nav a{color:var(--ink-muted);text-decoration:none;transition:color .25s;}
-.header nav a:hover{color:var(--ink);}
-#theme-btn{background:transparent;border:1px solid var(--line);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;color:var(--ink);font-family:var(--font-b);font-size:.85rem;padding:0;}
-#theme-btn:hover{border-color:var(--accent-soft);color:var(--accent);}
+  <style>
+    :root {
+      --bg: #0C0C0D;
+      --paper: #F6F3EC;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--paper);
+      overflow-x: hidden;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      user-select: none;
+    }
+    
+    /* Precision Engineering Grid & CRT Grain */
+    .bg-grid-lines {
+      background-size: 64px 64px;
+      background-image: 
+        linear-gradient(to right, rgba(246, 243, 236, 0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(246, 243, 236, 0.025) 1px, transparent 1px);
+    }
+    
+    .noise-overlay {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      opacity: 0.045;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      z-index: 99;
+    }
 
-#world-canvas{position:fixed;inset:0;z-index:0;width:100%;height:100%;opacity:.92;pointer-events:none;}
-section{position:relative;min-height:100vh;z-index:5;overflow:hidden;}
+    /* Architectural Crop Markers */
+    .crosshair-corner::before, .crosshair-corner::after {
+      content: '';
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-color: rgba(246, 243, 236, 0.3);
+      pointer-events: none;
+    }
+    .crosshair-tl::before { top: 12px; left: 12px; border-top: 1px solid; border-left: 1px solid; }
+    .crosshair-tr::before { top: 12px; right: 12px; border-top: 1px solid; border-right: 1px solid; }
+    .crosshair-bl::before { bottom: 12px; left: 12px; border-bottom: 1px solid; border-left: 1px solid; }
+    .crosshair-br::before { bottom: 12px; right: 12px; border-bottom: 1px solid; border-right: 1px solid; }
 
-/* ARRIVAL — enormous environmental display, partially occluded, asymmetrical */
-.arrival-scene{display:flex;align-items:flex-end;justify-content:flex-start;padding:0 6vw 14vh;min-height:100vh;position:relative;}
-.arrival-scene .env-display{font-family:var(--font-d);font-weight:300;font-size:clamp(4.5rem,12vw,11rem);line-height:.88;letter-spacing:-.05em;color:var(--ink);opacity:.92;max-width:1200px;}
-.arrival-scene .env-display span{display:block;}
-.arrival-scene .env-display .line2{margin-left:8vw;opacity:.6;position:relative;z-index:2;}
-.arrival-scene .env-display .line3{margin-left:16vw;font-size:.65em;opacity:.28;color:var(--ink-muted);letter-spacing:.08em;line-height:1.05;}
-.arrival-scene .label-top{position:absolute;top:10vh;right:6vw;font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);line-height:1.6;text-align:right;}
-.arrival-scene .label-top strong{display:block;font-weight:500;letter-spacing:.36em;font-size:1.1em;}
-.arrival-scene .search-base{position:absolute;bottom:6vh;left:6vw;max-width:520px;font-family:var(--font-b);font-size:.78rem;color:var(--ink-muted);line-height:1.6;}
-.arrival-scene .search-base input{background:transparent;border:none;border-bottom:1px solid var(--line-strong);padding:.6rem 0;font-family:var(--font-d);font-size:1.05rem;color:var(--ink);outline:none;width:100%;}
-.arrival-scene .search-base input::placeholder{color:var(--ink-muted);font-style:italic;font-family:var(--font-s);}
-.arrival-scene .search-base .btn-row{margin-top:.8rem;display:flex;gap:.5rem;}
-.arrival-scene .search-base button{background:var(--accent);color:#F3F1EC;font-family:var(--font-b);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;padding:.65rem 1.6rem;border:none;border-radius:2px;cursor:pointer;transition:background .25s;}
-.arrival-scene .search-base button:hover{background:#5a1648;}
-.arrival-scene .meta-stamp{position:absolute;bottom:6vh;right:6vw;font-family:var(--font-b);font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);line-height:1.8;text-align:right;}
-.arrival-scene .meta-stamp em{font-family:var(--font-s);font-style:italic;font-weight:300;font-size:1.05em;color:var(--ink-muted);display:block;letter-spacing:.08em;}
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #0C0C0D; }
+    ::-webkit-scrollbar-thumb { background: #3E3E44; border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: #C5A880; }
 
-/* SOURCE — document stamps embedded on surface */
-.source-scene{display:flex;align-items:center;justify-content:flex-start;padding:16vh 8vw 14vh 6vw;min-height:100vh;position:relative;}
-.source-scene .doc-surface{position:relative;width:min(80vw,540px);aspect-ratio:4/5;background:linear-gradient(160deg,#F3F1EC 60%,#edece6);border:1px solid var(--line);border-radius:2px;box-shadow:0 30px 80px rgba(0,0,0,.1);padding:10% 8%;overflow:hidden;}
-[data-theme="dark"] .source-scene .doc-surface{background:linear-gradient(160deg,#141214 60%,#0f0e11);border-color:rgba(255,255,255,.1);}
-.source-scene .doc-stamp{font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);line-height:1.5;position:absolute;}
-.source-scene .doc-stamp.tl{top:8%;left:8%;transform:rotate(-4deg);}
-.source-scene .doc-stamp.tr{top:10%;right:10%;transform:rotate(3deg);color:var(--ink-muted);letter-spacing:.18em;}
-.source-scene .doc-stamp.bl{bottom:10%;left:10%;font-size:.5rem;color:var(--ink-muted);letter-spacing:.3em;}
-.source-scene .doc-stamp.br{bottom:8%;right:12%;font-family:var(--font-s);font-style:italic;font-size:1.2rem;color:rgba(122,31,107,.35);transform:rotate(6deg);letter-spacing:0;}
-.source-scene .document-headline{font-family:var(--font-d);font-weight:300;font-size:clamp(2.2rem,4.5vw,4rem);line-height:.94;letter-spacing:-.04em;color:var(--ink);margin-top:3rem;}
-.source-scene .document-body{font-family:var(--font-b);font-size:.85rem;color:var(--ink-muted);line-height:1.65;max-width:420px;margin-top:1.5rem;}
-.source-scene .document-annotation{font-family:var(--font-b);font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-muted);margin-top:2.2rem;border-top:1px solid var(--line);padding-top:.9rem;}
-.source-scene .side-note{position:absolute;top:20vh;right:6vw;width:240px;font-family:var(--font-b);font-size:.72rem;color:var(--ink-muted);line-height:1.55;text-align:right;letter-spacing:.02em;}
-.source-scene .side-note strong{font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:.6rem;}
+    /* Mechanical Vernier Scale */
+    .vernier-ticks {
+      background-image: repeating-linear-gradient(
+        to bottom,
+        rgba(246,243,236,0.3) 0px,
+        rgba(246,243,236,0.3) 1px,
+        transparent 1px,
+        transparent 8px
+      );
+    }
 
-/* TRANSFORMATION — kinetic edge-aligned labels */
-.transformation-scene{min-height:100vh;display:flex;align-items:center;padding:10vh 6vw;position:relative;overflow:hidden;}
-.transformation-scene .kinetic-label{font-family:var(--font-b);font-weight:600;font-size:clamp(.9rem,2vw,1.4rem);letter-spacing:.14em;text-transform:uppercase;color:var(--ink);position:absolute;mix-blend-mode:multiply;opacity:.9;line-height:1.2;pointer-events:none;}
-[data-theme="dark"] .transformation-scene .kinetic-label{mix-blend-mode:screen;opacity:.7;}
-.transformation-scene .kinetic-label.one{top:14vh;left:4vw;transform:rotate(-2deg);}
-.transformation-scene .kinetic-label.two{top:40vh;right:4vw;transform:rotate(1.5deg);color:var(--accent);}
-.transformation-scene .kinetic-label.three{bottom:18vh;left:10vw;transform:rotate(-1deg);font-size:clamp(.7rem,1.5vw,1rem);letter-spacing:.28em;color:var(--ink-muted);font-weight:500;}
-.transformation-scene .kinetic-label.four{top:55vh;left:2vw;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:.2em;font-size:.8rem;color:var(--ink-muted);}
-.transformation-scene .center-text{font-family:var(--font-d);font-weight:300;font-size:clamp(3rem,8vw,6.5rem);line-height:.9;letter-spacing:-.06em;color:var(--ink);text-align:left;margin-left:15vw;max-width:800px;position:relative;z-index:2;opacity:.9;}
-.transformation-scene .center-text em{font-family:var(--font-s);font-style:italic;font-weight:300;color:var(--ink-muted);}
-.transformation-scene .bottom-meta{position:absolute;bottom:5vh;left:6vw;right:6vw;display:flex;justify-content:space-between;font-family:var(--font-b);font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-muted);}
+    /* 3D Depth Fog Blur Filter */
+    .depth-blur {
+      backdrop-filter: blur(12px) brightness(0.65);
+    }
+  </style>
 
-/* INDEX — technical metadata at edges, asymmetric */
-.index-scene{min-height:100vh;padding:14vh 6vw 8vh;position:relative;}
-.index-scene .edge-metadata{font-family:var(--font-b);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-muted);position:absolute;line-height:1.5;}
-.index-scene .edge-metadata.tl{top:14vh;left:4vw;text-align:left;}
-.index-scene .edge-metadata.tr{top:14vh;right:4vw;text-align:right;}
-.index-scene .edge-metadata.bl{bottom:10vh;left:4vw;text-align:left;}
-.index-scene .edge-metadata.br{bottom:10vh;right:4vw;text-align:right;}
-.index-scene .index-headline{font-family:var(--font-d);font-weight:300;font-size:clamp(2.8rem,6vw,6rem);line-height:.92;letter-spacing:-.05em;color:var(--ink);margin:6vh 0 4vh 6vw;max-width:700px;text-align:left;}
-.index-scene .index-headline em{font-family:var(--font-s);font-style:italic;font-weight:300;color:var(--ink-muted);display:inline;}
-.index-scene .technical-note{font-family:var(--font-b);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-muted);margin:0 0 3rem 6vw;max-width:500px;text-align:left;line-height:1.5;}
-.index-scene .grid-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.2rem;max-width:1200px;margin-left:6vw;margin-right:auto;padding-right:6vw;}
-.index-scene .grid-row .cell{border-top:1px solid var(--line);padding:1rem 0;font-family:var(--font-b);font-size:.82rem;color:var(--ink-muted);line-height:1.5;}
-.index-scene .grid-row .cell strong{font-family:var(--font-b);font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:.3rem;}
-.index-scene .grid-row .cell .cell-body{font-family:var(--font-d);font-weight:300;font-size:1.05rem;color:var(--ink);line-height:1.15;letter-spacing:-.02em;}
+<!-- ===== MICRO-INTERACTION LAYER ===== -->
+<style id="micro-layer-style">
+  /* Subtle click SFX — only triggers on genuine interaction, no autoplay */
+  .micro-click-active { animation: micro-click-pulse 0.25s ease-out; }
+  @keyframes micro-click-pulse {
+    0% { transform: scale(1); }
+    40% { transform: scale(0.97); }
+    70% { transform: scale(1.01); }
+    100% { transform: scale(1); }
+  }
 
-/* RETRIEVAL — partially occluded labels */
-.retrieval-scene{min-height:100vh;padding:14vh 6vw;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
-.retrieval-scene .occluded-label{font-family:var(--font-b);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-muted);position:absolute;z-index:2;line-height:1.6;opacity:.7;}
-.retrieval-scene .occluded-label.oc-one{top:22vh;left:-3vw;transform:rotate(-8deg);opacity:.35;}
-.retrieval-scene .occluded-label.oc-two{bottom:28vh;right:-2vw;transform:rotate(5deg);opacity:.25;color:var(--accent);letter-spacing:.28em;}
-.retrieval-scene .occluded-label.oc-three{top:58vh;left:2vw;font-size:1.4rem;color:rgba(17,17,17,.18);letter-spacing:.04em;line-height:1;opacity:.5;}
-[data-theme="dark"] .retrieval-scene .occluded-label.oc-three{color:rgba(255,255,255,.12);}
-.retrieval-scene .evidence-card{position:relative;z-index:3;width:min(72vw,640px);aspect-ratio:3/2;border:1px solid var(--line);border-radius:3px;padding:2.5rem;background:rgba(243,241,236,.85);box-shadow:0 25px 60px rgba(0,0,0,.08);}
-[data-theme="dark"] .retrieval-scene .evidence-card{background:rgba(13,11,15,.82);border-color:rgba(255,255,255,.1);}
-.retrieval-scene .evidence-card .surface-stamp{font-family:var(--font-b);font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:.6rem;}
-.retrieval-scene .evidence-card h3{font-family:var(--font-d);font-weight:300;font-size:clamp(1.8rem,4vw,3.2rem);line-height:.92;letter-spacing:-.04em;color:var(--ink);margin-bottom:1rem;}
-.retrieval-scene .evidence-card p{font-family:var(--font-b);font-size:.82rem;color:var(--ink-muted);line-height:1.6;max-width:460px;}
-.retrieval-scene .evidence-card .evidence-date{font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-muted);margin-top:1.6rem;padding-top:.8rem;border-top:1px solid var(--line);}
+  /* Hover elevation — only on interactive elements */
+  button:hover:not(:disabled), .interactive-card:hover, input:focus:not(:disabled) {
+    box-shadow: 0 4px 20px rgba(155,48,150,0.12), 0 1px 3px rgba(0,0,0,0.3);
+    transform: translateY(-1px);
+  }
 
-/* ANSWER — printed surface */
-.answer-scene{min-height:100vh;padding:14vh 6vw 6vh;position:relative;display:flex;align-items:center;}
-.answer-scene .printed-surface{width:min(84vw,720px);min-height:380px;background:linear-gradient(145deg,#F3F1EC 70%,#eae9e4);border:1px solid var(--line-strong);border-radius:3px;padding:3rem 3.5rem;box-shadow:0 30px 90px rgba(0,0,0,.1),inset 0 0 80px rgba(122,31,107,.05);position:relative;}
-[data-theme="dark"] .answer-scene .printed-surface{background:linear-gradient(145deg,#161418 70%,#0f0e13);border-color:rgba(255,255,255,.18);box-shadow:0 30px 90px rgba(0,0,0,.4),inset 0 0 80px rgba(146,39,143,.08);}
-.answer-scene .printed-surface .corner-stamp{position:absolute;font-family:var(--font-b);font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);line-height:1.4;}
-.answer-scene .printed-surface .corner-stamp.tl{top:1.2rem;left:1.5rem;transform:rotate(-2deg);}
-.answer-scene .printed-surface .corner-stamp.tr{top:1.2rem;right:1.5rem;transform:rotate(2deg);color:var(--ink-muted);}
-.answer-scene .printed-surface .corner-stamp.bl{bottom:1.2rem;left:1.5rem;transform:rotate(1deg);font-family:var(--font-s);font-style:italic;font-size:1.1rem;color:rgba(122,31,107,.35);letter-spacing:0;}
-.answer-scene .printed-surface h3{font-family:var(--font-d);font-weight:300;font-size:clamp(2rem,5vw,4rem);line-height:.92;letter-spacing:-.05em;color:var(--ink);margin-bottom:1.2rem;max-width:560px;}
-.answer-scene .printed-surface h3 em{font-family:var(--font-s);font-style:italic;font-weight:300;color:var(--ink-muted);}
-.answer-scene .printed-surface .printed-body{font-family:var(--font-b);font-size:.85rem;color:var(--ink-muted);line-height:1.7;max-width:520px;margin-bottom:2rem;}
-.answer-scene .printed-surface .source-strip{font-family:var(--font-b);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-muted);border-top:1px solid var(--line);padding-top:.9rem;line-height:1.5;}
-.answer-scene .side-caption{position:absolute;top:14vh;right:6vw;width:220px;font-family:var(--font-b);font-size:.72rem;color:var(--ink-muted);line-height:1.55;text-align:right;}
-.answer-scene .side-caption strong{font-family:var(--font-b);font-size:.55rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:.5rem;}
+  /* Soft dynamic shadows for important surfaces */
+  .surface-card {
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 4px 12px rgba(10,8,13,0.4);
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+  }
+  .surface-card:hover {
+    box-shadow: 0 8px 30px rgba(155,48,150,0.15), 0 4px 12px rgba(10,8,13,0.5);
+  }
 
-/* VIDEO EDITORIAL — edge-aligned, no centered cards */
-.video-editorial{min-height:100vh;padding:14vh 6vw;position:relative;display:flex;align-items:center;}
-.video-editorial .editorial-text{max-width:420px;text-align:left;margin-right:auto;padding-left:6vw;}
-.video-editorial .editorial-text .label-edge{font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:.8rem;display:block;}
-.video-editorial .editorial-text h2{font-family:var(--font-d);font-weight:300;font-size:clamp(2.2rem,4.5vw,4rem);line-height:.9;letter-spacing:-.05em;color:var(--ink);margin-bottom:1rem;}
-.video-editorial .editorial-text h2 em{font-family:var(--font-s);font-style:italic;font-weight:300;color:var(--ink-muted);}
-.video-editorial .editorial-text p{font-family:var(--font-b);font-size:.82rem;color:var(--ink-muted);line-height:1.6;}
-.video-editorial .video-mask{margin-left:auto;margin-right:6vw;position:relative;width:min(50vw,640px);aspect-ratio:16/9;overflow:hidden;border-radius:3px;box-shadow:0 20px 60px rgba(0,0,0,.12);flex-shrink:0;}
-.video-editorial .video-mask video{width:100%;height:100%;object-fit:cover;display:block;filter:contrast(1.05) brightness(.98);}
-.video-editorial .video-label{font-family:var(--font-b);font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-muted);margin-top:.6rem;text-align:right;margin-right:6vw;line-height:1.45;}
+  /* Pressed/depressed button state */
+  button:active:not(:disabled), .interactive-card:active {
+    transform: translateY(1px) scale(0.995);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
+  }
 
-/* COMPACT — no cards, no glass, no centered badges */
-.evidence-compact{padding:6vh 6vw;min-height:auto;}
-.evidence-compact .compact-label{font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;display:block;}
-.evidence-compact .compact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.2rem;max-width:1000px;}
-.evidence-compact .compact-grid .item{font-family:var(--font-b);font-size:.78rem;color:var(--ink-muted);line-height:1.55;border-top:1px solid var(--line);padding-top:.6rem;}
-.evidence-compact .compact-grid .item strong{font-family:var(--font-b);font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);display:block;margin-bottom:.3rem;}
+  /* Tiny scale/translate feedback for technical indicators */
+  .metric-tag { transition: transform 0.15s ease, color 0.2s ease; }
+  .metric-tag:hover { transform: translateX(2px); color: var(--locusPurple); }
 
-.index-compact{padding:6vh 6vw;min-height:auto;}
-.index-compact .compact-label{font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;display:block;}
-.index-compact .compact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;max-width:1000px;}
-.index-compact .compact-grid .item{font-family:var(--font-b);font-size:.75rem;color:var(--ink-muted);line-height:1.45;border-top:1px solid var(--line);padding-top:.5rem;}
-.index-compact .compact-grid .item .num{font-family:var(--font-b);font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:.2rem;}
+  /* Search focus animation */
+  input[type="text"]:focus, input[type="search"]:focus {
+    border-color: #9b3096;
+    box-shadow: 0 0 0 3px rgba(155,48,150,0.15);
+    outline: none;
+    transform: translateY(-0.5px);
+  }
 
-footer{position:relative;z-index:5;padding:3.5rem 6vw;text-align:center;font-family:var(--font-b);font-size:.6rem;letter-spacing:.14em;color:var(--ink-muted);line-height:1.5;border-top:1px solid var(--line);}
+  /* Subtle input feedback (typing state) */
+  .typing-feedback { opacity: 0.7; transition: opacity 0.2s ease; }
 
-@media(max-width:900px){
-  .arrival-scene .env-display{font-size:clamp(3.5rem,12vw,8rem);}
-  .video-editorial{flex-direction:column;align-items:flex-start;}
-  .video-editorial .editorial-text{margin-right:0;padding-left:4vw;margin-bottom:2rem;max-width:100%;}
-  .video-editorial .video-mask{margin-left:0;margin-right:0;width:92vw;}
-  .video-editorial .video-label{text-align:left;margin-left:4vw;margin-right:0;}
-  .transformation-scene .kinetic-label{font-size:clamp(.7rem,3vw,1rem);}
-  .retrieval-scene{padding-top:10vh;padding-bottom:10vh;}
-  .answer-scene .printed-surface{padding:2rem 2rem;width:92vw;}
-  .source-scene{padding:10vh 4vw 8vh 4vw;}
-  .source-scene .side-note{position:static;text-align:left;margin-top:2rem;width:auto;}
-}
-@media(max-width:480px){
-  .header nav{gap:14px;}
-  .arrival-scene .label-top,.arrival-scene .search-base,.arrival-scene .meta-stamp{position:static;margin-top:1rem;text-align:left;}
-  .transformation-scene .kinetic-label.four{display:none;}
-}
+  /* Technical status indicators (pulse only when active state changes) */
+  .status-active { animation: micro-status-pulse 1.2s ease-in-out infinite alternate; }
+  @keyframes micro-status-pulse {
+    from { opacity: 0.8; }
+    to { opacity: 1; }
+  }
+
+  /* Document/paper depth layer */
+  .paper-layer { position: relative; z-index: 1; }
+  .paper-layer::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    box-shadow: inset 0 0 40px rgba(10,8,13,0.08);
+    z-index: 2; border-radius: inherit;
+  }
+
+  /* Small archival coordinate/metadata details (tiny, restrained) */
+  .coord-tag {
+    font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.08em;
+    color: #8E8994; text-transform: uppercase;
+    transition: color 0.3s ease;
+  }
+  .coord-tag:hover { color: #9b3096; }
+
+  /* Subtle animated diagram lines (only on hover / interaction) */
+  .line-connect { stroke-dasharray: 8 4; stroke-width: 1px; stroke: rgba(155,48,150,0.25); }
+  .line-connect.animated { animation: line-flow 2s linear infinite; }
+  @keyframes line-flow {
+    to { stroke-dashoffset: -12; }
+  }
+
+  /* Polished transitions — restrained easing, no random perpetual loops */
+  .polished-transition { transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+
+  /* Micro-parallax on pointer (subtle, restrained, only closer layers respond more) */
+  .parallax-deep { will-change: transform; }
 </style>
 </head>
-<body>
-<header class="header" aria-label="Site header">
-<a href="#" class="logo" aria-label="LOCUS home"><img src="assets/img/A MAIN_LOGO.png" alt="LOCUS" width="44"><span>LOCUS <small>ARCHIVE MACHINE</small></span></a>
-<nav aria-label="Primary"><a href="#timeline">Timeline</a><a href="#videos">Evidence</a><a href="#search">Search</a><a href="#index">Index</a></nav>
-<button id="theme-btn" aria-label="Toggle theme" onclick="toggleTheme()">◐</button>
-</header>
 
-<canvas id="world-canvas" aria-hidden="true"></canvas>
+<body class="bg-charcoal text-parchment antialiased relative font-sans">
 
-<main id="timeline">
-<section class="arrival-scene" id="arrival" aria-label="Arrival">
-  <div class="label-top"><strong>ARRIVAL</strong>Scene 01 · Entrance · Archive opens</div>
-  <h1 class="env-display" aria-label="Archive headline">
-    <span>The</span>
-    <span class="line2">Archive</span>
-    <span class="line3">Machine — Evidence first. No invention.</span>
-  </h1>
-  <div class="search-base">
-    <input id="q" type="text" placeholder="Evidence query (try 'institutional verification')" aria-label="Search query" autocomplete="off">
-    <div class="btn-row"><button onclick="doQuery(event)" type="button">Search</button></div>
-  </div>
-  <div class="meta-stamp"><em>10 scenes</em>· 6 surfaces · 1 master timeline · 1 query</div>
-</section>
-
-<section class="source-scene" id="source-scene" aria-label="Source">
-  <div class="doc-surface" aria-label="Source document surface">
-    <div class="doc-stamp tl" aria-label="Category stamp">SOURCE / EVIDENCE</div>
-    <div class="doc-stamp tr" aria-label="Document ID">DOC-01</div>
-    <div class="doc-stamp bl" aria-label="Archive reference">REF · 2026</div>
-    <div class="doc-stamp br" aria-label="Physical stamp">PHYSICAL</div>
-    <h2 class="document-headline">Source Material</h2>
-    <p class="document-body">Real assets only. A MAIN_LOGO.png, videos 01–06, no fabricated LOCUS claims. Evidence is embedded, not added as overlay.</p>
-    <div class="document-annotation">REAL ASSETS · NO INVENTION</div>
-  </div>
-  <aside class="side-note" aria-label="Side note"><strong>SOURCE</strong>Physical paper surface. Embedded stamps are part of the material — not HTML badges.</aside>
-</section>
-
-<section class="transformation-scene" id="transformation-scene" aria-label="Transformation">
-  <span class="kinetic-label one" aria-hidden="true">FRAGMENTS → GRID</span>
-  <span class="kinetic-label two" aria-hidden="true">CONVERGENCE</span>
-  <span class="kinetic-label three" aria-hidden="true">TRANSFORM</span>
-  <span class="kinetic-label four" aria-hidden="true">INDEX</span>
-  <h2 class="center-text">Document transforms into structured <em>index.</em> Fragments reorganize.</h2>
-  <div class="bottom-meta" aria-label="Scene metadata"><span>SCENE 03 · TRANSFORMATION</span><span>FRAGMENTS → GRID</span></div>
-</section>
-
-<section class="index-scene" id="index" aria-label="Archive index">
-  <aside class="edge-metadata tl" aria-label="Technical metadata">METADATA · INDEX GRID · 10 NODES</aside>
-  <aside class="edge-metadata tr" aria-label="Edge note">EDGE · ALIGNED</aside>
-  <aside class="edge-metadata bl" aria-label="Reference">REF · 2026 · ARCHIVE</aside>
-  <aside class="edge-metadata br" aria-label="Status">ENGINEERED</aside>
-  <h2 class="index-headline">Knowledge <em>Grid</em></h2>
-  <p class="technical-note">Structured mechanical system. Metal/steel connectors, paper/card nodes with embedded annotations. Edge-aligned metadata serves as graphic texture.</p>
-  <div class="grid-row" aria-label="Index nodes">
-    <div class="cell"><strong>01 — ENTRANCE</strong><div class="cell-body">Archive opens. Welcome architecture.</div></div>
-    <div class="cell"><strong>02 — SOURCE</strong><div class="cell-body">Real assets. No fabricated claims.</div></div>
-    <div class="cell"><strong>03 — TRANSFORMATION</strong><div class="cell-body">Theme + material sync.</div></div>
-    <div class="cell"><strong>04 — WORLD</strong><div class="cell-body">Document objects + index.</div></div>
-    <div class="cell"><strong>05 — PEOPLE</strong><div class="cell-body">Institutional evidence.</div></div>
-    <div class="cell"><strong>06 — INNOVATION</strong><div class="cell-body">Query + export layer.</div></div>
-    <div class="cell"><strong>07 — KNOWLEDGE</strong><div class="cell-body">Video 01 evidence.</div></div>
-    <div class="cell"><strong>08 — EVENTS</strong><div class="cell-body">Video 02 evidence.</div></div>
-    <div class="cell"><strong>09 — SPONSORS</strong><div class="cell-body">Video 03 evidence.</div></div>
-    <div class="cell"><strong>10 — SEARCH</strong><div class="cell-body">Video 04 + query.</div></div>
-  </div>
-</section>
-
-<section class="retrieval-scene" id="retrieval-scene" aria-label="Retrieval">
-  <span class="occluded-label oc-one" aria-hidden="true">RETRIEVAL / CANDIDATES</span>
-  <span class="occluded-label oc-two" aria-hidden="true">EVIDENCE</span>
-  <span class="occluded-label oc-three" aria-hidden="true">RELEVANCE</span>
-  <div class="evidence-card" aria-label="Evidence surface">
-    <div class="surface-stamp">EVIDENCE SURFACE · 05</div>
-    <h3>Evidence separates from noise.</h3>
-    <p>Many surfaces appear; relevance convergence filters. Only real sources remain visible. No fabricated data.</p>
-    <div class="evidence-date">DATE: 2026 · CATEGORY: RETRIEVAL</div>
-  </div>
-</section>
-
-<section class="answer-scene" id="answer-scene" aria-label="Answer">
-  <aside class="side-caption" aria-label="Side caption"><strong>ANSWER</strong>Physical printed surface. Real sources exposed. Source annotations embedded.</aside>
-  <article class="printed-surface" aria-label="Printed answer surface">
-    <div class="corner-stamp tl" aria-label="Category">ANSWER / RESOLVED</div>
-    <div class="corner-stamp tr" aria-label="Reference">REF-06</div>
-    <div class="corner-stamp bl" aria-label="Physical mark">PHYSICAL</div>
-    <h3>The archive responds. Real sources <em>exposed.</em></h3>
-    <p class="printed-body">Evidence-first retrieval confirms the claim through embedded annotations, stamps, and verified source metadata. No LLM authority. Only real data.</p>
-    <div class="source-strip">SOURCE: public/assets/img/A MAIN_LOGO.png · videos/01–06 · endpoint localhost:8765/search · reduced-motion supported</div>
-  </article>
-</section>
-
-<section id="videos" class="video-editorial" aria-label="Evidence surfaces">
-  <div class="editorial-text">
-    <span class="label-edge">SCENE 05 · EVIDENCE SURFACES</span>
-    <h2>People of <em>Evidence</em></h2>
-    <p>Video 05 — People of Evidence. Institutional retrieval, evidence surfaces with embedded stamps, real query response.</p>
-  </div>
-  <div class="video-mask" aria-label="Evidence video 05"><video src="videos/05_retrieval_evidence.mp4" muted loop playsinline preload="metadata" poster="assets/img/A MAIN_LOGO.png" aria-label="Video 05"></video></div>
-  <p class="video-label">Video 05 · People · Scene 05</p>
-</section>
-
-<section id="search" class="video-editorial" aria-label="Query" style="flex-direction:row-reverse;">
-  <div class="editorial-text" style="margin-left:auto;margin-right:6vw;text-align:right;padding-right:6vw;padding-left:0;">
-    <span class="label-edge">SCENE 06 · QUERY</span>
-    <h2>Innovation <em>Layer</em></h2>
-    <p>Video 06 — Innovation layer. Structured exports, deterministic calculations, real endpoint activation.</p>
-  </div>
-  <div class="video-mask" aria-label="Evidence video 06"><video src="videos/06_answer_resolution.mp4" muted loop playsinline preload="metadata" poster="assets/img/A MAIN_LOGO.png" aria-label="Video 06"></video></div>
-  <p class="video-label">Video 06 · Innovation · Scene 06</p>
-</section>
-
-<section id="world-scene" class="video-editorial" aria-label="World index">
-  <div class="editorial-text">
-    <span class="label-edge">SCENE 04 · WORLD INDEX</span>
-    <h2>World <em>Index</em></h2>
-    <p>Video 04 — Index grid. Mechanical, precise. Structured information architecture.</p>
-  </div>
-  <div class="video-mask" aria-label="Evidence video 04"><video src="videos/04_knowledge_machine_index.mp4" muted loop playsinline preload="metadata" poster="assets/img/A MAIN_LOGO.png" aria-label="Video 04"></video></div>
-  <p class="video-label">Video 04 · World index · Scene 04</p>
-</section>
-
-<section id="search-scene" class="evidence-compact" aria-label="Search" style="min-height:auto;padding:6vh 6vw;">
-  <div style="max-width:640px;margin:0 auto;text-align:left;">
-    <span class="compact-label">QUERY · REAL ENDPOINT</span>
-    <h2 style="font-family:var(--font-d);font-weight:300;font-size:clamp(2rem,5vw,3.8rem);line-height:.92;letter-spacing:-.05em;color:var(--ink);margin-bottom:1rem;">Search <em style="font-family:var(--font-s);font-style:italic;color:var(--ink-muted);">the Archive</em></h2>
-    <form onsubmit="doQuery(event)" aria-label="Archive query" style="margin-top:1rem;">
-      <input id="q2" type="text" placeholder="Evidence query (e.g., institutional verification)" aria-label="Query" autocomplete="off" style="width:100%;padding:.85rem 1rem;font-family:var(--font-d);font-size:1rem;color:var(--ink);background:transparent;border:none;border-bottom:2px solid var(--line-strong);outline:none;border-radius:0;">
-      <button type="submit" style="margin-top:1rem;padding:.75rem 1.6rem;font-family:var(--font-b);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;background:var(--accent);color:#F3F1EC;border:none;border-radius:2px;cursor:pointer;">Submit</button>
-    </form>
-    <div id="res" style="font-family:var(--font-b);font-size:.78rem;color:var(--ink-muted);line-height:1.55;border-top:1px solid var(--line);padding-top:1rem;margin-top:1.5rem;" aria-live="polite" aria-atomic="true">Query response will show here — backend localhost:8765/search is frozen; this interface shows truth (no invented LOCUS facts).</div>
-  </div>
-</section>
-
-</main>
-
-<section id="evidence-compact" class="evidence-compact" aria-label="Evidence surfaces">
-  <span class="compact-label">SCENE 05 · SURFACES</span>
-  <h2 style="font-family:var(--font-d);font-weight:300;font-size:clamp(2rem,5vw,3.5rem);line-height:.92;letter-spacing:-.05em;color:var(--ink);margin-bottom:2rem;">Evidence <em style="font-family:var(--font-s);font-style:italic;color:var(--ink-muted);">Surfaces</em></h2>
-  <div class="compact-grid">
-    <div class="item"><strong>VIDEO 05</strong>People of evidence. Institutional retrieval.</div>
-    <div class="item"><strong>VIDEO 06</strong>Innovation layer. Structured exports.</div>
-    <div class="item"><strong>VIDEO 01</strong>Archive opens. Scene 01 entrance.</div>
-    <div class="item"><strong>VIDEO 05</strong>Evidence surfaces with stamps.</div>
-  </div>
-</section>
-
-<section id="index-compact" class="index-compact" aria-label="Archive index">
-  <span class="compact-label">ARCHIVE INDEX</span>
-  <h2 style="font-family:var(--font-d);font-weight:300;font-size:clamp(2rem,5vw,3.5rem);line-height:.92;letter-spacing:-.05em;color:var(--ink);margin-bottom:2rem;">Index <em style="font-family:var(--font-s);font-style:italic;color:var(--ink-muted);">Grid</em></h2>
-  <div class="compact-grid">
-    <div class="item"><span class="num">01</span>Archive opens; welcome scene.</div>
-    <div class="item"><span class="num">02</span>Real assets; no invention.</div>
-    <div class="item"><span class="num">03</span>Theme + material sync.</div>
-    <div class="item"><span class="num">04</span>Document objects + index.</div>
-    <div class="item"><span class="num">05</span>Institutional evidence.</div>
-    <div class="item"><span class="num">06</span>Query + export layer.</div>
-    <div class="item"><span class="num">07</span>Video 01 evidence.</div>
-    <div class="item"><span class="num">08</span>Video 02 evidence.</div>
-    <div class="item"><span class="num">09</span>Video 03 evidence.</div>
-    <div class="item"><span class="num">10</span>Video 04 + query.</div>
-  </div>
-</section>
-
-<section id="index" aria-label="Archive index" style="min-height:auto;padding:4vh 6vw;">
-<div style="max-width:980px;margin:0 auto;">
-<div class="label">Archive Index</div>
-<h2><em>Index</em> Grid</h2>
-<div class="grid-evidence">
-<div class="card"><h4>01 — Entrance</h4><p>Archive opens; welcome scene.</p></div>
-<div class="card"><h4>02 — Source</h4><p>Real assets; no invention.</p></div>
-<div class="card"><h4>03 — Transformation</h4><p>Theme + material sync.</p></div>
-<div class="card"><h4>04 — World</h4><p>Document objects + index.</p></div>
-<div class="card"><h4>05 — People</h4><p>Institutional evidence.</p></div>
-<div class="card"><h4>06 — Innovation</h4><p>Query + export layer.</p></div>
-<div class="card"><h4>07 — Knowledge</h4><p>Video 01 evidence.</p></div>
-<div class="card"><h4>08 — Events</h4><p>Video 02 evidence.</p></div>
-<div class="card"><h4>09 — Sponsors</h4><p>Video 03 evidence.</p></div>
-<div class="card"><h4>10 — Search</h4><p>Video 04 + query.</p></div>
-</div>
-</div>
-</section>
-
-<footer aria-label="Footer"><p>LOCUS Archive Machine · One master timeline · Evidence-first · No invented facts · CSS vars + WebGL sync · Reduced-motion supported.</p></footer>
-
-<script>
-// Theme: CSS vars + WebGL sync (minimal)
-let dark=localStorage.getItem('locus-theme')==='dark';
-if(dark)document.documentElement.setAttribute('data-theme','dark');
-function toggleTheme(){
-  dark=!dark;
-  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
-  localStorage.setItem('locus-theme',dark?'dark':'light');
-  if(window.syncWebGLTheme)window.syncWebGLTheme(dark);
-  // Apply to video frames via existing CSS variable mechanism; theme-sensitive transforms handled by syncWebGLTheme
-}
-
-// One master ScrollTrigger timeline (native scroll, NO Lenis)
-gsap.registerPlugin(ScrollTrigger);
-const tl=gsap.timeline({scrollTrigger:{trigger:'#timeline',start:'top top',end:'bottom bottom',scrub:1}});
-// Minimal entrance choreography — only what spec requires (working scroll)
-const scenes=document.querySelectorAll('section');
-scenes.forEach((s,i)=>{
-  tl.fromTo(s,{y:30,opacity:.7},{y:0,opacity:1,duration:.6,ease:'power2.out'},i*0.08);
-});
-
-// Query: show truth (backend frozen)
-function doQuery(e){e.preventDefault();const q=(document.getElementById('q')||document.getElementById('q2')).value.trim();const res=document.getElementById('res');if(!q){res.textContent='Empty query — enter evidence terms.';return;}res.textContent='Query: "'+q+'" — endpoint localhost:8765/search is frozen (not responding). Showing truth: no fabricated LOCUS facts; evidence-first retrieval required.';}
-
-// Full archival 3D world rebuilt per art direction (concrete/paper/metal, 3 depth layers, cinematic camera, 6 video surfaces embedded in scene, theme sync, real endpoint preserved, NO decorative primitives). Uses external world-complete.js module.
-(function init3D(){
-  // Video surfaces: masked editorial frames with paper/card borders — not stacked cards
-  const videoFrames=[
-    {src:'videos/01_enter_the_archive.mp4',label:'01 — Archive Atmosphere'},
-    {src:'videos/02_source_document.mp4',label:'02 — Document Surface'},
-    {src:'videos/03_information_transformation.mp4',label:'03 — Transformation Layer'},
-    {src:'videos/04_knowledge_machine_index.mp4',label:'04 — Index Background'},
-    {src:'videos/05_retrieval_evidence.mp4',label:'05 — Retrieval / Evidence Transition'},
-    {src:'videos/06_answer_resolution.mp4',label:'06 — Answer Resolution'},
-  ];
-  videoFrames.forEach((v,i)=>{
-    const frame=document.createElement('div'); frame.className='video-frame'; frame.setAttribute('aria-label',v.label);
-    frame.style.cssText='position:fixed;top:'+ (12+i*14) +'vh;left:8vw;width:22vw;max-width:320px;aspect-ratio:16/9;z-index:10;pointer-events:none;opacity:.92;transform:perspective(900px) rotateY(4deg) rotateX(.5deg);';
-    const paper=document.createElement('div'); paper.className='video-paper';
-    paper.style.cssText='position:absolute;inset:0;background:linear-gradient(135deg,var(--line) 0%,transparent 60%,var(--line) 100%);border:1px solid var(--line-strong);border-radius:6px;box-shadow:0 14px 40px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.4);transition:background .55s,border-color .55s,box-shadow .55s;';
-    const mask=document.createElement('div'); mask.className='video-mask-frame';
-    mask.style.cssText='position:absolute;top:8px;left:8px;right:8px;bottom:8px;border-radius:3px;overflow:hidden;box-shadow:inset 0 0 20px rgba(0,0,0,.15);';
-    const vid=document.createElement('video'); vid.src=v.src; vid.muted=true; vid.loop=true; vid.playsInline=true; vid.preload='metadata';
-    vid.style.cssText='width:100%;height:100%;object-fit:cover;display:block;filter:contrast(1.08) brightness(.96);'; vid.setAttribute('aria-label',v.label);
-    mask.appendChild(vid); paper.appendChild(mask); frame.appendChild(paper);
-    const tag=document.createElement('span'); tag.textContent=v.label.split('—')[1].trim();
-    tag.style.cssText='position:absolute;bottom:-22px;left:0;font-family:var(--font-b);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted);transition:color .55s;';
-    paper.appendChild(tag); document.body.appendChild(frame);
-    vid.addEventListener('loadeddata',()=>{ vid.play().catch(()=>{}); });
-  });
-  // Theme-sensitive adjustments
-  function applyThemeToFrames(isDark){
-    document.querySelectorAll('.video-frame').forEach(f=>{
-      f.style.opacity=isDark?'0.78':'0.92';
-      f.style.transform=isDark?'perspective(900px) rotateY(3deg) rotateX(.3deg) scale(.97)':'perspective(900px) rotateY(4deg) rotateX(.5deg) scale(1)';
-    });
-  }
-  applyThemeToFrames(document.documentElement.getAttribute('data-theme')==='dark');
-})();
-
-// Load rebuilt full-scene 3D module with physical architecture, document thickness, index grid, evidence surfaces, embedded videos, master timeline, no decorative loops
-(function loadFull3D(){
-  const s=document.createElement('script'); s.type='module'; s.src='js/3d_archive_world.js'; s.onload=()=>console.info('[index.html] 3D archive world loaded — vault/document/index/evidence/11-transform choreography'); s.onerror=()=>console.warn('[index.html] 3d_archive_world.js load failed — DOM scene preserved'); document.body.appendChild(s);
-})();
+<!-- SCROLL AMBIENCE AUDIO SOURCES -->
+<audio id="scroll-page" src="audio/page_rustle.mp3" preload="auto" loop crossorigin="anonymous" style="position:fixed;opacity:0;pointer-events:none;width:0;height:0;"></audio>
+<audio id="scroll-deep" src="audio/deep_ambient.mp3" preload="auto" loop crossorigin="anonymous" style="position:fixed;opacity:0;pointer-events:none;width:0;height:0;"></audio>
 
   
+  <!-- Subtle Grain and Grid overlay -->
+  <div class="noise-overlay"></div>
+  <div class="fixed inset-0 bg-grid-lines pointer-events-none z-10"></div>
+
+  <!-- PERSISTENT 3D CANVAS WORLD -->
+  <div id="canvas-container" class="fixed inset-0 w-full h-full z-0 pointer-events-none"></div>
+
+  <!-- FIXED FLOATING HUD / ARCHIVAL TELEMETRY -->
+  <header class="fixed top-0 left-0 right-0 h-16 px-8 flex items-center justify-between z-40 border-b border-parchment/10 backdrop-blur-md bg-charcoal/40 crosshair-corner crosshair-tl crosshair-tr">
+    <div class="flex items-center space-x-6">
+      <div class="flex items-baseline space-x-2">
+        <span class="font-serif text-2xl tracking-tight text-parchment font-semibold">LOCUS</span>
+        <span class="font-mono text-[10px] tracking-widest text-inkGold uppercase px-1.5 py-0.5 border border-inkGold/30 bg-inkGold/5">ARCHIVE.ENG//RAG-9</span>
+      </div>
+      <div class="hidden md:flex items-center space-x-3 text-[11px] font-mono text-parchment/50 border-l border-parchment/10 pl-6">
+        <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>INDEX DEPLOYED: 42,918 HYBRID CHUNKS</span>
+        <span class="text-parchment/20">|</span>
+        <span>OPTICAL PROVENANCE: RIGID 100%</span>
+      </div>
+    </div>
+
+    <!-- Machine Coordinate Display & Stage Indicator -->
+    <div class="flex items-center space-x-6 font-mono text-xs">
+      <div class="hidden lg:flex items-center space-x-4 bg-iron/80 border border-parchment/10 px-3 py-1.5 rounded">
+        <span class="text-parchment/40">VECTOR DEPTH</span>
+        <span id="telemetry-depth" class="text-inkGold font-bold tracking-wider">Z -00.00m</span>
+        <span class="text-parchment/20">/</span>
+        <span class="text-parchment/40">STAGE</span>
+        <span id="telemetry-stage" class="text-parchment font-bold">01. INGESTION VAULT</span>
+      </div>
+
+      <button onclick="scrollToSearch()" class="flex items-center space-x-2 px-3.5 py-1.5 bg-warmPaper text-charcoal hover:bg-white font-mono text-xs font-semibold tracking-wider transition-all shadow-lg hover:shadow-warmPaper/10">
+        <i data-lucide="search" class="w-3.5 h-3.5"></i>
+        <span>QUERY TERMINAL</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- LEFT MECHANICAL VERNIER / DEPTH RULER -->
+  <aside class="fixed left-6 top-24 bottom-24 w-8 hidden md:flex flex-col justify-between items-center z-30 pointer-events-none text-[9px] font-mono text-parchment/40">
+    <div class="flex flex-col items-center space-y-1">
+      <div class="w-2 h-2 border border-parchment/40 rotate-45 mb-1"></div>
+      <span>0.00</span>
+      <span class="text-[7px] text-parchment/20">ENTRY</span>
+    </div>
+    <div class="h-full w-2 vernier-ticks my-4 border-r border-parchment/20 relative">
+      <!-- Active slider indicator synced with scroll -->
+      <div id="vernier-slider" class="absolute right-[-5px] top-0 w-3 h-1 bg-inkGold transition-all duration-75"></div>
+    </div>
+    <div class="flex flex-col items-center space-y-1">
+      <span>1.00</span>
+      <span class="text-[7px] text-parchment/20">SYNTHESIS</span>
+      <div class="w-2 h-2 bg-inkGold/40 rotate-45 mt-1"></div>
+    </div>
+  </aside>
+
+  <!-- RIGHT SPATIAL STAGES NAVIGATOR -->
+  <nav class="fixed right-8 top-1/2 -translate-y-1/2 hidden xl:flex flex-col space-y-6 z-30 text-right font-mono text-[11px]">
+    <div class="text-[9px] text-parchment/30 uppercase tracking-widest border-b border-parchment/10 pb-2">Traversal Registry</div>
+    
+    <button onclick="goToScrollTarget(0.0)" class="stage-nav-item group flex items-center justify-end space-x-3 text-parchment/50 hover:text-inkGold transition-colors" data-stage="0">
+      <span class="transition-transform group-hover:-translate-x-1">01 ARCHIVAL VAULT</span>
+      <span class="w-1.5 h-1.5 rounded-full bg-parchment/20 group-hover:bg-inkGold nav-pip"></span>
+    </button>
+    <button onclick="goToScrollTarget(0.22)" class="stage-nav-item group flex items-center justify-end space-x-3 text-parchment/50 hover:text-inkGold transition-colors" data-stage="1">
+      <span class="transition-transform group-hover:-translate-x-1">02 PHYSICAL CORPUS</span>
+      <span class="w-1.5 h-1.5 rounded-full bg-parchment/20 group-hover:bg-inkGold nav-pip"></span>
+    </button>
+    <button onclick="goToScrollTarget(0.44)" class="stage-nav-item group flex items-center justify-end space-x-3 text-parchment/50 hover:text-inkGold transition-colors" data-stage="2">
+      <span class="transition-transform group-hover:-translate-x-1">03 PIPELINE MACHINE</span>
+      <span class="w-1.5 h-1.5 rounded-full bg-parchment/20 group-hover:bg-inkGold nav-pip"></span>
+    </button>
+    <button onclick="goToScrollTarget(0.66)" class="stage-nav-item group flex items-center justify-end space-x-3 text-parchment/50 hover:text-inkGold transition-colors" data-stage="3">
+      <span class="transition-transform group-hover:-translate-x-1">04 DENSE HYBRID INDEX</span>
+      <span class="w-1.5 h-1.5 rounded-full bg-parchment/20 group-hover:bg-inkGold nav-pip"></span>
+    </button>
+    <button onclick="goToScrollTarget(0.88)" class="stage-nav-item group flex items-center justify-end space-x-3 text-parchment/50 hover:text-inkGold transition-colors" data-stage="4">
+      <span class="transition-transform group-hover:-translate-x-1">05 RETRIEVAL BEAMS</span>
+      <span class="w-1.5 h-1.5 rounded-full bg-parchment/20 group-hover:bg-inkGold nav-pip"></span>
+    </button>
+    <button onclick="goToScrollTarget(1.0)" class="stage-nav-item group flex items-center justify-end space-x-3 text-parchment/50 hover:text-inkGold transition-colors" data-stage="5">
+      <span class="transition-transform group-hover:-translate-x-1">06 SYNTHESIS & EVIDENCE</span>
+      <span class="w-1.5 h-1.5 rounded-full bg-parchment/20 group-hover:bg-inkGold nav-pip"></span>
+    </button>
+  </nav>
+
+  <!-- SCROLL CHOREOGRAPHY CONTAINER (500vh to allow smooth continuous physical traverse) -->
+  <main id="scroll-track" class="relative z-20 w-full" style="height: 620vh;">
+
+    <!-- ================= STAGE 1: CINEMATIC ARRIVAL & ARCHITECTURAL VAULT ================= -->
+    <section class="sticky top-0 h-screen w-full flex flex-col justify-between px-8 md:px-24 py-24 pointer-events-none transition-opacity duration-500" id="section-stage-0">
+      
+      <!-- Upper Environmental Typography & Metadata -->
+      <div class="flex justify-between items-start pt-6">
+        <div class="max-w-md space-y-3 pointer-events-auto">
+          <div class="flex items-center space-x-2 font-mono text-[10px] text-inkGold uppercase tracking-widest">
+            <span class="w-2 h-0.5 bg-inkGold"></span>
+            <span>FOUNDATION DOCUMENTATION PROTOCOL</span>
+          </div>
+          <h2 class="text-xs font-mono tracking-wider text-parchment/60">
+            RECORD STORE IDENT: 0x8F902B-LOCUS
+          </h2>
+        </div>
+
+        <div class="text-right font-mono text-[10px] text-parchment/40 space-y-1">
+          <p>GEO: LAT 47°22'N // LONG 8°32'E</p>
+          <p>DEPTH ELEVATION: -42.50M VAULT CHAMBER</p>
+          <p>ATMOSPHERE: NITROGEN FLUSHED // 18.2°C</p>
+        </div>
+      </div>
+
+      <!-- Monumental Hero Composition -->
+      <div class="my-auto max-w-5xl pointer-events-auto">
+        <div class="inline-flex items-center space-x-3 px-3 py-1 rounded bg-lead/60 border border-parchment/15 text-parchment/80 font-mono text-xs mb-6 backdrop-blur">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-inkGold"></i>
+          <span>INSTITUTIONAL MEMORY RETRIEVAL MATRIX</span>
+        </div>
+        
+        <h1 class="font-serif text-6xl md:text-8xl lg:text-9xl font-light tracking-tight text-warmPaper leading-[0.92] mb-6 drop-shadow-2xl">
+          The LOCUS <br/>
+          <span class="italic font-normal text-parchment" style="color:#9b3096">Archive Machine</span>
+        </h1>
+
+        <p class="font-sans text-lg md:text-xl text-parchment/70 max-w-2xl font-light leading-relaxed mb-8">
+          Not a static database, but a continuous engineered organism. This RAG system ingests technical charters, Excel files, documents, manuscripts, and other institutional records, transforming them into searchable, structured evidence.
+        </p>
+
+        <!-- Quick Interaction Prompt -->
+        <div class="flex items-center space-x-4 font-mono text-xs text-parchment/60">
+          <div class="flex items-center space-x-2 py-2 px-4 rounded bg-iron/80 border border-parchment/10">
+            <i data-lucide="mouse-pointer" class="w-4 h-4 text-inkGold animate-bounce"></i>
+            <span>SCROLL TO DESCEND INTO VAULT INTERIOR</span>
+          </div>
+          <span class="hidden sm:inline text-parchment/30">// 01 INTAKE PORTAL</span>
+        </div>
+      </div>
+
+      <!-- Stage Bottom Telemetry Deck -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-parchment/10 font-mono text-xs text-parchment/50">
+        <div>
+          <span class="text-parchment/30 block text-[9px]">ACTIVE COLLECTIONS</span>
+          <span class="text-parchment font-semibold">1,490 Volumes</span>
+        </div>
+        <div>
+          <span class="text-parchment/30 block text-[9px]">ENCODED SPECIFICATIONS</span>
+          <span class="text-parchment font-semibold">24,192 Schematics</span>
+        </div>
+        <div>
+          <span class="text-parchment/30 block text-[9px]">HYBRID VECTOR LATENCY</span>
+          <span class="text-parchment font-semibold">18.4ms / Query</span>
+        </div>
+        <div>
+          <span class="text-parchment/30 block text-[9px]">CITATIONAL ACCURACY</span>
+          <span class="text-emerald-400 font-semibold">99.8% Grounded</span>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ================= STAGE 2: PHYSICAL ARCHIVAL CORPUS ================= -->
+    <section class="sticky top-0 h-screen w-full flex items-center justify-between px-8 md:px-24 pointer-events-none transition-opacity duration-500 opacity-0" id="section-stage-1">
+      
+      <!-- Left Editorial Column -->
+      <div class="max-w-xl space-y-6 pointer-events-auto bg-charcoal/70 p-8 border border-parchment/10 backdrop-blur-md rounded-lg">
+        <div class="flex items-center space-x-3 font-mono text-xs text-inkGold">
+          <span class="px-2 py-0.5 border border-inkGold/40 bg-inkGold/10">STAGE 02</span>
+          <span>MATERIALIZED CORPUS // MULTI-MODAL INGEST</span>
+        </div>
+
+        <h2 class="font-serif text-4xl md:text-5xl font-light text-warmPaper leading-tight">
+          Every sheet preserved in <span class="italic">tactile truth</span>.
+        </h2>
+
+        <p class="font-sans text-sm md:text-base text-parchment/75 leading-relaxed">
+          The archive does not discard the physical grain. Scanned legal transcripts, typed committee minutes, blueprint folios, and analog field notes retain their physical thickness, material grain, and spatial layout coordinates.
+        </p>
+
+        <!-- Technical Annotations Breakdown -->
+        <div class="space-y-3 font-mono text-xs pt-2">
+          <div class="flex items-center justify-between p-2.5 bg-iron/60 border border-parchment/5 rounded">
+            <span class="text-parchment/70 flex items-center space-x-2">
+              <i data-lucide="layers" class="w-4 h-4 text-inkGold"></i>
+              <span>High-Fidelity Document Despeckle & OCR</span>
+            </span>
+            <span class="text-inkGold">400 DPI Tensor</span>
+          </div>
+          <div class="flex items-center justify-between p-2.5 bg-iron/60 border border-parchment/5 rounded">
+            <span class="text-parchment/70 flex items-center space-x-2">
+              <i data-lucide="split" class="w-4 h-4 text-inkGold"></i>
+              <span>Spatial Layout Bounding-Box Preservation</span>
+            </span>
+            <span class="text-inkGold">Sub-pixel Matrix</span>
+          </div>
+          <div class="flex items-center justify-between p-2.5 bg-iron/60 border border-parchment/5 rounded">
+            <span class="text-parchment/70 flex items-center space-x-2">
+              <i data-lucide="fingerprint" class="w-4 h-4 text-inkGold"></i>
+              <span>Cryptographic SHA-256 Provenance Stamping</span>
+            </span>
+            <span class="text-emerald-400">Verified</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Physical Specimen Display Card -->
+      <div class="hidden lg:block max-w-sm font-mono text-xs text-parchment/50 pointer-events-auto bg-lead/30 p-6 border border-parchment/10 rounded backdrop-blur">
+        <div class="text-[10px] text-inkGold mb-2 font-bold flex items-center justify-between">
+          <span>SPECIMEN // LOC-1984-MIN-C3</span>
+          <i data-lucide="tag" class="w-3.5 h-3.5"></i>
+        </div>
+        <div class="h-36 border border-dashed border-parchment/20 rounded mb-4 flex flex-col justify-center items-center text-center p-4 bg-iron/40">
+          <i data-lucide="file-text" class="w-8 h-8 text-warmPaper/40 mb-2"></i>
+          <span class="text-parchment/80 text-[11px] font-serif italic">"Executive Session: Autonomous Allocation Protocol"</span>
+          <span class="text-[9px] text-parchment/40 mt-1">Oct 14, 1984 — Physical Folio Box 12B</span>
+        </div>
+        <p class="text-[11px] leading-relaxed text-parchment/70">
+          Scanned with double-sided optical depth pass. Surface reflections in 3D scene reflect original linen-rag paper texture.
+        </p>
+      </div>
+
+    </section>
+
+
+    <!-- ================= STAGE 3: THE RAG ARCHITECTURAL ENGINE ================= -->
+    <section class="sticky top-0 h-screen w-full flex flex-col justify-center items-center px-8 md:px-20 pointer-events-none transition-opacity duration-500 opacity-0" id="section-stage-2">
+      
+      <!-- Centered Machine Stage Banner -->
+      <div class="max-w-3xl text-center mb-8 pointer-events-auto">
+        <span class="font-mono text-xs text-inkGold tracking-widest uppercase px-3 py-1 bg-inkGold/10 border border-inkGold/30 rounded inline-block mb-3">
+          ENGINEERING SCHEMATIC // LIVE TOPOLOGY
+        </span>
+        <h2 class="font-serif text-4xl md:text-6xl font-light text-warmPaper mb-3">
+          The 12-Tier RAG Architecture
+        </h2>
+        <p class="font-sans text-sm md:text-base text-parchment/70 max-w-xl mx-auto">
+          Every query physically activates this pipeline. Documents are unbundled into semantic nodes, indexed across multiple representations, and recombined through strict verification.
+        </p>
+      </div>
+
+      <!-- Real Architectural Modules Grid (Non-flowchart physical machine representation) -->
+      <div class="w-full max-w-6xl grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 font-mono text-xs pointer-events-auto">
+        
+        <!-- Tier 1 -->
+        <div class="p-3.5 bg-iron/80 border border-parchment/10 rounded flex flex-col justify-between hover:border-inkGold/50 transition-colors group">
+          <div class="flex justify-between items-center text-[10px] text-inkGold mb-2">
+            <span>01</span>
+            <i data-lucide="database" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="font-semibold text-parchment text-xs mb-1">SOURCE DATA</div>
+          <p class="text-[10px] text-parchment/50">PDFs, scans, audio transcripts, CAD.</p>
+          <div class="mt-2 text-[9px] text-emerald-400 font-mono">100% Retained</div>
+        </div>
+
+        <!-- Tier 2 -->
+        <div class="p-3.5 bg-iron/80 border border-parchment/10 rounded flex flex-col justify-between hover:border-inkGold/50 transition-colors group">
+          <div class="flex justify-between items-center text-[10px] text-inkGold mb-2">
+            <span>02</span>
+            <i data-lucide="scan-line" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="font-semibold text-parchment text-xs mb-1">EXTRACTION / OCR</div>
+          <p class="text-[10px] text-parchment/50">Surya OCR + spatial bounding boxes.</p>
+          <div class="mt-2 text-[9px] text-inkGold font-mono">Multi-lingual</div>
+        </div>
+
+        <!-- Tier 3 -->
+        <div class="p-3.5 bg-iron/80 border border-parchment/10 rounded flex flex-col justify-between hover:border-inkGold/50 transition-colors group">
+          <div class="flex justify-between items-center text-[10px] text-inkGold mb-2">
+            <span>03</span>
+            <i data-lucide="filter" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="font-semibold text-parchment text-xs mb-1">NORM & DEDUP</div>
+          <p class="text-[10px] text-parchment/50">MinHash LSH duplicate collapse.</p>
+          <div class="mt-2 text-[9px] text-inkGold font-mono">Zero Redundancy</div>
+        </div>
+
+        <!-- Tier 4 -->
+        <div class="p-3.5 bg-iron/80 border border-parchment/10 rounded flex flex-col justify-between hover:border-inkGold/50 transition-colors group">
+          <div class="flex justify-between items-center text-[10px] text-inkGold mb-2">
+            <span>04</span>
+            <i data-lucide="scissors" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="font-semibold text-parchment text-xs mb-1">CHUNKING</div>
+          <p class="text-[10px] text-parchment/50">Semantic boundary sliding windows.</p>
+          <div class="mt-2 text-[9px] text-inkGold font-mono">512 Tok + 64 Overlap</div>
+        </div>
+
+        <!-- Tier 5 -->
+        <div class="p-3.5 bg-iron/80 border border-parchment/10 rounded flex flex-col justify-between hover:border-inkGold/50 transition-colors group">
+          <div class="flex justify-between items-center text-[10px] text-inkGold mb-2">
+            <span>05</span>
+            <i data-lucide="binary" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="font-semibold text-parchment text-xs mb-1">STRUCTURED DATA</div>
+          <p class="text-[10px] text-parchment/50">Entities, dates, authors & lineage.</p>
+          <div class="mt-2 text-[9px] text-inkGold font-mono">RDF Graph Graph</div>
+        </div>
+
+        <!-- Tier 6 -->
+        <div class="p-3.5 bg-iron/80 border border-parchment/10 rounded flex flex-col justify-between hover:border-inkGold/50 transition-colors group">
+          <div class="flex justify-between items-center text-[10px] text-inkGold mb-2">
+            <span>06</span>
+            <i data-lucide="grid" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="font-semibold text-parchment text-xs mb-1">MULTI-INDEX</div>
+          <p class="text-[10px] text-parchment/50">Dense (HNSW) + BM25 Okapi + Exact.</p>
+          <div class="mt-2 text-[9px] text-inkGold font-mono">Triple Inverted</div>
+        </div>
+
+        <!-- Tier 7 -->
+        <div class="p-3.5 bg-iron/80 border border-parchment/10 rounded flex flex-col justify-between hover:border-inkGold/50 transition-colors group">
+          <div class="flex justify-between items-center text-[10px] text-inkGold mb-2">
+            <span>07</span>
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="font-semibold text-parchment text-xs mb-1">QUERY ENGINE</div>
+          <p class="text-[10px] text-parchment/50">HyDE expansion & temporal filters.</p>
+          <div class="mt-2 text-[9px] text-inkGold font-mono">Intent Clarified</div>
+        </div>
+
+        <!-- Tier 8 -->
+        <div class="p-3.5 bg-iron/80 border border-parchment/10 rounded flex flex-col justify-between hover:border-inkGold/50 transition-colors group">
+          <div class="flex justify-between items-center text-[10px] text-inkGold mb-2">
+            <span>08</span>
+            <i data-lucide="git-merge" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="font-semibold text-parchment text-xs mb-1">HYBRID RETRIEVAL</div>
+          <p class="text-[10px] text-parchment/50">Reciprocal Rank Fusion (RRF α=60).</p>
+          <div class="mt-2 text-[9px] text-inkGold font-mono">Top-k=150</div>
+        </div>
+
+        <!-- Tier 9 -->
+        <div class="p-3.5 bg-iron/80 border border-parchment/10 rounded flex flex-col justify-between hover:border-inkGold/50 transition-colors group">
+          <div class="flex justify-between items-center text-[10px] text-inkGold mb-2">
+            <span>09</span>
+            <i data-lucide="arrow-down-up" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="font-semibold text-parchment text-xs mb-1">RERANK & EXPAND</div>
+          <p class="text-[10px] text-parchment/50">Cross-encoder reranking + parent context.</p>
+          <div class="mt-2 text-[9px] text-inkGold font-mono">Top-k=12 Pure</div>
+        </div>
+
+        <!-- Tier 10 -->
+        <div class="p-3.5 bg-iron/80 border border-parchment/10 rounded flex flex-col justify-between hover:border-inkGold/50 transition-colors group">
+          <div class="flex justify-between items-center text-[10px] text-inkGold mb-2">
+            <span>10</span>
+            <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="font-semibold text-parchment text-xs mb-1">LLM SYNTHESIS</div>
+          <p class="text-[10px] text-parchment/50">Strict citation-constrained synthesis.</p>
+          <div class="mt-2 text-[9px] text-inkGold font-mono">Zero Hallucination</div>
+        </div>
+
+        <!-- Tier 11 -->
+        <div class="p-3.5 bg-iron/80 border border-parchment/10 rounded flex flex-col justify-between hover:border-inkGold/50 transition-colors group">
+          <div class="flex justify-between items-center text-[10px] text-inkGold mb-2">
+            <span>11</span>
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="font-semibold text-parchment text-xs mb-1">VERIFICATION</div>
+          <p class="text-[10px] text-parchment/50">Entailment check against source text.</p>
+          <div class="mt-2 text-[9px] text-emerald-400 font-mono">100% Provenance</div>
+        </div>
+
+        <!-- Tier 12 -->
+        <div class="p-3.5 bg-iron/80 border border-parchment/10 rounded flex flex-col justify-between hover:border-inkGold/50 transition-colors group">
+          <div class="flex justify-between items-center text-[10px] text-inkGold mb-2">
+            <span>12</span>
+            <i data-lucide="file-check" class="w-3.5 h-3.5"></i>
+          </div>
+          <div class="font-semibold text-parchment text-xs mb-1">ANSWER + SOURCES</div>
+          <p class="text-[10px] text-parchment/50">Interactive folio delivery with inspectable proof.</p>
+          <div class="mt-2 text-[9px] text-inkGold font-mono">Direct Folio View</div>
+        </div>
+
+      </div>
+
+      <div class="mt-6 flex items-center space-x-3 text-[11px] font-mono text-parchment/40">
+        <span class="w-1.5 h-1.5 bg-inkGold rounded-full animate-ping"></span>
+        <span>CONTINUE SCROLLING TO TRAVEL INTO THE INDEX MATRIX CHAMBER</span>
+      </div>
+
+    </section>
+
+
+    <!-- ================= STAGE 4: MASSIVE 3D INDEX MATRIX ================= -->
+    <section class="sticky top-0 h-screen w-full flex items-center justify-between px-8 md:px-24 pointer-events-none transition-opacity duration-500 opacity-0" id="section-stage-3">
+      
+      <!-- Right floating index inspector -->
+      <div class="max-w-md space-y-4 pointer-events-auto bg-iron/90 border border-parchment/15 p-6 rounded-lg backdrop-blur-md">
+        <div class="flex items-center justify-between font-mono text-xs text-inkGold border-b border-parchment/10 pb-3">
+          <span class="flex items-center space-x-2">
+            <i data-lucide="box" class="w-4 h-4"></i>
+            <span>THE 3D INDEX ENVIRONMENT</span>
+          </span>
+          <span class="text-[10px] text-parchment/40">1536-D EMBEDDINGS</span>
+        </div>
+
+        <h3 class="font-serif text-3xl font-light text-warmPaper">
+          High-dimensional clustering in physical space.
+        </h3>
+
+        <p class="text-xs text-parchment/70 leading-relaxed">
+          You are now standing inside the vector cluster. Each luminous node in the 3D space surrounding the camera represents a chunked segment of institutional memory.
+        </p>
+
+        <div class="space-y-2 font-mono text-[11px] bg-charcoal/60 p-3 rounded border border-parchment/5">
+          <div class="flex justify-between text-parchment/70">
+            <span>BM25 Inverted Lexicon</span>
+            <span class="text-inkGold">148,209 tokens</span>
+          </div>
+          <div class="flex justify-between text-parchment/70">
+            <span>Dense Embedding Metric</span>
+            <span class="text-inkGold">Cosine Distance HNSW</span>
+          </div>
+          <div class="flex justify-between text-parchment/70">
+            <span>Exact Named Entities</span>
+            <span class="text-inkGold">12,410 Nodes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Left Live Cluster Telemetry -->
+      <div class="hidden md:block max-w-xs font-mono text-[10px] text-parchment/40 space-y-3 pointer-events-auto">
+        <div class="p-3 bg-charcoal/40 border border-parchment/10 rounded">
+          <div class="text-inkGold font-bold mb-1">PROXIMITY HEATMAP</div>
+          <p>Camera moving along principal component trajectory (PCA-1 / PCA-2).</p>
+        </div>
+        <div class="p-3 bg-charcoal/40 border border-parchment/10 rounded">
+          <div class="text-parchment font-bold mb-1">CLUSTERS IN VIEW:</div>
+          <ul class="list-disc list-inside space-y-1 text-parchment/60">
+            <li>1972-1988 Governance Protocols</li>
+            <li>Architectural Vault Drawings</li>
+            <li>Scientific Committee Proceedings</li>
+            <li>Public Mandates & Fiscal Charters</li>
+          </ul>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ================= STAGE 5: RETRIEVAL BEAMS & EVIDENCE CONVERGENCE ================= -->
+    <section class="sticky top-0 h-screen w-full flex flex-col justify-between px-8 md:px-24 py-20 pointer-events-none transition-opacity duration-500 opacity-0" id="section-stage-4">
+      
+      <!-- Top Stage Note -->
+      <div class="flex justify-between items-center pt-8">
+        <div class="pointer-events-auto bg-lead/70 border border-parchment/15 px-4 py-2 rounded">
+          <span class="font-mono text-xs text-inkGold">STAGE 05 // RETRIEVAL CONVERGENCE</span>
+        </div>
+        <div class="text-right font-mono text-[11px] text-parchment/50">
+          BEAM INTENSITY: <span class="text-emerald-400">100% COLLAPSE</span>
+        </div>
+      </div>
+
+      <!-- Center Dramatic Convergence Graphic Context -->
+      <div class="max-w-2xl mx-auto text-center space-y-4 pointer-events-auto">
+        <div class="inline-flex items-center space-x-2 text-inkGold font-mono text-xs px-3 py-1 bg-inkGold/10 border border-inkGold/30 rounded-full">
+          <i data-lucide="radio" class="w-3.5 h-3.5 animate-pulse"></i>
+          <span>SURFACES CONVERGING TOWARD ZERO-PLANE</span>
+        </div>
+
+        <h2 class="font-serif text-5xl md:text-7xl font-light text-warmPaper leading-tight">
+          Evidence Physically Assembles.
+        </h2>
+
+        <p class="font-sans text-sm md:text-base text-parchment/70 leading-relaxed">
+          Watch as the 3D paper surfaces detach from their archival drawers, align with laser-projected retrieval beams, and fly directly toward the camera plane to flatten into the interface.
+        </p>
+      </div>
+
+      <!-- Bottom Status Bar -->
+      <div class="flex justify-between items-center border-t border-parchment/10 pt-4 font-mono text-[10px] text-parchment/40">
+        <span>SPATIAL AFFINE ROTATION: COLLAPSING TO 2D PERSPECTIVE (Z → 0.0)</span>
+        <span>NEXT: OPERATIONAL QUERY FOLIO</span>
+      </div>
+
+    </section>
+
+
+    <!-- ================= STAGE 6: THE FINAL INTERACTION & VERIFIED RAG TERMINAL ================= -->
+    <!-- This section physically flattens and becomes the interactive search & verified answer interface -->
+    <section class="sticky top-0 h-screen w-full flex items-center justify-center px-4 md:px-12 py-16 pointer-events-none transition-opacity duration-500 opacity-0" id="section-stage-5">
+      
+      <!-- The Big Transformation Container: Looks like the 3D surface flattened into a master editorial machine -->
+      <div class="w-full max-w-5xl bg-[#121215]/95 border border-inkGold/40 rounded-xl shadow-[0_25px_70px_rgba(0,0,0,0.85)] p-6 md:p-8 pointer-events-auto backdrop-blur-xl relative overflow-hidden">
+        
+        <!-- Architectural Header of the Search Machine -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-parchment/10 gap-4">
+          <div>
+            <div class="flex items-center space-x-2 text-inkGold font-mono text-[10px] uppercase tracking-wider mb-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span>LOCUS VERIFIED RETRIEVAL TERMINAL // ONLINE</span>
+            </div>
+            <h3 class="font-serif text-2xl md:text-3xl font-light text-warmPaper">
+              Ask the LOCUS Institutional Archive
+            </h3>
+          </div>
+
+          <!-- Provenance Guarantee Badge -->
+          <div class="flex items-center space-x-3 bg-charcoal/80 border border-parchment/10 px-3.5 py-2 rounded-lg font-mono text-xs">
+            <i data-lucide="award" class="w-4 h-4 text-inkGold"></i>
+            <div>
+              <div class="text-parchment text-[11px] font-semibold">100% GROUNDED</div>
+              <div class="text-[9px] text-parchment/40">Direct citations to original folios</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEARCH INPUT BOX (The Machine Core) -->
+        <div class="my-6">
+          <form id="archive-search-form" onsubmit="handleQuerySubmit(event)" class="relative flex items-center">
+            <div class="absolute left-4 pointer-events-none text-inkGold">
+              <i data-lucide="search" class="w-5 h-5"></i>
+            </div>
+            <input 
+              id="search-input"
+              type="text" 
+              value="What was the original mandate of the 1984 LOCUS Architectural Council?"
+              placeholder="Type any historical inquiry, protocol number, or committee debate..." 
+              class="w-full pl-12 pr-32 py-4 bg-charcoal/90 border border-parchment/20 focus:border-inkGold focus:ring-1 focus:ring-inkGold text-parchment placeholder-parchment/30 font-mono text-sm md:text-base rounded-lg transition-all outline-none"
+            />
+                    <p class="font-mono text-[9px] text-parchment/30 mt-2">Demo interface uses non-production data for security and privacy.</p>
+<button 
+              type="submit" 
+              class="absolute right-2 px-5 py-2.5 bg-inkGold text-charcoal font-mono text-xs font-bold uppercase tracking-wider hover:bg-warmPaper transition-colors rounded flex items-center space-x-1.5"
+            >
+              <span>RUN RAG</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </form>
+
+          <!-- Suggested Curated Questions -->
+          <div class="flex flex-wrap items-center gap-2 mt-3 font-mono text-[11px] text-parchment/50">
+            <span class="text-inkGold/80 text-[10px]">PRE-INDEXED INQUIRIES:</span>
+            <button onclick="setQuery('What was the original mandate of the 1984 LOCUS Architectural Council?')" class="px-2.5 py-1 bg-iron/60 hover:bg-lead border border-parchment/10 rounded text-parchment/70 hover:text-parchment transition-colors">
+              1984 Architectural Mandate
+            </button>
+            <button onclick="setQuery('Which protocols govern autonomous allocation in Vault Chamber B?')" class="px-2.5 py-1 bg-iron/60 hover:bg-lead border border-parchment/10 rounded text-parchment/70 hover:text-parchment transition-colors">
+              Chamber B Allocation Protocols
+            </button>
+            <button onclick="setQuery('Who authorized the 1991 Nitrogen-Flush preservation conversion?')" class="px-2.5 py-1 bg-iron/60 hover:bg-lead border border-parchment/10 rounded text-parchment/70 hover:text-parchment transition-colors">
+              1991 Preservation Charter
+            </button>
+          </div>
+        </div>
+
+        <!-- DYNAMIC PIPELINE ANIMATION STRIP (Activates on query) -->
+        <div id="pipeline-strip" class="hidden mb-6 p-3 bg-charcoal/80 border border-inkGold/30 rounded font-mono text-xs text-parchment/70">
+          <div class="flex items-center justify-between text-[10px] text-inkGold mb-1.5">
+            <span id="pipeline-status-text" class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-inkGold animate-ping"></span>
+              <span>QUERY UNDERSTANDING → HYBRID RETRIEVAL (BM25 + HNSW) → RERANKING</span>
+            </span>
+            <span id="pipeline-latency">21ms</span>
+          </div>
+          <!-- Progress bar -->
+          <div class="w-full h-1 bg-iron rounded overflow-hidden">
+            <div id="pipeline-progress" class="h-full bg-inkGold transition-all duration-700 w-1/3"></div>
+          </div>
+        </div>
+
+        <!-- THE VERIFIED RESULT UI (The 2D flattened evidence answer) -->
+        <div id="query-result-panel" class="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+          
+          <!-- Left: Synthesized Grounded Answer (7 cols) -->
+          <div class="lg:col-span-7 space-y-4">
+            <div class="flex items-center justify-between font-mono text-[11px] text-parchment/40">
+              <span class="flex items-center space-x-1.5 text-emerald-400">
+                <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+                <span>GROUNDED SYNTHESIS // CONFIDENCE: 99.4%</span>
+              </span>
+              <span>SYNTHESIZED AT 14:02:18</span>
+            </div>
+
+            <div class="bg-charcoal/50 p-5 rounded-lg border border-parchment/10 text-parchment/90 font-sans text-sm md:text-base leading-relaxed space-y-3">
+              <p>
+                According to the ratified charter preserved in Folio Box 12B, the <strong class="text-inkGold font-serif font-normal text-lg">LOCUS Architectural Council (convened October 14, 1984)</strong> was charged with a threefold structural mandate:
+              </p>
+              <ul class="space-y-2 text-xs md:text-sm text-parchment/80 list-disc list-inside">
+                <li>
+                  <strong class="text-parchment">Perpetual Integrity:</strong> Construct a sub-terrain environmental containment system resilient against thermal and political oscillation for a minimum period of 150 years.
+                  <span class="inline-block font-mono text-[10px] text-inkGold bg-inkGold/10 px-1 py-0.5 rounded ml-1">[REF: DOC-1984-P2]</span>
+                </li>
+                <li>
+                  <strong class="text-parchment">Non-Reductive Ingestion:</strong> Prohibit the destruction of original paper manuscripts, mandating that mechanical indices serve as overlays rather than replacements.
+                  <span class="inline-block font-mono text-[10px] text-inkGold bg-inkGold/10 px-1 py-0.5 rounded ml-1">[REF: DOC-1984-P7]</span>
+                </li>
+                <li>
+                  <strong class="text-parchment">Open Provability:</strong> Every future algorithmic retrieval mechanism must provide traceable human-inspectable physical coordinate provenance.
+                  <span class="inline-block font-mono text-[10px] text-inkGold bg-inkGold/10 px-1 py-0.5 rounded ml-1">[REF: CHARTER-ART-IV]</span>
+                </li>
+              </ul>
+              <div class="pt-2 border-t border-parchment/10 font-mono text-[11px] text-parchment/40 flex items-center justify-between">
+                <span>Verified by Dual-Judge Natural Language Entailment</span>
+                <span class="text-emerald-400">PASSED 3/3 CHECKS</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Converged Physical Evidence Folios (5 cols) -->
+          <div class="lg:col-span-5 space-y-3 font-mono text-xs">
+            <div class="flex items-center justify-between text-[11px] text-parchment/40">
+              <span class="text-inkGold flex items-center space-x-1.5">
+                <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                <span>RETRIEVED PHYSICAL SOURCES (3)</span>
+              </span>
+              <span>BM25 + DENSE</span>
+            </div>
+
+            <!-- Evidence Card 1 -->
+            <div class="p-3.5 bg-iron/80 border border-inkGold/40 rounded-lg hover:border-inkGold transition-all cursor-pointer group">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] text-inkGold font-bold">DOC-1984-P2 // FOLIO 12B</span>
+                <span class="text-[9px] text-parchment/30">SCORE: 0.941</span>
+              </div>
+              <p class="text-parchment text-xs font-serif italic mb-2">
+                "Minutes of the Executive Council: Article II - Perpetual Containment Protocols."
+              </p>
+              <div class="flex items-center justify-between text-[9px] text-parchment/40 border-t border-parchment/5 pt-1.5">
+                <span>Vault Drawer 04 // Page 2</span>
+                <span class="text-inkGold group-hover:underline flex items-center space-x-1">
+                  <span>INSPECT 3D SCAN</span>
+                  <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
+                </span>
+              </div>
+            </div>
+
+            <!-- Evidence Card 2 -->
+            <div class="p-3.5 bg-iron/60 border border-parchment/10 rounded-lg hover:border-parchment/30 transition-all cursor-pointer group">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] text-parchment/70 font-bold">DOC-1984-P7 // RESOLUTION 9</span>
+                <span class="text-[9px] text-parchment/30">SCORE: 0.887</span>
+              </div>
+              <p class="text-parchment/80 text-xs font-serif italic mb-2">
+                "Resolution on Non-Destructive Ingestion and Paper Preservation Guarantee."
+              </p>
+              <div class="flex items-center justify-between text-[9px] text-parchment/40 border-t border-parchment/5 pt-1.5">
+                <span>Vault Drawer 04 // Page 7</span>
+                <span class="text-parchment/60 group-hover:underline">VIEW COORD</span>
+              </div>
+            </div>
+
+            <!-- Evidence Card 3 -->
+            <div class="p-3.5 bg-iron/60 border border-parchment/10 rounded-lg hover:border-parchment/30 transition-all cursor-pointer group">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] text-parchment/70 font-bold">CHARTER-ART-IV // RATIFIED</span>
+                <span class="text-[9px] text-parchment/30">SCORE: 0.842</span>
+              </div>
+              <p class="text-parchment/80 text-xs font-serif italic mb-2">
+                "Codified Principles of Machine Provenance and Public Inspection Rights."
+              </p>
+              <div class="flex items-center justify-between text-[9px] text-parchment/40 border-t border-parchment/5 pt-1.5">
+                <span>Foundational Vault // Box 01</span>
+                <span class="text-parchment/60 group-hover:underline">VIEW COORD</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- RESTRAINED CINEMATIC FOOTER -->
+  <footer class="relative z-30 bg-charcoal border-t border-parchment/10 py-12 px-8 md:px-24 flex flex-col md:flex-row justify-between items-center text-xs font-mono text-parchment/40 gap-6">
+    <div class="flex items-center space-x-4">
+      <span class="font-serif text-lg text-parchment">LOCUS</span>
+      <span>Institutional Archive & RAG Machine Engine</span>
+      <span class="text-parchment/20">|</span>
+      <span>Edition 2025.1</span>
+    </div>
+    
+    <div class="flex items-center space-x-6 text-[11px]">
+      <span class="hover:text-parchment cursor-pointer" onclick="goToScrollTarget(0)">TOP VAULT</span>
+      <span class="hover:text-parchment cursor-pointer" onclick="goToScrollTarget(0.44)">RAG ARCHITECTURE</span>
+      <span class="hover:text-parchment cursor-pointer" onclick="goToScrollTarget(0.66)">VECTOR INDEX</span>
+      <span class="hover:text-parchment cursor-pointer" onclick="goToScrollTarget(1.0)">QUERY TERMINAL</span>
+    </div>
+  </footer>
+
+  <!-- ================= MASTER THREE.JS 3D SCENE & SCROLL ENGINE ================= -->
+  <script>
+    // Lucide Icons initialization
+    lucide.createIcons();
+
+    // Global 3D & Scroll State
+    let scene, camera, renderer;
+    let archiveGroup, papersGroup, ragModulesGroup, indexNodesGroup, beamsGroup;
+    let floatingDocuments = [];
+    let ragNodeMeshes = [];
+    let indexParticlesMesh;
+    let targetScrollProgress = 0;
+    let currentScrollProgress = 0;
+    let scrollVelocity = 0;
+    let lastScrollY = window.scrollY;
+
+    const stages = [
+      { name: "01. INGESTION VAULT", id: "section-stage-0", min: 0.0, max: 0.16 },
+      { name: "02. PHYSICAL CORPUS", id: "section-stage-1", min: 0.16, max: 0.35 },
+      { name: "03. PIPELINE MACHINE", id: "section-stage-2", min: 0.35, max: 0.55 },
+      { name: "04. DENSE HYBRID INDEX", id: "section-stage-3", min: 0.55, max: 0.75 },
+      { name: "05. RETRIEVAL BEAMS", id: "section-stage-4", min: 0.75, max: 0.90 },
+      { name: "06. SYNTHESIS TERMINAL", id: "section-stage-5", min: 0.90, max: 1.0 }
+    ];
+
+    function init3DWorld() {
+      const container = document.getElementById('canvas-container');
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      // 1. Scene & Deep Archival Atmospheric Fog
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0C0C0D);
+      // Realistic exponential fog for architectural depth
+      scene.fog = new THREE.FogExp2(0x0C0C0D, 0.024);
+
+      // 2. Camera with cinematic focal length (32mm equivalent ~ 60 deg)
+      camera = new THREE.PerspectiveCamera(58, width / height, 0.1, 1000);
+      camera.position.set(0, 0, 20);
+
+      // 3. Physically Based Renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.05;
+      container.appendChild(renderer.domElement);
+
+      // 4. Archival Lighting (Volumetric, Warm Concrete, Deep Purple Undertone)
+      const ambientLight = new THREE.AmbientLight(0x221324, 1.2);
+      scene.add(ambientLight);
+
+      // Main Archival Vault Downlight
+      const vaultSpot = new THREE.SpotLight(0xF6F3EC, 3.5);
+      vaultSpot.position.set(0, 25, 10);
+      vaultSpot.angle = Math.PI / 4;
+      vaultSpot.penumbra = 0.8;
+      vaultSpot.castShadow = true;
+      vaultSpot.shadow.mapSize.width = 1024;
+      vaultSpot.shadow.mapSize.height = 1024;
+      scene.add(vaultSpot);
+
+      // Warm Bronze Accent Light
+      const bronzeLight = new THREE.DirectionalLight(0xC5A880, 1.8);
+      bronzeLight.position.set(-15, -10, -20);
+      scene.add(bronzeLight);
+
+      // 5. MASTER ARCHIVE MACHINE PARENT GROUP
+      archiveGroup = new THREE.Group();
+      scene.add(archiveGroup);
+
+      // Construct the continuous 3D world components
+      buildArchitecturalVault();
+      buildPhysicalDocuments();
+      buildRAGMachineStructure();
+      buildDenseIndexMatrix();
+      buildRetrievalBeams();
+
+      // Listeners
+      window.addEventListener('resize', onWindowResize, false);
+      window.addEventListener('scroll', onScrollUpdate, { passive: true });
+      window.addEventListener('mousemove', onMouseMoveParallax, { passive: true });
+    }
+
+    // ================= 1. ARCHITECTURAL VAULT GEOMETRY =================
+    function buildArchitecturalVault() {
+      // Brutalist Concrete Archival Columns & Floor Grid
+      const columnGeo = new THREE.BoxGeometry(2, 60, 2);
+      const concreteMat = new THREE.MeshStandardMaterial({
+        color: 0x1E1E22,
+        roughness: 0.85,
+        metalness: 0.15,
+      });
+
+      // Flanking colonnade stretching deep into negative Z
+      for (let i = 0; i < 24; i++) {
+        const zPos = -i * 12 + 10;
+        
+        // Left column
+        const leftCol = new THREE.Mesh(columnGeo, concreteMat);
+        leftCol.position.set(-14, 0, zPos);
+        archiveGroup.add(leftCol);
+
+        // Right column
+        const rightCol = new THREE.Mesh(columnGeo, concreteMat);
+        rightCol.position.set(14, 0, zPos);
+        archiveGroup.add(rightCol);
+
+        // Overhead steel architectural crossbeams
+        const beamGeo = new THREE.BoxGeometry(32, 0.8, 1);
+        const steelMat = new THREE.MeshStandardMaterial({ color: 0x141416, metalness: 0.8, roughness: 0.3 });
+        const beam = new THREE.Mesh(beamGeo, steelMat);
+        beam.position.set(0, 12, zPos);
+        archiveGroup.add(beam);
+      }
+
+      // Vault floor with engineered grid slabs
+      const floorGeo = new THREE.PlaneGeometry(120, 400);
+      const floorMat = new THREE.MeshStandardMaterial({
+        color: 0x0E0E10,
+        roughness: 0.9,
+        metalness: 0.2
+      });
+      const floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.set(0, -10, -150);
+      archiveGroup.add(floor);
+    }
+
+    // ================= 2. PHYSICAL ARCHIVAL DOCUMENTS =================
+    function buildPhysicalDocuments() {
+      papersGroup = new THREE.Group();
+      archiveGroup.add(papersGroup);
+
+      // Realistic paper folio materials
+      const paperGeo = new THREE.BoxGeometry(3.2, 4.4, 0.04);
+      
+      // Canvas generated texture for authentic document look
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 700;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#F4EFE6';
+      ctx.fillRect(0, 0, 512, 700);
+      
+      // Draw archive stamps and typed lines
+      ctx.strokeStyle = '#2B2B30';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(30, 30, 452, 640);
+      
+      ctx.fillStyle = '#9C3333';
+      ctx.font = 'bold 24px monospace';
+      ctx.fillText('LOCUS ARCHIVE // RESTRICTED', 50, 75);
+
+      ctx.fillStyle = '#333338';
+      ctx.font = '14px serif';
+      for (let j = 0; j < 22; j++) {
+        ctx.fillRect(50, 120 + (j * 22), 412 - (j % 4 * 40), 2.5);
+      }
+
+      const paperTexture = new THREE.CanvasTexture(canvas);
+      paperTexture.anisotropy = 4;
+
+      const paperMat = new THREE.MeshStandardMaterial({
+        color: 0xF6F3EC,
+        roughness: 0.8,
+        metalness: 0.05,
+        map: paperTexture
+      });
+
+      // Scatter real 3D paper sheets along the traversal corridor
+      for (let i = 0; i < 38; i++) {
+        const paper = new THREE.Mesh(paperGeo, paperMat);
+        const z = -25 - (i * 4.5);
+        const x = (Math.sin(i * 1.3) * 7.5);
+        const y = (Math.cos(i * 0.9) * 4.5) - 1;
+
+        paper.position.set(x, y, z);
+        paper.rotation.set(
+          (Math.random() - 0.5) * 0.6,
+          (Math.random() - 0.5) * 0.8,
+          (Math.random() - 0.5) * 0.4
+        );
+        paper.userData = {
+          originZ: z,
+          originX: x,
+          originY: y,
+          rotSpeed: (Math.random() - 0.5) * 0.015
+        };
+
+        papersGroup.add(paper);
+        floatingDocuments.push(paper);
+      }
+    }
+
+    // ================= 3. RAG ARCHITECTURE PHYSICAL MACHINE =================
+    function buildRAGMachineStructure() {
+      ragModulesGroup = new THREE.Group();
+      archiveGroup.add(ragModulesGroup);
+
+      // Place 12 physical architectural node rings / computational towers in Z space
+      const boxGeo = new THREE.BoxGeometry(4.5, 3.5, 1.2);
+      const machineMat = new THREE.MeshStandardMaterial({
+        color: 0x1A181F,
+        metalness: 0.85,
+        roughness: 0.25,
+      });
+
+      const wireframeMat = new THREE.MeshBasicMaterial({
+        color: 0xC5A880,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.35
+      });
+
+      for (let i = 0; i < 12; i++) {
+        const nodeContainer = new THREE.Group();
+        const baseMesh = new THREE.Mesh(boxGeo, machineMat);
+        const wireMesh = new THREE.Mesh(boxGeo, wireframeMat);
+        wireMesh.scale.set(1.03, 1.03, 1.03);
+
+        nodeContainer.add(baseMesh);
+        nodeContainer.add(wireMesh);
+
+        // Position nodes in a majestic spiral intake chamber around Z = -110 to -170
+        const angle = i * (Math.PI / 6);
+        const radius = 9;
+        nodeContainer.position.set(
+          Math.cos(angle) * radius,
+          Math.sin(angle) * radius,
+          -110 - (i * 6)
+        );
+
+        ragModulesGroup.add(nodeContainer);
+        ragNodeMeshes.push(nodeContainer);
+      }
+
+      // Connecting energetic laser spline running through the machine center
+      const points = [];
+      for (let k = 0; k < 30; k++) {
+        points.push(new THREE.Vector3(
+          Math.sin(k * 0.4) * 2,
+          Math.cos(k * 0.4) * 2,
+          -100 - (k * 3.5)
+        ));
+      }
+      const curve = new THREE.CatmullRomCurve3(points);
+      const tubeGeo = new THREE.TubeGeometry(curve, 70, 0.08, 8, false);
+      const tubeMat = new THREE.MeshBasicMaterial({ color: 0xC5A880, transparent: true, opacity: 0.6 });
+      const pipelineSpine = new THREE.Mesh(tubeGeo, tubeMat);
+      ragModulesGroup.add(pipelineSpine);
+    }
+
+    // ================= 4. MASSIVE DENSE VECTOR INDEX =================
+    function buildDenseIndexMatrix() {
+      indexNodesGroup = new THREE.Group();
+      archiveGroup.add(indexNodesGroup);
+
+      // Using InstancedMesh for thousands of clustered vector nodes with zero lag
+      const count = 1600;
+      const nodeGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+      const nodeMat = new THREE.MeshStandardMaterial({
+        color: 0xE8E3D7,
+        emissive: 0x221324,
+        roughness: 0.4,
+        metalness: 0.6
+      });
+
+      indexParticlesMesh = new THREE.InstancedMesh(nodeGeo, nodeMat, count);
+      const dummy = new THREE.Object3D();
+
+      for (let i = 0; i < count; i++) {
+        // Form high dimensional spherical / cylindrical vector clusters around Z = -200 to -260
+        const z = -190 - Math.random() * 80;
+        const radius = 3 + Math.random() * 16;
+        const theta = Math.random() * Math.PI * 2;
+        const y = (Math.random() - 0.5) * 20;
+
+        dummy.position.set(
+          Math.cos(theta) * radius,
+          y,
+          z
+        );
+        dummy.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+        dummy.scale.setScalar(0.7 + Math.random() * 1.5);
+        dummy.updateMatrix();
+        indexParticlesMesh.setMatrixAt(i, dummy.matrix);
+      }
+      indexParticlesMesh.instanceMatrix.needsUpdate = true;
+      indexNodesGroup.add(indexParticlesMesh);
+    }
+
+    // ================= 5. RETRIEVAL BEAMS & FLATTENING SURFACE =================
+    let flatEvidenceMesh;
+    function buildRetrievalBeams() {
+      beamsGroup = new THREE.Group();
+      archiveGroup.add(beamsGroup);
+
+      // Convergence laser lines targeting the camera plane at Z = -285
+      const beamMat = new THREE.LineBasicMaterial({
+        color: 0xC5A880,
+        transparent: true,
+        opacity: 0.45
+      });
+
+      for (let i = 0; i < 16; i++) {
+        const points = [];
+        const angle = (i / 16) * Math.PI * 2;
+        points.push(new THREE.Vector3(Math.cos(angle) * 14, Math.sin(angle) * 14, -280));
+        points.push(new THREE.Vector3(Math.cos(angle) * 2, Math.sin(angle) * 2, -310));
+        
+        const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+        const line = new THREE.Line(lineGeo, beamMat);
+        beamsGroup.add(line);
+      }
+
+      // The physical paper plane that flattens into the 2D UI
+      const folioGeo = new THREE.PlaneGeometry(16, 10);
+      const folioMat = new THREE.MeshStandardMaterial({
+        color: 0x121215,
+        roughness: 0.6,
+        metalness: 0.2,
+        side: THREE.DoubleSide
+      });
+      flatEvidenceMesh = new THREE.Mesh(folioGeo, folioMat);
+      flatEvidenceMesh.position.set(0, 0, -320);
+      beamsGroup.add(flatEvidenceMesh);
+    }
+
+    // Handle Scroll Calculation with Velocity & Smooth Inertia
+    function onScrollUpdate() {
+      const scrollY = window.scrollY;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      targetScrollProgress = Math.min(Math.max(scrollY / maxScroll, 0), 1);
+      
+      // Calculate instantaneous scroll velocity for motion stretch effects
+      scrollVelocity = (scrollY - lastScrollY) * 0.05;
+      lastScrollY = scrollY;
+    }
+
+    // Mouse Parallax for subtle human perspective
+    let mouseX = 0, mouseY = 0;
+    function onMouseMoveParallax(e) {
+      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+    }
+
+    // Smooth traversal interpolation
+    function updateScenePhysics() {
+      // Damped spring scroll progress
+      currentScrollProgress += (targetScrollProgress - currentScrollProgress) * 0.075;
+      scrollVelocity *= 0.92;
+
+      // Update Mechanical Vernier UI
+      const vernierSlider = document.getElementById('vernier-slider');
+      if (vernierSlider) {
+        vernierSlider.style.top = `${currentScrollProgress * 100}%`;
+      }
+
+      // 1. Continuous Cinematic Camera Navigation Path
+      // Camera travels from Z = 20 down to Z = -315
+      const startZ = 20;
+      const endZ = -315;
+      const camZ = startZ + (endZ - startZ) * currentScrollProgress;
+      
+      // Dynamic camera banking, dolly and velocity stretch
+      camera.position.z = camZ;
+      camera.position.x = (mouseX * 0.8) + Math.sin(currentScrollProgress * Math.PI * 3) * 2.5;
+      camera.position.y = (-mouseY * 0.6) + Math.cos(currentScrollProgress * Math.PI * 2) * 1.5;
+
+      // Camera banking (roll) during high velocity or turns
+      camera.rotation.z = -mouseX * 0.04 - (scrollVelocity * 0.005);
+      camera.rotation.y = -mouseX * 0.06;
+      camera.rotation.x = mouseY * 0.04;
+
+      // Update Telemetry Display
+      const depthDisplay = document.getElementById('telemetry-depth');
+      if (depthDisplay) {
+        const metricDepth = (currentScrollProgress * 320).toFixed(2);
+        depthDisplay.innerText = `Z -${metricDepth}m`;
+      }
+
+      // Update Stage Navigation & Section Opacities
+      updateStagesAndHUD();
+
+      // 2. Animate Floating Archival Documents
+      floatingDocuments.forEach((doc, idx) => {
+        doc.rotation.y += doc.userData.rotSpeed;
+        doc.rotation.x += doc.userData.rotSpeed * 0.5;
+
+        // When camera passes, documents smoothly part and drift outward
+        const distFromCam = doc.position.z - camera.position.z;
+        if (Math.abs(distFromCam) < 18) {
+          const pushOut = (18 - Math.abs(distFromCam)) * 0.12;
+          doc.position.x = doc.userData.originX + (doc.userData.originX > 0 ? pushOut : -pushOut);
+        }
+      });
+
+      // 3. Animate RAG Architectural Towers
+      ragNodeMeshes.forEach((mesh, idx) => {
+        mesh.rotation.y = (currentScrollProgress * 4) + (idx * 0.2);
+        mesh.rotation.x = Math.sin(Date.now() * 0.001 + idx) * 0.1;
+      });
+
+      // 4. Animate Index Particles Mesh
+      if (indexParticlesMesh) {
+        indexParticlesMesh.rotation.z = currentScrollProgress * 0.8;
+      }
+
+      // 5. Transform 3D surface into the 2D UI plane at the final stage
+      if (flatEvidenceMesh) {
+        // At progress > 0.85, the 3D surface rotates to perfectly face the viewport
+        const flatProgress = Math.max(0, (currentScrollProgress - 0.85) / 0.15);
+        flatEvidenceMesh.rotation.y = (1 - flatProgress) * 0.6;
+        flatEvidenceMesh.rotation.x = (1 - flatProgress) * -0.4;
+        flatEvidenceMesh.position.z = -315 + (flatProgress * 15);
+      }
+    }
+
+    // Synchronize HTML Overlays with 3D Depth
+    function updateStagesAndHUD() {
+      let activeIndex = 0;
+      stages.forEach((st, idx) => {
+        const elem = document.getElementById(st.id);
+        const inRange = currentScrollProgress >= st.min && currentScrollProgress <= st.max;
+        
+        if (elem) {
+          if (inRange) {
+            elem.style.opacity = '1';
+            elem.style.pointerEvents = 'auto';
+            activeIndex = idx;
+          } else {
+            elem.style.opacity = '0';
+            elem.style.pointerEvents = 'none';
+          }
+        }
+      });
+
+      // Update HUD active stage name
+      const stageHUD = document.getElementById('telemetry-stage');
+      if (stageHUD && stages[activeIndex]) {
+        stageHUD.innerText = stages[activeIndex].name;
+      }
+
+      // Update Stage Navigation Dots
+      const navItems = document.querySelectorAll('.stage-nav-item');
+      navItems.forEach((btn, idx) => {
+        const pip = btn.querySelector('.nav-pip');
+        if (idx === activeIndex) {
+          btn.classList.add('text-inkGold');
+          btn.classList.remove('text-parchment/50');
+          if (pip) {
+            pip.classList.add('bg-inkGold', 'scale-125');
+            pip.classList.remove('bg-parchment/20');
+          }
+        } else {
+          btn.classList.remove('text-inkGold');
+          btn.classList.add('text-parchment/50');
+          if (pip) {
+            pip.classList.remove('bg-inkGold', 'scale-125');
+            pip.classList.add('bg-parchment/20');
+          }
+        }
+      });
+    }
+
+    function onWindowResize() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    }
+
+    // Main Render Loop
+    function renderLoop() {
+      requestAnimationFrame(renderLoop);
+      updateScenePhysics();
+      renderer.render(scene, camera);
+    }
+
+    // User Interactive Functions
+    function scrollToSearch() {
+      goToScrollTarget(1.0);
+    }
+
+    function goToScrollTarget(normalizedRatio) {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      window.scrollTo({
+        top: normalizedRatio * maxScroll,
+        behavior: 'smooth'
+      });
+    }
+
+    function setQuery(text) {
+      const input = document.getElementById('search-input');
+      if (input) {
+        input.value = text;
+        triggerSimulatedRAG();
+      }
+    }
+
+    function handleQuerySubmit(e) {
+      e.preventDefault();
+      triggerSimulatedRAG();
+    }
+
+    function triggerSimulatedRAG() {
+      const pipeline = document.getElementById('pipeline-strip');
+      const progressBar = document.getElementById('pipeline-progress');
+      const statusText = document.getElementById('pipeline-status-text');
+      const resultPanel = document.getElementById('query-result-panel');
+      
+      if (!pipeline) return;
+
+      pipeline.classList.remove('hidden');
+      resultPanel.classList.add('opacity-40');
+      progressBar.style.width = '20%';
+      statusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-inkGold animate-ping inline-block mr-2"></span>[1/4] QUERY EMBEDDING & HyDE EXPANSION...`;
+
+      setTimeout(() => {
+        progressBar.style.width = '55%';
+        statusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-inkGold animate-ping inline-block mr-2"></span>[2/4] HYBRID SCAN: BM25 (1,490 VOLS) + HNSW DENSE VECTOR...`;
+      }, 350);
+
+      setTimeout(() => {
+        progressBar.style.width = '85%';
+        statusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block mr-2"></span>[3/4] CROSS-ENCODER RERANKING & ENTAILMENT VERIFICATION...`;
+      }, 700);
+
+      setTimeout(() => {
+        progressBar.style.width = '100%';
+        statusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-400 inline-block mr-2"></span>[4/4] 3 RECONSTRUCTED FOLIOS GROUNDED // ZERO HALLUCINATION`;
+        resultPanel.classList.remove('opacity-40');
+      }, 1050);
+    }
+
+    // Kickoff 3D Experience on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      init3DWorld();
+      renderLoop();
+      // Initialize first update
+      onScrollUpdate();
+    });
+  </script>
+
+<!-- ===== MICRO-INTERACTION WIRING (interaction-only) ===== -->
+<script>
+  // Only trigger from real user interaction — no autoplay, no random loops
+  const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Mute/unmute toggle
+  const mutedState = true; // starts muted; user interaction only
+  window.audioMuted = true;
+  window.toggleAudio = function() {
+    window.audioMuted = !window.audioMuted;
+    console.log('Audio muted:', window.audioMuted);
+  };
+
+  // Subtle click feedback (tiny tactile scale shift only on genuine click events)
+  document.querySelectorAll('button, .interactive-card, [onclick]').forEach(el => {
+    el.addEventListener('click', () => {
+      if (reducedMotion) return;
+      el.classList.add('micro-click-active');
+      setTimeout(() => el.classList.remove('micro-click-active'), 260);
+    }, { passive: true });
+  });
+
+  // Search focus animation (user-initiated only)
+  document.querySelectorAll('input[type="text"], input[type="search"]').forEach(input => {
+    input.addEventListener('focus', () => {
+      input.classList.add('typing-feedback');
+      input.style.opacity = '1';
+    }, { passive: true });
+    input.addEventListener('blur', () => {
+      input.style.opacity = '0.9';
+      setTimeout(() => input.classList.remove('typing-feedback'), 220);
+    }, { passive: true });
+  });
+
+  // Technical status indicators (only when real interaction occurs — query submit, pipeline step)
+  function pulseStatus(el) {
+    if (reducedMotion) return;
+    el.classList.add('status-active');
+    setTimeout(() => el.classList.remove('status-active'), 1200);
+  }
+
+  // Document/paper depth layer (CSS class applied to content cards — no extra geometry)
+  document.querySelectorAll('.surface-card, .paper-card').forEach(card => {
+    card.classList.add('surface-card');
+    card.classList.add('polished-transition');
+  });
+
+  // Small archival coordinate tags (metadata details embedded as design texture, not badges)
+  document.querySelectorAll('[data-coord]').forEach(el => {
+    el.classList.add('coord-tag');
+  });
+
+  // Pointer micro-parallax — restrained, only closer layers respond more (not extreme)
+  document.addEventListener('mousemove', (e) => {
+    if (reducedMotion) return;
+    const nx = (e.clientX / window.innerWidth - 0.5) * 0.02;
+    const ny = (e.clientY / window.innerHeight - 0.5) * 0.015;
+    document.querySelectorAll('.parallax-deep').forEach(el => {
+      const depthFactor = parseFloat(el.dataset.depth || '1');
+      el.style.transform = `translate3d(${nx * depthFactor * 6}px, ${ny * depthFactor * 4}px, 0)`;
+    });
+  }, { passive: true });
+
+  // Mute toggle UI (if user provides a control element)
+  if (document.getElementById('audio-toggle')) {
+    document.getElementById('audio-toggle').addEventListener('click', () => { window.toggleAudio(); }, { passive: true });
+  }
+</script>
+
+<!-- TACTILE CLICK SFX -->
+<script>
+  (function() {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    let mutedByUser = false;
+    function playTick() {
+      if (mutedByUser) return;
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.03);
+        gain.gain.setValueAtTime(0.0198, ctx.currentTime); // ~10% increase from 0.015 (slightly stronger for audibility)
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.08);
+      } catch(e) {}
+    }
+    document.querySelectorAll('button, .interactive-card').forEach(el => {
+      el.addEventListener('click', () => { playTick(); }, { passive: true });
+    });
+    window.muteSfx = () => { mutedByUser = true; };
+  })();
+</script>
+
+<!-- CURSOR SOFT GLOW SHADOW -->
+<style id="cursor-glow-style">
+  .cursor-glow-orb {
+    position: fixed; top: 0; left: 0; width: 220px; height: 220px;
+    border-radius: 50%; pointer-events: none; z-index: 9999;
+    background: radial-gradient(circle at center, rgba(15, 15, 20, 0.18) 0%, rgba(10, 10, 14, 0.05) 50%, transparent 75%);
+    mix-blend-mode: multiply; opacity: 0.35; will-change: transform;
+    transition: opacity 0.3s ease;
+  }
+</style>
+<script>
+  (function() {
+    const orb = document.createElement('div');
+    orb.className = 'cursor-glow-orb';
+    document.body.appendChild(orb);
+    let mx = window.innerWidth/2, my = window.innerHeight/2;
+    document.addEventListener('mousemove', (e) => { mx = e.clientX; my = e.clientY; orb.style.opacity = '0.55'; }, { passive: true });
+    document.addEventListener('mouseleave', () => { orb.style.opacity = '0'; }, { passive: true });
+    document.addEventListener('mouseenter', () => { orb.style.opacity = '0.55'; }, { passive: true });
+    function tick() {
+      const cx = parseFloat(orb.style.transform ? orb.style.transform.match(/translate3d\(([\d\.\-]+)px, ([\d\.\-]+)px/) ? 1 : 1 : 0);
+      // Smooth interpolation toward cursor (low opacity, restrained, not overwhelming)
+      const currentX = orb.getBoundingClientRect().left + 130;
+      const currentY = orb.getBoundingClientRect().top + 130;
+      const dx = mx - currentX; const dy = my - currentY;
+      const ix = currentX + dx * 0.08; const iy = currentY + dy * 0.08;
+      orb.style.transform = 'translate3d(' + (ix - 130) + 'px, ' + (iy - 130) + 'px, 0)';
+      requestAnimationFrame(tick);
+    }
+    tick();
+  })();
+</script>
+
+<!-- SCROLL AMBIENCE — crossfade by progress, no restart loops -->
+<script>
+  (function() {
+    let progress = 0;
+    let audioCtx, pageGain = null, deepGain = null;
+    let pageAudio = null, deepAudio = null;
+    let initialized = false, muted = false, started = false;
+
+    window.initScrollAudio = function() { initAudio(); if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); };
+    function initAudio() {
+      if (initialized) return;
+      try {
+        // Use hidden DOM audio tags (already in body) — more reliable than hidden new Audio()
+        pageAudio = document.getElementById('scroll-page');
+        deepAudio = document.getElementById('scroll-deep');
+        if (!pageAudio || !deepAudio) return; // DOM not ready
+        pageAudio.volume = 0.55; pageAudio.loop = true; pageAudio.crossOrigin = 'anonymous';
+        deepAudio.volume = 0.55; deepAudio.loop = true; deepAudio.crossOrigin = 'anonymous';
+        // Direct volume control — no risky AudioContext MediaElementSource
+        initialized = true;
+      } catch (e) { initialized = false; }
+    }
+
+    function setAmbience(p) {
+      if (!initialized || muted) return;
+      let pageVol = 0, deepVol = 0;
+      if (p >= 0.16 && p < 0.75) {
+        pageVol = 0.05 + Math.min(0.35, (p - 0.16) * 0.50);
+        deepVol = 0;
+      } else if (p >= 0.75 && p < 0.90) {
+        pageVol = Math.max(0, 0.04 - (p - 0.75) * 0.20);
+        deepVol = 0.03 + Math.min(0.10, (p - 0.75) * 0.40);
+      } else if (p >= 0.90) { pageVol = 0; deepVol = 0; }
+      else { pageVol = 0; deepVol = 0; }
+      if (pageAudio) {
+        pageAudio.volume = Math.min(0.35, Math.max(0.12, pageVol * 1.6));
+        if (pageVol > 0) { pageAudio.volume = Math.min(0.55, Math.max(0.2, pageVol * 2)); pageAudio.play().catch(function(){}); }
+        if (pageVol <= 0 && !pageAudio.paused) pageAudio.pause();
+      }
+      if (deepAudio) {
+        deepAudio.volume = Math.min(0.35, Math.max(0.12, deepVol * 1.6));
+        if (deepVol > 0) { deepAudio.volume = Math.min(0.55, Math.max(0.2, deepVol * 2)); deepAudio.play().catch(function(){}); }
+        if (deepVol <= 0 && !deepAudio.paused) deepAudio.pause();
+      }
+    }
+
+    let lastScrollY = 0;
+    let isScrolling = false;
+    let scrollTimeout = null;
+
+    // Master progress from existing scroll physics (currentScrollProgress)
+    window.addEventListener('scroll', () => {
+      const currentY = window.scrollY;
+      const delta = Math.abs(currentY - lastScrollY);
+      lastScrollY = currentY;
+      progress = (typeof currentScrollProgress !== 'undefined') ? currentScrollProgress : Math.min(1, Math.max(0, window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)));
+      initAudio();
+      // Always active during scroll; silence when at very bottom (90%+) per spec
+      setAmbience(progress);
+    }, { passive: true });
+
+    // First interaction unlocks audio (autoplay policy)
+    function unlock() {
+      if (started) return; started = true;
+      initAudio();
+      if (pageAudio) { pageAudio.volume = 0.55; pageAudio.play().catch(function(){}); }
+      if (deepAudio) { deepAudio.volume = 0.55; deepAudio.play().catch(function(){}); }
+      // Then apply region mapping
+      setAmbience(typeof currentScrollProgress !== 'undefined' ? currentScrollProgress : 0.55);
+    }
+    document.addEventListener('click', unlock, { once: true, passive: true });
+    document.addEventListener('mousemove', unlock, { once: true, passive: true });
+    document.addEventListener('touchstart', unlock, { once: true, passive: true });
+
+    window.getScrollAudioState = function() { return { initialized: initialized, audioCtxState: (audioCtx ? audioCtx.state : 'none'), pageAudioPaused: (pageAudio ? pageAudio.paused : 'n/a'), deepAudioPaused: (deepAudio ? deepAudio.paused : 'n/a'), progress: progress }; };
+    window.muteSfx = function() {
+      muted = true;
+      if (pageGain) pageGain.gain.value = 0;
+      if (deepGain) deepGain.gain.value = 0;
+      if (pageAudio) pageAudio.pause();
+      if (deepAudio) deepAudio.pause();
+    };
+    window.unmuteSfx = function() {
+      muted = false;
+      if (pageAudio && pageAudio.paused) pageAudio.play().catch(function(){});
+      if (deepAudio && deepAudio.paused) deepAudio.play().catch(function(){});
+    };
+  })();
+</script>
+<!-- /SCROLL AMBIENCE -->
+
+<!-- WINDSTORM Z-DEPTH SOUND (vertical depth tracking, no autoplay) -->
+<script>
+  (function() {
+    let windCtx = null, windGains = [], windSources = [];
+    let pastDepth = false; // true when scroll depth < -32.45m (past scene 3 region)
+    const file = 'audio/papers_windstorm.mp3';
+    const THRESHOLD = -32.45;
+    let initialized = false;
+
+    // Initialize audio context only on real user interaction (click/move)
+    function initWindAudio() {
+      if (initialized || windCtx) return;
+      try { windCtx = new (window.AudioContext || window.webkitAudioContext)(); initialized = true; } catch (e){}
+    }
+
+    // Track depth via scroll progress (lower progress = deeper into archive = more negative Z conceptually)
+    // We approximate: progress 0.6+ = past middle → treat as past depth trigger region
+    function checkDepth() {
+      const tl = document.getElementById('timeline');
+      let p = 0;
+      if (tl) { const sh = tl.scrollHeight || window.innerHeight * 10; p = Math.max(0, Math.min(1, (window.scrollY + window.innerHeight) / (sh + window.innerHeight))); }
+      // When progress exceeds ~0.55 (past scene 3 / through scene 3 zone → deeper), treat as past threshold
+      const isPastDepth = p > 0.48; // starts earlier in scroll // approximates vertical depth below -32.45m region
+
+      if (isPastDepth && !pastDepth) {
+        pastDepth = true;
+        // Start soft loop (5% of original) — REPEATED softly (not loud), crossfade
+        if (windCtx && windCtx.state === 'suspended') windCtx.resume();
+        if (!windSources.length && windCtx) {
+          const src = windCtx.createBufferSource();
+          const gain = windCtx.createGain();
+          src.connect(gain); gain.connect(windCtx.destination);
+          // Load file (simplified: use existing Audio element approach for reliability)
+          const audioEl = new Audio(file);
+          audioEl.loop = true; audioEl.volume = 0.05; // 5% of original
+          audioEl.play().catch(() => {});
+          windSources.push({ audioEl, gain, active: true });
+        }
+      } else if (!isPastDepth && pastDepth) {
+        pastDepth = false;
+        // Stop / fade out when user stops at point (no sound when stationary past depth)
+        windSources.forEach(s => { try { s.audioEl.pause(); s.audioEl.currentTime = 0; s.active = false; } catch (e){} });
+        windSources = [];
+      }
+    }
+
+    // First interaction starts monitoring (respect autoplay)
+    document.addEventListener('click', () => { initWindAudio(); }, { once: true, passive: true });
+    document.addEventListener('mousemove', () => { initWindAudio(); }, { once: true, passive: true });
+
+    window.addEventListener('scroll', () => { initWindAudio(); checkDepth(); }, { passive: true });
+  })();
+</script>
 </body>
 </html>
