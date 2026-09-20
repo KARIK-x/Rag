@@ -1,7 +1,5 @@
-// Cinematic Scroll System — scroll-site-generator methodology
-// ONE master scroll progress (0→1) drives 6 scene crossfades.
-// Lenis smooth scroll + GSAP ScrollTrigger pinning + video scrubbing.
-// Two video layers for crossfading transitions; no autoplay.
+// Cinematic Scroll System — ONE master progress (0→1) from ScrollTrigger drives everything
+// No window.scrollY source. No manual inertia loops. Lenis handles smooth scroll; ScrollTrigger owns pin + progress.
 (function(){
   'use strict';
 
@@ -13,106 +11,37 @@
     { video: 'videos/05_retrieval_evidence.mp4',  title: 'RETRIEVAL EVIDENCE',   sub: '05 — Retrieval / Evidence' },
     { video: 'videos/06_answer_resolution.mp4',   title: 'ANSWER RESOLUTION',    sub: '06 — Answer Resolution' },
   ];
-
-  // Each scene occupies 1/6 of total progress
   const SCENE_BOUNDS = SCENES.map((_, i) => ({
     start: i / SCENES.length,
     end:   (i + 1) / SCENES.length,
   }));
 
-  const track  = document.getElementById('film-track');
-  const stage  = document.getElementById('film-stage');
-  const vidA   = document.getElementById('film-layer-a');
-  const vidB   = document.getElementById('film-layer-b');
-  const layers = [vidA, vidB];
-  let activeLayer = 0;   // index into layers[] of currently visible layer
-  let currentScene = 0;  // scene index (0..5)
-  let progress = 0;      // master scroll progress 0..1
+  const vid    = document.getElementById('film-layer');
+  let currentScene = 0;
+  let progress = 0;
   let running = false;
 
-  // ── Init ──────────────────────────────────────────────
-  function init() {
-    loadSceneInto(vidA, SCENES[0]);
-    loadSceneInto(vidB, SCENES[1]);
-
-    // Wait for video metadata then boot
-    const firstVideo = vidA;
-    if (firstVideo.readyState >= 1) { onReady(); }
-    else {
-      firstVideo.addEventListener('loadedmetadata', onReady, { once: true });
-      firstVideo.addEventListener('loadeddata', onReady, { once: true });
-      setTimeout(onReady, 2500); // hard cap
-    }
-
-    window.addEventListener('scroll', onScrollTick, { passive: true });
-    window.addEventListener('resize', onResize);
-
-    // Lenis smooth scroll if available
-    if (typeof Lenis !== 'undefined') {
-      const lenis = new Lenis({ duration: 1.2, smoothWheel: true });
-      lenis.on('scroll', (e) => { progress = e.progress; updateAll(); });
-      lenis.on('resize', onResize);
-    }
-  }
-
-  function onReady() {
-    setTimeout(() => {
-      const cue = document.getElementById('scroll-cue');
-      if (cue) cue.style.opacity = progress < 0.015 ? '1' : '0';
-    }, 500);
-    updateAll();
-    running = true;
-  }
-
-  // ── Video loading ─────────────────────────────────────
-  function loadSceneInto(video, scene) {
-    if (!video) return;
-    while (video.firstChild) video.removeChild(video.firstChild);
+  // ── Load scene video ──────────────────────────────────
+  function loadScene(scene) {
+    if (!vid || !scene) return;
+    while (vid.firstChild) vid.removeChild(vid.firstChild);
     const src = document.createElement('source');
     src.src = scene.video;
     src.type = 'video/mp4';
-    video.appendChild(src);
-    video.muted = true;
-    video.playsInline = true;
-    video.loop = false;
-    video.load();
+    vid.appendChild(src);
+    vid.muted = true;
+    vid.playsInline = true;
+    vid.loop = false;
+    vid.load();
   }
 
-  // ── Scene switching with crossfade ────────────────────
-  function setScene(sceneIdx) {
-    if (sceneIdx === currentScene) return;
-    currentScene = sceneIdx;
-
-    const newActive = 1 - activeLayer;
-    const oldActive = activeLayer;
-    const newLayer = layers[newActive];
-    const oldLayer = layers[oldActive];
-
-    loadSceneInto(newLayer, SCENES[sceneIdx]);
-
-    // Crossfade: old fades out, new fades in (CSS transition handles .45s)
-    if (oldLayer) {
-      oldLayer.style.transition = 'opacity .45s ease';
-      oldLayer.style.opacity = '0';
-    }
-    if (newLayer) {
-      newLayer.style.transition = 'opacity .45s ease';
-      newLayer.style.opacity = '1';
-      // Trigger the actual seek after a brief delay to let load() start
-      setTimeout(() => { seekLayer(newLayer, getSceneSub(sceneIdx)); }, 30);
-    }
-
-    activeLayer = newActive;
-  }
-
-  // ── Progress → scene mapping ──────────────────────────
+  // ── Scene + sub-progress mapping ──────────────────────
   function getSceneIdx(p) {
     for (let i = 0; i < SCENE_BOUNDS.length; i++) {
       if (p >= SCENE_BOUNDS[i].start && p < SCENE_BOUNDS[i].end) return i;
     }
     return SCENES.length - 1;
   }
-
   function getSceneSub(p) {
     for (let i = 0; i < SCENE_BOUNDS.length; i++) {
       const b = SCENE_BOUNDS[i];
@@ -121,7 +50,7 @@
     return 1;
   }
 
-  // ── Scroll scrub ──────────────────────────────────────
+  // ── Seek within current scene video ───────────────────
   function seekLayer(video, sub) {
     if (!video || !video.duration || video.duration <= 0) return;
     const target = sub * video.duration;
@@ -130,40 +59,11 @@
     }
   }
 
-  function onScrollTick() {
-    requestAnimationFrame(updateAll);
-  }
-
-  function updateAll() {
-    if (!track) return;
-    const max = track.offsetHeight - window.innerHeight;
-    progress = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-
-    // Master progress drives:
-    // 1. Scene selection (crossfade)
-    const sceneIdx = getSceneIdx(progress);
-    setScene(sceneIdx);
-
-    // 2. Video playback within current scene
-    const sub = getSceneSub(progress);
-    const activeVideo = layers[activeLayer];
-    if (activeVideo) seekLayer(activeVideo, sub);
-
-    // 3. Captions
-    updateCaptions(progress);
-
-    // 4. Three.js sync (if available)
-    if (window.LOCUS_3D && typeof window.LOCUS_3D.setCameraState === 'function') {
-      try { window.LOCUS_3D.setCameraState(progress); } catch(e) {}
-    }
-  }
-
-  // ── Captions ──────────────────────────────────────────
+  // ── Captions choreography (scroll-linked opacity/translate) ──
   function updateCaptions(p) {
-    const captions = document.querySelectorAll('.caption');
-    captions.forEach(el => {
-      const inV = parseFloat(el.dataset.in || '0');
-      const holdV = parseFloat(el.dataset.hold || '0.5');
+    document.querySelectorAll('.caption').forEach(el => {
+      const inV  = parseFloat(el.dataset.in || '0');
+      const holdV= parseFloat(el.dataset.hold || '0.5');
       const outV = parseFloat(el.dataset.out || '1');
       let o = 0;
       if (p >= inV && p <= outV) {
@@ -180,11 +80,37 @@
     if (cue) cue.style.opacity = p < 0.015 ? '1' : '0';
   }
 
-  // ── Resize ────────────────────────────────────────────
-  function onResize() {
-    updateAll();
-  }
+  // ── Master update — called ONLY by ScrollTrigger onUpdate ──
+  window.CINEMATIC_UPDATE = function(self) {
+    progress = Math.max(0, Math.min(1, self ? self.progress : progress));
+    const idx = getSceneIdx(progress);
+    if (idx !== currentScene) {
+      currentScene = idx;
+      loadScene(SCENES[idx]);
+      setTimeout(() => seekLayer(vid, getSceneSub(progress)), 80);
+    } else {
+      seekLayer(vid, getSceneSub(progress));
+    }
+    updateCaptions(progress);
+  };
 
-  // ── Boot ──────────────────────────────────────────────
+  // ── Init ───────────────────────────────────────────────
+  function init() {
+    loadScene(SCENES[0]);
+    if (vid) {
+      const ready = () => {
+        running = true;
+        seekLayer(vid, 0);
+        updateCaptions(0);
+      };
+      if (vid.readyState >= 1) { setTimeout(ready, 100); }
+      else {
+        vid.addEventListener('loadedmetadata', () => setTimeout(ready, 50), { once: true });
+        vid.addEventListener('loadeddata', () => setTimeout(ready, 50), { once: true });
+        setTimeout(ready, 2500); // hard cap
+      }
+    }
+    window.addEventListener('resize', () => updateCaptions(progress));
+  }
   init();
 })();

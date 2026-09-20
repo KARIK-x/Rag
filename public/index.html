@@ -14,7 +14,7 @@ html{scroll-behavior:smooth;}
 body{font-family:var(--font-b);background:var(--bg);color:var(--paper);line-height:1.35;overflow-x:hidden;}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}}
 /* Persistent WebGL behind */
-#world-canvas{position:fixed;inset:0;z-index:0;width:100%;height:100%;opacity:.92;pointer-events:auto;}
+#world-canvas{position:fixed;inset:0;z-index:0;width:100%;height:100%;opacity:.92;pointer-events:none;}
 .read-zone{position:relative;z-index:10;background:rgba(3,4,6,.82);backdrop-filter:blur(14px);}
 section{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10vh 6vw;z-index:5;}
 .hero{flex-direction:column;text-align:center;padding-top:14vh;}
@@ -100,13 +100,12 @@ footer img{width:44px;height:auto;opacity:.8;filter:brightness(.95);}
 </section>
 
 
-<!-- CINEMATIC SCROLL — 6 scenes, real video layer, sticky stage -->
-<section class="cinematic-scroll" aria-label="Cinematic archive film" style="position:relative;min-height:720vh;z-index:3;">
-  <div id="film-track" style="position:relative;height:720vh;">
-    <div id="film-stage" style="position:sticky;top:0;height:100vh;width:100%;overflow:hidden;background:#030406;">
-      <canvas id="world-canvas" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.92;pointer-events:auto;"></canvas>
-      <video id="film-layer-a" preload="auto" muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;opacity:.92;z-index:1;pointer-events:none;background:#030406;" aria-label="Cinematic layer A"></video>
-      <video id="film-layer-b" preload="auto" muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;opacity:0;z-index:2;pointer-events:none;background:#030406;transition:opacity .45s ease;" aria-label="Cinematic layer B"></video>
+<!-- CINEMATIC SCROLL — 6 scenes, immersive video integration -->
+<section class="cinematic-scroll" aria-label="Cinematic archive film" style="position:relative;height:1400vh;width:100vw;overflow:hidden;z-index:3;display:block;padding:0;">
+  <div id="film-track" style="position:relative;height:1400vh;">
+    <div id="film-stage" style="position:sticky;top:0;height:100vh;width:100%;overflow:hidden;background:#030406;z-index:5;">
+      <canvas id="world-canvas" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.92;pointer-events:none;"></canvas>
+      <video id="film-layer" preload="auto" muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:.92;z-index:1;pointer-events:none;background:#030406;" aria-label="Cinematic footage"></video>
       <div id="vignette" style="position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse 65% 70% at 50% 50%,transparent 55%,rgba(3,4,6,.88) 98%),linear-gradient(to right,rgba(3,4,6,.85),transparent 12%,transparent 88%,rgba(3,4,6,.85));"></div>
       <div class="caption cap-top" data-in="0.020" data-hold="0.083" data-out="0.146"><h2>Enter the <em>Archive</em></h2><p>01 — Enter the Archive</p></div>
       <div class="caption cap-left" data-in="0.186" data-hold="0.250" data-out="0.313"><h2>Source <em>Document</em></h2><p>02 — Source Document</p></div>
@@ -317,6 +316,27 @@ footer img{width:44px;height:auto;opacity:.8;filter:brightness(.95);}
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
 <script src="js/3d_world.js" type="module"></script>
 <script src="js/film_scrubber.js"></script>
+<script>
+(function initCinematicPin(){
+  if(typeof gsap==='undefined'||typeof ScrollTrigger==='undefined'){return;}
+  gsap.registerPlugin(ScrollTrigger);
+  // Pin the cinematic stage to viewport while scroll passes through cinematic range
+  ScrollTrigger.create({
+    trigger: ".cinematic-scroll",
+    start: "top top",
+    end: "+=1400vh",
+    pin: "#film-stage",
+    scrub: true,
+    onUpdate: (self)=>{
+      if(window.CINEMATIC_UPDATE) window.CINEMATIC_UPDATE(self); // ONE master progress → film + 3D + captions
+      if(window.LOCUS_3D && typeof window.LOCUS_3D.setCameraState === 'function'){
+        try{ window.LOCUS_3D.setCameraState(self.progress); }catch(e){}
+      }
+    }
+  });
+})();
+</script>
+
 <script>
 function performSearch(form){
   const panel=document.getElementById('evidence-display');
