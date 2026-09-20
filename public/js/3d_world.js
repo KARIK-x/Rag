@@ -362,3 +362,34 @@ window.LOCUS_3D.addShaderLayer = function() {
   });
   console.log('Shader layer initialized — liquid/glow atmosphere active');
 };
+
+/* Theme-aware 3D adjustments — light mode: dark graphite; dark mode: warm grey */
+function applyThemeToWorld() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  // Node base colors adjust subtly — already purple, keep purple but line colors shift slightly
+  // Lines: in light use graphite (#555) tone; in dark use soft grey (#aaa)
+  connections.forEach(c => {
+    const mat = c.line.material;
+    if (isDark) {
+      mat.color.setHex(0x888888);
+      mat.opacity = 0.22;
+    } else {
+      mat.color.setHex(0x777788);
+      mat.opacity = 0.18;
+    }
+  });
+  nodes.forEach((n, i) => {
+    const mat = nodeMaterials[i];
+    if (!mat) return;
+    // Keep purple nodes; just adjust roughness/emissive slightly for theme
+    if (isDark) {
+      mat.roughness = 0.22; mat.metalness = 0.55; mat.emissiveIntensity = 1.1;
+    } else {
+      mat.roughness = 0.28; mat.metalness = 0.78; mat.emissiveIntensity = 0.9;
+    }
+  });
+}
+// Watch theme changes
+const themeObs = new MutationObserver(applyThemeToWorld);
+try { themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }); } catch(e){}
+if (window.LOCUS_3D) { window.LOCUS_3D.applyThemeToWorld = applyThemeToWorld; applyThemeToWorld(); }

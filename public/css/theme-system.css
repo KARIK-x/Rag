@@ -1,0 +1,46 @@
+/* ================================================================
+   LOCUS — FIRST-CLASS LIGHT / DARK THEME SYSTEM
+   Central design tokens + theme toggle support.
+   ================================================================ */
+
+:root {
+  /* Light (default) tokens */
+  --bg: #F3F1EC;
+  --bg-deep: #ECEAE5;
+  --ink: #111111;
+  --ink-secondary: #555555;
+  --ink-muted: #85827C;
+  --line: rgba(17,17,17,.12);
+  --line-strong: rgba(17,17,17,.22);
+  --paper: #F3F1EC;
+  --paper-d: #ECEAE5;
+  --surface: rgba(122,31,107,.06);
+  --surface-strong: rgba(122,31,107,.10);
+  --accent: #7A1F6B;
+  --accent-soft: rgba(122,31,107,.55);
+  --font-d: 'Cormorant Garamond','Cormorant Infinitum','Georgia',serif;
+  --font-b: 'Space Grotesk',system-ui,sans-serif;
+  --font-s: 'Cormorant Infinitum',Georgia,serif;
+  --font-e: 'Cormorant Garamond','Georgia',serif;
+}
+
+[data-theme="dark"] {
+  --bg: #101010;
+  --bg-deep: #161616;
+  --ink: #F3F1EC;
+  --ink-secondary: #C8C5BE;
+  --ink-muted: #7A7670;
+  --line: rgba(255,255,255,.10);
+  --line-strong: rgba(255,255,255,.22);
+  --paper: #1A1814;
+  --paper-d: #20201C;
+  --surface: rgba(122,31,107,.12);
+  --surface-strong: rgba(122,31,107,.20);
+  --accent: #B23A96;
+  --accent-soft: rgba(178,58,150,.60);
+}
+
+/* Theme transition — smooth, not instant */
+html, body, .header, .read-zone, section, .cinematic-scroll, footer {
+  transition: background-color .55s ease, color .55s ease, border-color .55s ease;
+}
