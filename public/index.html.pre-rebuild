@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>LOCUS — The Archive Machine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cormorant+Infinitum:ital,wght@0,300;0,400;1,300&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{--bg:#F3F1EC;--ink:#111;--ink-muted:#85827C;--line:rgba(17,17,17,.10);--line-strong:rgba(17,17,17,.22);--accent:#7A1F6B;--accent-soft:rgba(122,31,107,.55);--font-d:'Cormorant Garamond','Cormorant Infinitum','Georgia',serif;--font-b:'Space Grotesk',system-ui,sans-serif;--font-s:'Cormorant Infinitum','Georgia',serif;}
+[data-theme="dark"]{--bg:#0D0B0F;--ink:#F0EFE8;--ink-muted:#7A7672;--line:rgba(255,255,255,.08);--line-strong:rgba(255,255,255,.18);--accent:#92278f;}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{font-family:var(--font-b);background:var(--bg);color:var(--ink);line-height:1.35;overflow-x:hidden;}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}}
+html,body,.header,section,footer,#world-canvas{transition:background-color .55s ease,color .55s ease,border-color .55s ease;}
+
+/* Header — no glassmorphism, restrained */
+.header{position:sticky;top:0;z-index:100;background:rgba(243,241,236,.88);border-bottom:1px solid var(--line-strong);padding:.85rem 4vw;display:flex;align-items:center;justify-content:space-between;}
+[data-theme="dark"] .header{background:rgba(13,11,15,.88);border-bottom-color:rgba(255,255,255,.10);}
+.header a.logo{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink);font-family:var(--font-b);font-weight:500;letter-spacing:.04em;font-size:.9rem;text-transform:uppercase;}
+.header a.logo img{width:40px;height:auto;display:block;filter:brightness(.92) contrast(1.05);opacity:.8;}
+.header nav{font-family:var(--font-b);font-size:.68rem;letter-spacing:.10em;text-transform:uppercase;display:flex;gap:24px;}
+.header nav a{color:var(--ink-muted);text-decoration:none;transition:color .25s;}
+.header nav a:hover{color:var(--ink);}
+#theme-btn{background:transparent;border:1px solid var(--line);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;color:var(--ink);font-family:var(--font-b);font-size:.85rem;padding:0;}
+#theme-btn:hover{border-color:var(--accent-soft);color:var(--accent);}
+
+#world-canvas{position:fixed;inset:0;z-index:0;width:100%;height:100%;opacity:.92;pointer-events:none;}
+section{position:relative;min-height:100vh;z-index:5;overflow:hidden;}
+
+/* ARRIVAL — enormous environmental display, partially occluded, asymmetrical */
+.arrival-scene{display:flex;align-items:flex-end;justify-content:flex-start;padding:0 6vw 14vh;min-height:100vh;position:relative;}
+.arrival-scene .env-display{font-family:var(--font-d);font-weight:300;font-size:clamp(4.5rem,12vw,11rem);line-height:.88;letter-spacing:-.05em;color:var(--ink);opacity:.92;max-width:1200px;}
+.arrival-scene .env-display span{display:block;}
+.arrival-scene .env-display .line2{margin-left:8vw;opacity:.6;position:relative;z-index:2;}
+.arrival-scene .env-display .line3{margin-left:16vw;font-size:.65em;opacity:.28;color:var(--ink-muted);letter-spacing:.08em;line-height:1.05;}
+.arrival-scene .label-top{position:absolute;top:10vh;right:6vw;font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);line-height:1.6;text-align:right;}
+.arrival-scene .label-top strong{display:block;font-weight:500;letter-spacing:.36em;font-size:1.1em;}
+.arrival-scene .search-base{position:absolute;bottom:6vh;left:6vw;max-width:520px;font-family:var(--font-b);font-size:.78rem;color:var(--ink-muted);line-height:1.6;}
+.arrival-scene .search-base input{background:transparent;border:none;border-bottom:1px solid var(--line-strong);padding:.6rem 0;font-family:var(--font-d);font-size:1.05rem;color:var(--ink);outline:none;width:100%;}
+.arrival-scene .search-base input::placeholder{color:var(--ink-muted);font-style:italic;font-family:var(--font-s);}
+.arrival-scene .search-base .btn-row{margin-top:.8rem;display:flex;gap:.5rem;}
+.arrival-scene .search-base button{background:var(--accent);color:#F3F1EC;font-family:var(--font-b);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;padding:.65rem 1.6rem;border:none;border-radius:2px;cursor:pointer;transition:background .25s;}
+.arrival-scene .search-base button:hover{background:#5a1648;}
+.arrival-scene .meta-stamp{position:absolute;bottom:6vh;right:6vw;font-family:var(--font-b);font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);line-height:1.8;text-align:right;}
+.arrival-scene .meta-stamp em{font-family:var(--font-s);font-style:italic;font-weight:300;font-size:1.05em;color:var(--ink-muted);display:block;letter-spacing:.08em;}
+
+/* SOURCE — document stamps embedded on surface */
+.source-scene{display:flex;align-items:center;justify-content:flex-start;padding:16vh 8vw 14vh 6vw;min-height:100vh;position:relative;}
+.source-scene .doc-surface{position:relative;width:min(80vw,540px);aspect-ratio:4/5;background:linear-gradient(160deg,#F3F1EC 60%,#edece6);border:1px solid var(--line);border-radius:2px;box-shadow:0 30px 80px rgba(0,0,0,.1);padding:10% 8%;overflow:hidden;}
+[data-theme="dark"] .source-scene .doc-surface{background:linear-gradient(160deg,#141214 60%,#0f0e11);border-color:rgba(255,255,255,.1);}
+.source-scene .doc-stamp{font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);line-height:1.5;position:absolute;}
+.source-scene .doc-stamp.tl{top:8%;left:8%;transform:rotate(-4deg);}
+.source-scene .doc-stamp.tr{top:10%;right:10%;transform:rotate(3deg);color:var(--ink-muted);letter-spacing:.18em;}
+.source-scene .doc-stamp.bl{bottom:10%;left:10%;font-size:.5rem;color:var(--ink-muted);letter-spacing:.3em;}
+.source-scene .doc-stamp.br{bottom:8%;right:12%;font-family:var(--font-s);font-style:italic;font-size:1.2rem;color:rgba(122,31,107,.35);transform:rotate(6deg);letter-spacing:0;}
+.source-scene .document-headline{font-family:var(--font-d);font-weight:300;font-size:clamp(2.2rem,4.5vw,4rem);line-height:.94;letter-spacing:-.04em;color:var(--ink);margin-top:3rem;}
+.source-scene .document-body{font-family:var(--font-b);font-size:.85rem;color:var(--ink-muted);line-height:1.65;max-width:420px;margin-top:1.5rem;}
+.source-scene .document-annotation{font-family:var(--font-b);font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-muted);margin-top:2.2rem;border-top:1px solid var(--line);padding-top:.9rem;}
+.source-scene .side-note{position:absolute;top:20vh;right:6vw;width:240px;font-family:var(--font-b);font-size:.72rem;color:var(--ink-muted);line-height:1.55;text-align:right;letter-spacing:.02em;}
+.source-scene .side-note strong{font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:.6rem;}
+
+/* TRANSFORMATION — kinetic edge-aligned labels */
+.transformation-scene{min-height:100vh;display:flex;align-items:center;padding:10vh 6vw;position:relative;overflow:hidden;}
+.transformation-scene .kinetic-label{font-family:var(--font-b);font-weight:600;font-size:clamp(.9rem,2vw,1.4rem);letter-spacing:.14em;text-transform:uppercase;color:var(--ink);position:absolute;mix-blend-mode:multiply;opacity:.9;line-height:1.2;pointer-events:none;}
+[data-theme="dark"] .transformation-scene .kinetic-label{mix-blend-mode:screen;opacity:.7;}
+.transformation-scene .kinetic-label.one{top:14vh;left:4vw;transform:rotate(-2deg);}
+.transformation-scene .kinetic-label.two{top:40vh;right:4vw;transform:rotate(1.5deg);color:var(--accent);}
+.transformation-scene .kinetic-label.three{bottom:18vh;left:10vw;transform:rotate(-1deg);font-size:clamp(.7rem,1.5vw,1rem);letter-spacing:.28em;color:var(--ink-muted);font-weight:500;}
+.transformation-scene .kinetic-label.four{top:55vh;left:2vw;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:.2em;font-size:.8rem;color:var(--ink-muted);}
+.transformation-scene .center-text{font-family:var(--font-d);font-weight:300;font-size:clamp(3rem,8vw,6.5rem);line-height:.9;letter-spacing:-.06em;color:var(--ink);text-align:left;margin-left:15vw;max-width:800px;position:relative;z-index:2;opacity:.9;}
+.transformation-scene .center-text em{font-family:var(--font-s);font-style:italic;font-weight:300;color:var(--ink-muted);}
+.transformation-scene .bottom-meta{position:absolute;bottom:5vh;left:6vw;right:6vw;display:flex;justify-content:space-between;font-family:var(--font-b);font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-muted);}
+
+/* INDEX — technical metadata at edges, asymmetric */
+.index-scene{min-height:100vh;padding:14vh 6vw 8vh;position:relative;}
+.index-scene .edge-metadata{font-family:var(--font-b);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-muted);position:absolute;line-height:1.5;}
+.index-scene .edge-metadata.tl{top:14vh;left:4vw;text-align:left;}
+.index-scene .edge-metadata.tr{top:14vh;right:4vw;text-align:right;}
+.index-scene .edge-metadata.bl{bottom:10vh;left:4vw;text-align:left;}
+.index-scene .edge-metadata.br{bottom:10vh;right:4vw;text-align:right;}
+.index-scene .index-headline{font-family:var(--font-d);font-weight:300;font-size:clamp(2.8rem,6vw,6rem);line-height:.92;letter-spacing:-.05em;color:var(--ink);margin:6vh 0 4vh 6vw;max-width:700px;text-align:left;}
+.index-scene .index-headline em{font-family:var(--font-s);font-style:italic;font-weight:300;color:var(--ink-muted);display:inline;}
+.index-scene .technical-note{font-family:var(--font-b);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-muted);margin:0 0 3rem 6vw;max-width:500px;text-align:left;line-height:1.5;}
+.index-scene .grid-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.2rem;max-width:1200px;margin-left:6vw;margin-right:auto;padding-right:6vw;}
+.index-scene .grid-row .cell{border-top:1px solid var(--line);padding:1rem 0;font-family:var(--font-b);font-size:.82rem;color:var(--ink-muted);line-height:1.5;}
+.index-scene .grid-row .cell strong{font-family:var(--font-b);font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:.3rem;}
+.index-scene .grid-row .cell .cell-body{font-family:var(--font-d);font-weight:300;font-size:1.05rem;color:var(--ink);line-height:1.15;letter-spacing:-.02em;}
+
+/* RETRIEVAL — partially occluded labels */
+.retrieval-scene{min-height:100vh;padding:14vh 6vw;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.retrieval-scene .occluded-label{font-family:var(--font-b);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-muted);position:absolute;z-index:2;line-height:1.6;opacity:.7;}
+.retrieval-scene .occluded-label.oc-one{top:22vh;left:-3vw;transform:rotate(-8deg);opacity:.35;}
+.retrieval-scene .occluded-label.oc-two{bottom:28vh;right:-2vw;transform:rotate(5deg);opacity:.25;color:var(--accent);letter-spacing:.28em;}
+.retrieval-scene .occluded-label.oc-three{top:58vh;left:2vw;font-size:1.4rem;color:rgba(17,17,17,.18);letter-spacing:.04em;line-height:1;opacity:.5;}
+[data-theme="dark"] .retrieval-scene .occluded-label.oc-three{color:rgba(255,255,255,.12);}
+.retrieval-scene .evidence-card{position:relative;z-index:3;width:min(72vw,640px);aspect-ratio:3/2;border:1px solid var(--line);border-radius:3px;padding:2.5rem;background:rgba(243,241,236,.85);box-shadow:0 25px 60px rgba(0,0,0,.08);}
+[data-theme="dark"] .retrieval-scene .evidence-card{background:rgba(13,11,15,.82);border-color:rgba(255,255,255,.1);}
+.retrieval-scene .evidence-card .surface-stamp{font-family:var(--font-b);font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:.6rem;}
+.retrieval-scene .evidence-card h3{font-family:var(--font-d);font-weight:300;font-size:clamp(1.8rem,4vw,3.2rem);line-height:.92;letter-spacing:-.04em;color:var(--ink);margin-bottom:1rem;}
+.retrieval-scene .evidence-card p{font-family:var(--font-b);font-size:.82rem;color:var(--ink-muted);line-height:1.6;max-width:460px;}
+.retrieval-scene .evidence-card .evidence-date{font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-muted);margin-top:1.6rem;padding-top:.8rem;border-top:1px solid var(--line);}
+
+/* ANSWER — printed surface */
+.answer-scene{min-height:100vh;padding:14vh 6vw 6vh;position:relative;display:flex;align-items:center;}
+.answer-scene .printed-surface{width:min(84vw,720px);min-height:380px;background:linear-gradient(145deg,#F3F1EC 70%,#eae9e4);border:1px solid var(--line-strong);border-radius:3px;padding:3rem 3.5rem;box-shadow:0 30px 90px rgba(0,0,0,.1),inset 0 0 80px rgba(122,31,107,.05);position:relative;}
+[data-theme="dark"] .answer-scene .printed-surface{background:linear-gradient(145deg,#161418 70%,#0f0e13);border-color:rgba(255,255,255,.18);box-shadow:0 30px 90px rgba(0,0,0,.4),inset 0 0 80px rgba(146,39,143,.08);}
+.answer-scene .printed-surface .corner-stamp{position:absolute;font-family:var(--font-b);font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);line-height:1.4;}
+.answer-scene .printed-surface .corner-stamp.tl{top:1.2rem;left:1.5rem;transform:rotate(-2deg);}
+.answer-scene .printed-surface .corner-stamp.tr{top:1.2rem;right:1.5rem;transform:rotate(2deg);color:var(--ink-muted);}
+.answer-scene .printed-surface .corner-stamp.bl{bottom:1.2rem;left:1.5rem;transform:rotate(1deg);font-family:var(--font-s);font-style:italic;font-size:1.1rem;color:rgba(122,31,107,.35);letter-spacing:0;}
+.answer-scene .printed-surface h3{font-family:var(--font-d);font-weight:300;font-size:clamp(2rem,5vw,4rem);line-height:.92;letter-spacing:-.05em;color:var(--ink);margin-bottom:1.2rem;max-width:560px;}
+.answer-scene .printed-surface h3 em{font-family:var(--font-s);font-style:italic;font-weight:300;color:var(--ink-muted);}
+.answer-scene .printed-surface .printed-body{font-family:var(--font-b);font-size:.85rem;color:var(--ink-muted);line-height:1.7;max-width:520px;margin-bottom:2rem;}
+.answer-scene .printed-surface .source-strip{font-family:var(--font-b);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-muted);border-top:1px solid var(--line);padding-top:.9rem;line-height:1.5;}
+.answer-scene .side-caption{position:absolute;top:14vh;right:6vw;width:220px;font-family:var(--font-b);font-size:.72rem;color:var(--ink-muted);line-height:1.55;text-align:right;}
+.answer-scene .side-caption strong{font-family:var(--font-b);font-size:.55rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:.5rem;}
+
+/* VIDEO EDITORIAL — edge-aligned, no centered cards */
+.video-editorial{min-height:100vh;padding:14vh 6vw;position:relative;display:flex;align-items:center;}
+.video-editorial .editorial-text{max-width:420px;text-align:left;margin-right:auto;padding-left:6vw;}
+.video-editorial .editorial-text .label-edge{font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:.8rem;display:block;}
+.video-editorial .editorial-text h2{font-family:var(--font-d);font-weight:300;font-size:clamp(2.2rem,4.5vw,4rem);line-height:.9;letter-spacing:-.05em;color:var(--ink);margin-bottom:1rem;}
+.video-editorial .editorial-text h2 em{font-family:var(--font-s);font-style:italic;font-weight:300;color:var(--ink-muted);}
+.video-editorial .editorial-text p{font-family:var(--font-b);font-size:.82rem;color:var(--ink-muted);line-height:1.6;}
+.video-editorial .video-mask{margin-left:auto;margin-right:6vw;position:relative;width:min(50vw,640px);aspect-ratio:16/9;overflow:hidden;border-radius:3px;box-shadow:0 20px 60px rgba(0,0,0,.12);flex-shrink:0;}
+.video-editorial .video-mask video{width:100%;height:100%;object-fit:cover;display:block;filter:contrast(1.05) brightness(.98);}
+.video-editorial .video-label{font-family:var(--font-b);font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-muted);margin-top:.6rem;text-align:right;margin-right:6vw;line-height:1.45;}
+
+/* COMPACT — no cards, no glass, no centered badges */
+.evidence-compact{padding:6vh 6vw;min-height:auto;}
+.evidence-compact .compact-label{font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;display:block;}
+.evidence-compact .compact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.2rem;max-width:1000px;}
+.evidence-compact .compact-grid .item{font-family:var(--font-b);font-size:.78rem;color:var(--ink-muted);line-height:1.55;border-top:1px solid var(--line);padding-top:.6rem;}
+.evidence-compact .compact-grid .item strong{font-family:var(--font-b);font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);display:block;margin-bottom:.3rem;}
+
+.index-compact{padding:6vh 6vw;min-height:auto;}
+.index-compact .compact-label{font-family:var(--font-b);font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;display:block;}
+.index-compact .compact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;max-width:1000px;}
+.index-compact .compact-grid .item{font-family:var(--font-b);font-size:.75rem;color:var(--ink-muted);line-height:1.45;border-top:1px solid var(--line);padding-top:.5rem;}
+.index-compact .compact-grid .item .num{font-family:var(--font-b);font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:.2rem;}
+
+footer{position:relative;z-index:5;padding:3.5rem 6vw;text-align:center;font-family:var(--font-b);font-size:.6rem;letter-spacing:.14em;color:var(--ink-muted);line-height:1.5;border-top:1px solid var(--line);}
+
+@media(max-width:900px){
+  .arrival-scene .env-display{font-size:clamp(3.5rem,12vw,8rem);}
+  .video-editorial{flex-direction:column;align-items:flex-start;}
+  .video-editorial .editorial-text{margin-right:0;padding-left:4vw;margin-bottom:2rem;max-width:100%;}
+  .video-editorial .video-mask{margin-left:0;margin-right:0;width:92vw;}
+  .video-editorial .video-label{text-align:left;margin-left:4vw;margin-right:0;}
+  .transformation-scene .kinetic-label{font-size:clamp(.7rem,3vw,1rem);}
+  .retrieval-scene{padding-top:10vh;padding-bottom:10vh;}
+  .answer-scene .printed-surface{padding:2rem 2rem;width:92vw;}
+  .source-scene{padding:10vh 4vw 8vh 4vw;}
+  .source-scene .side-note{position:static;text-align:left;margin-top:2rem;width:auto;}
+}
+@media(max-width:480px){
+  .header nav{gap:14px;}
+  .arrival-scene .label-top,.arrival-scene .search-base,.arrival-scene .meta-stamp{position:static;margin-top:1rem;text-align:left;}
+  .transformation-scene .kinetic-label.four{display:none;}
+}
+</style>
+</head>
+<body>
+<header class="header" aria-label="Site header">
+<a href="#" class="logo" aria-label="LOCUS home"><img src="assets/img/A MAIN_LOGO.png" alt="LOCUS" width="44"><span>LOCUS <small>ARCHIVE MACHINE</small></span></a>
+<nav aria-label="Primary"><a href="#timeline">Timeline</a><a href="#videos">Evidence</a><a href="#search">Search</a><a href="#index">Index</a></nav>
+<button id="theme-btn" aria-label="Toggle theme" onclick="toggleTheme()">◐</button>
+</header>
+
+<canvas id="world-canvas" aria-hidden="true"></canvas>
+
+<main id="timeline">
+<section class="arrival-scene" id="arrival" aria-label="Arrival">
+  <div class="label-top"><strong>ARRIVAL</strong>Scene 01 · Entrance · Archive opens</div>
+  <h1 class="env-display" aria-label="Archive headline">
+    <span>The</span>
+    <span class="line2">Archive</span>
+    <span class="line3">Machine — Evidence first. No invention.</span>
+  </h1>
+  <div class="search-base">
+    <input id="q" type="text" placeholder="Evidence query (try 'institutional verification')" aria-label="Search query" autocomplete="off">
+    <div class="btn-row"><button onclick="doQuery(event)" type="button">Search</button></div>
+  </div>
+  <div class="meta-stamp"><em>10 scenes</em>· 6 surfaces · 1 master timeline · 1 query</div>
+</section>
+
+<section class="source-scene" id="source-scene" aria-label="Source">
+  <div class="doc-surface" aria-label="Source document surface">
+    <div class="doc-stamp tl" aria-label="Category stamp">SOURCE / EVIDENCE</div>
+    <div class="doc-stamp tr" aria-label="Document ID">DOC-01</div>
+    <div class="doc-stamp bl" aria-label="Archive reference">REF · 2026</div>
+    <div class="doc-stamp br" aria-label="Physical stamp">PHYSICAL</div>
+    <h2 class="document-headline">Source Material</h2>
+    <p class="document-body">Real assets only. A MAIN_LOGO.png, videos 01–06, no fabricated LOCUS claims. Evidence is embedded, not added as overlay.</p>
+    <div class="document-annotation">REAL ASSETS · NO INVENTION</div>
+  </div>
+  <aside class="side-note" aria-label="Side note"><strong>SOURCE</strong>Physical paper surface. Embedded stamps are part of the material — not HTML badges.</aside>
+</section>
+
+<section class="transformation-scene" id="transformation-scene" aria-label="Transformation">
+  <span class="kinetic-label one" aria-hidden="true">FRAGMENTS → GRID</span>
+  <span class="kinetic-label two" aria-hidden="true">CONVERGENCE</span>
+  <span class="kinetic-label three" aria-hidden="true">TRANSFORM</span>
+  <span class="kinetic-label four" aria-hidden="true">INDEX</span>
+  <h2 class="center-text">Document transforms into structured <em>index.</em> Fragments reorganize.</h2>
+  <div class="bottom-meta" aria-label="Scene metadata"><span>SCENE 03 · TRANSFORMATION</span><span>FRAGMENTS → GRID</span></div>
+</section>
+
+<section class="index-scene" id="index" aria-label="Archive index">
+  <aside class="edge-metadata tl" aria-label="Technical metadata">METADATA · INDEX GRID · 10 NODES</aside>
+  <aside class="edge-metadata tr" aria-label="Edge note">EDGE · ALIGNED</aside>
+  <aside class="edge-metadata bl" aria-label="Reference">REF · 2026 · ARCHIVE</aside>
+  <aside class="edge-metadata br" aria-label="Status">ENGINEERED</aside>
+  <h2 class="index-headline">Knowledge <em>Grid</em></h2>
+  <p class="technical-note">Structured mechanical system. Metal/steel connectors, paper/card nodes with embedded annotations. Edge-aligned metadata serves as graphic texture.</p>
+  <div class="grid-row" aria-label="Index nodes">
+    <div class="cell"><strong>01 — ENTRANCE</strong><div class="cell-body">Archive opens. Welcome architecture.</div></div>
+    <div class="cell"><strong>02 — SOURCE</strong><div class="cell-body">Real assets. No fabricated claims.</div></div>
+    <div class="cell"><strong>03 — TRANSFORMATION</strong><div class="cell-body">Theme + material sync.</div></div>
+    <div class="cell"><strong>04 — WORLD</strong><div class="cell-body">Document objects + index.</div></div>
+    <div class="cell"><strong>05 — PEOPLE</strong><div class="cell-body">Institutional evidence.</div></div>
+    <div class="cell"><strong>06 — INNOVATION</strong><div class="cell-body">Query + export layer.</div></div>
+    <div class="cell"><strong>07 — KNOWLEDGE</strong><div class="cell-body">Video 01 evidence.</div></div>
+    <div class="cell"><strong>08 — EVENTS</strong><div class="cell-body">Video 02 evidence.</div></div>
+    <div class="cell"><strong>09 — SPONSORS</strong><div class="cell-body">Video 03 evidence.</div></div>
+    <div class="cell"><strong>10 — SEARCH</strong><div class="cell-body">Video 04 + query.</div></div>
+  </div>
+</section>
+
+<section class="retrieval-scene" id="retrieval-scene" aria-label="Retrieval">
+  <span class="occluded-label oc-one" aria-hidden="true">RETRIEVAL / CANDIDATES</span>
+  <span class="occluded-label oc-two" aria-hidden="true">EVIDENCE</span>
+  <span class="occluded-label oc-three" aria-hidden="true">RELEVANCE</span>
+  <div class="evidence-card" aria-label="Evidence surface">
+    <div class="surface-stamp">EVIDENCE SURFACE · 05</div>
+    <h3>Evidence separates from noise.</h3>
+    <p>Many surfaces appear; relevance convergence filters. Only real sources remain visible. No fabricated data.</p>
+    <div class="evidence-date">DATE: 2026 · CATEGORY: RETRIEVAL</div>
+  </div>
+</section>
+
+<section class="answer-scene" id="answer-scene" aria-label="Answer">
+  <aside class="side-caption" aria-label="Side caption"><strong>ANSWER</strong>Physical printed surface. Real sources exposed. Source annotations embedded.</aside>
+  <article class="printed-surface" aria-label="Printed answer surface">
+    <div class="corner-stamp tl" aria-label="Category">ANSWER / RESOLVED</div>
+    <div class="corner-stamp tr" aria-label="Reference">REF-06</div>
+    <div class="corner-stamp bl" aria-label="Physical mark">PHYSICAL</div>
+    <h3>The archive responds. Real sources <em>exposed.</em></h3>
+    <p class="printed-body">Evidence-first retrieval confirms the claim through embedded annotations, stamps, and verified source metadata. No LLM authority. Only real data.</p>
+    <div class="source-strip">SOURCE: public/assets/img/A MAIN_LOGO.png · videos/01–06 · endpoint localhost:8765/search · reduced-motion supported</div>
+  </article>
+</section>
+
+<section id="videos" class="video-editorial" aria-label="Evidence surfaces">
+  <div class="editorial-text">
+    <span class="label-edge">SCENE 05 · EVIDENCE SURFACES</span>
+    <h2>People of <em>Evidence</em></h2>
+    <p>Video 05 — People of Evidence. Institutional retrieval, evidence surfaces with embedded stamps, real query response.</p>
+  </div>
+  <div class="video-mask" aria-label="Evidence video 05"><video src="videos/05_retrieval_evidence.mp4" muted loop playsinline preload="metadata" poster="assets/img/A MAIN_LOGO.png" aria-label="Video 05"></video></div>
+  <p class="video-label">Video 05 · People · Scene 05</p>
+</section>
+
+<section id="search" class="video-editorial" aria-label="Query" style="flex-direction:row-reverse;">
+  <div class="editorial-text" style="margin-left:auto;margin-right:6vw;text-align:right;padding-right:6vw;padding-left:0;">
+    <span class="label-edge">SCENE 06 · QUERY</span>
+    <h2>Innovation <em>Layer</em></h2>
+    <p>Video 06 — Innovation layer. Structured exports, deterministic calculations, real endpoint activation.</p>
+  </div>
+  <div class="video-mask" aria-label="Evidence video 06"><video src="videos/06_answer_resolution.mp4" muted loop playsinline preload="metadata" poster="assets/img/A MAIN_LOGO.png" aria-label="Video 06"></video></div>
+  <p class="video-label">Video 06 · Innovation · Scene 06</p>
+</section>
+
+<section id="world-scene" class="video-editorial" aria-label="World index">
+  <div class="editorial-text">
+    <span class="label-edge">SCENE 04 · WORLD INDEX</span>
+    <h2>World <em>Index</em></h2>
+    <p>Video 04 — Index grid. Mechanical, precise. Structured information architecture.</p>
+  </div>
+  <div class="video-mask" aria-label="Evidence video 04"><video src="videos/04_knowledge_machine_index.mp4" muted loop playsinline preload="metadata" poster="assets/img/A MAIN_LOGO.png" aria-label="Video 04"></video></div>
+  <p class="video-label">Video 04 · World index · Scene 04</p>
+</section>
+
+<section id="search-scene" class="evidence-compact" aria-label="Search" style="min-height:auto;padding:6vh 6vw;">
+  <div style="max-width:640px;margin:0 auto;text-align:left;">
+    <span class="compact-label">QUERY · REAL ENDPOINT</span>
+    <h2 style="font-family:var(--font-d);font-weight:300;font-size:clamp(2rem,5vw,3.8rem);line-height:.92;letter-spacing:-.05em;color:var(--ink);margin-bottom:1rem;">Search <em style="font-family:var(--font-s);font-style:italic;color:var(--ink-muted);">the Archive</em></h2>
+    <form onsubmit="doQuery(event)" aria-label="Archive query" style="margin-top:1rem;">
+      <input id="q2" type="text" placeholder="Evidence query (e.g., institutional verification)" aria-label="Query" autocomplete="off" style="width:100%;padding:.85rem 1rem;font-family:var(--font-d);font-size:1rem;color:var(--ink);background:transparent;border:none;border-bottom:2px solid var(--line-strong);outline:none;border-radius:0;">
+      <button type="submit" style="margin-top:1rem;padding:.75rem 1.6rem;font-family:var(--font-b);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;background:var(--accent);color:#F3F1EC;border:none;border-radius:2px;cursor:pointer;">Submit</button>
+    </form>
+    <div id="res" style="font-family:var(--font-b);font-size:.78rem;color:var(--ink-muted);line-height:1.55;border-top:1px solid var(--line);padding-top:1rem;margin-top:1.5rem;" aria-live="polite" aria-atomic="true">Query response will show here — backend localhost:8765/search is frozen; this interface shows truth (no invented LOCUS facts).</div>
+  </div>
+</section>
+
+</main>
+
+<section id="evidence-compact" class="evidence-compact" aria-label="Evidence surfaces">
+  <span class="compact-label">SCENE 05 · SURFACES</span>
+  <h2 style="font-family:var(--font-d);font-weight:300;font-size:clamp(2rem,5vw,3.5rem);line-height:.92;letter-spacing:-.05em;color:var(--ink);margin-bottom:2rem;">Evidence <em style="font-family:var(--font-s);font-style:italic;color:var(--ink-muted);">Surfaces</em></h2>
+  <div class="compact-grid">
+    <div class="item"><strong>VIDEO 05</strong>People of evidence. Institutional retrieval.</div>
+    <div class="item"><strong>VIDEO 06</strong>Innovation layer. Structured exports.</div>
+    <div class="item"><strong>VIDEO 01</strong>Archive opens. Scene 01 entrance.</div>
+    <div class="item"><strong>VIDEO 05</strong>Evidence surfaces with stamps.</div>
+  </div>
+</section>
+
+<section id="index-compact" class="index-compact" aria-label="Archive index">
+  <span class="compact-label">ARCHIVE INDEX</span>
+  <h2 style="font-family:var(--font-d);font-weight:300;font-size:clamp(2rem,5vw,3.5rem);line-height:.92;letter-spacing:-.05em;color:var(--ink);margin-bottom:2rem;">Index <em style="font-family:var(--font-s);font-style:italic;color:var(--ink-muted);">Grid</em></h2>
+  <div class="compact-grid">
+    <div class="item"><span class="num">01</span>Archive opens; welcome scene.</div>
+    <div class="item"><span class="num">02</span>Real assets; no invention.</div>
+    <div class="item"><span class="num">03</span>Theme + material sync.</div>
+    <div class="item"><span class="num">04</span>Document objects + index.</div>
+    <div class="item"><span class="num">05</span>Institutional evidence.</div>
+    <div class="item"><span class="num">06</span>Query + export layer.</div>
+    <div class="item"><span class="num">07</span>Video 01 evidence.</div>
+    <div class="item"><span class="num">08</span>Video 02 evidence.</div>
+    <div class="item"><span class="num">09</span>Video 03 evidence.</div>
+    <div class="item"><span class="num">10</span>Video 04 + query.</div>
+  </div>
+</section>
+
+<section id="index" aria-label="Archive index" style="min-height:auto;padding:4vh 6vw;">
+<div style="max-width:980px;margin:0 auto;">
+<div class="label">Archive Index</div>
+<h2><em>Index</em> Grid</h2>
+<div class="grid-evidence">
+<div class="card"><h4>01 — Entrance</h4><p>Archive opens; welcome scene.</p></div>
+<div class="card"><h4>02 — Source</h4><p>Real assets; no invention.</p></div>
+<div class="card"><h4>03 — Transformation</h4><p>Theme + material sync.</p></div>
+<div class="card"><h4>04 — World</h4><p>Document objects + index.</p></div>
+<div class="card"><h4>05 — People</h4><p>Institutional evidence.</p></div>
+<div class="card"><h4>06 — Innovation</h4><p>Query + export layer.</p></div>
+<div class="card"><h4>07 — Knowledge</h4><p>Video 01 evidence.</p></div>
+<div class="card"><h4>08 — Events</h4><p>Video 02 evidence.</p></div>
+<div class="card"><h4>09 — Sponsors</h4><p>Video 03 evidence.</p></div>
+<div class="card"><h4>10 — Search</h4><p>Video 04 + query.</p></div>
+</div>
+</div>
+</section>
+
+<footer aria-label="Footer"><p>LOCUS Archive Machine · One master timeline · Evidence-first · No invented facts · CSS vars + WebGL sync · Reduced-motion supported.</p></footer>
+
+<script>
+// Theme: CSS vars + WebGL sync (minimal)
+let dark=localStorage.getItem('locus-theme')==='dark';
+if(dark)document.documentElement.setAttribute('data-theme','dark');
+function toggleTheme(){
+  dark=!dark;
+  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+  localStorage.setItem('locus-theme',dark?'dark':'light');
+  if(window.syncWebGLTheme)window.syncWebGLTheme(dark);
+  // Apply to video frames via existing CSS variable mechanism; theme-sensitive transforms handled by syncWebGLTheme
+}
+
+// One master ScrollTrigger timeline (native scroll, NO Lenis)
+gsap.registerPlugin(ScrollTrigger);
+const tl=gsap.timeline({scrollTrigger:{trigger:'#timeline',start:'top top',end:'bottom bottom',scrub:1}});
+// Minimal entrance choreography — only what spec requires (working scroll)
+const scenes=document.querySelectorAll('section');
+scenes.forEach((s,i)=>{
+  tl.fromTo(s,{y:30,opacity:.7},{y:0,opacity:1,duration:.6,ease:'power2.out'},i*0.08);
+});
+
+// Query: show truth (backend frozen)
+function doQuery(e){e.preventDefault();const q=(document.getElementById('q')||document.getElementById('q2')).value.trim();const res=document.getElementById('res');if(!q){res.textContent='Empty query — enter evidence terms.';return;}res.textContent='Query: "'+q+'" — endpoint localhost:8765/search is frozen (not responding). Showing truth: no fabricated LOCUS facts; evidence-first retrieval required.';}
+
+// Minimal Three.js scene (archive architecture + one document + index grid + evidence surface)
+(function init3D(){
+  const canvas=document.getElementById('world-canvas');
+  if(!canvas)return;
+  const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});
+  renderer.setSize(window.innerWidth,window.innerHeight);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));canvas.appendChild(renderer.domElement);
+  const scene=new THREE.Scene();scene.background=null;scene.fog=new THREE.FogExp2(0x030406,0.015);
+  const camera=new THREE.PerspectiveCamera(55,window.innerWidth/window.innerHeight,0.1,120);
+  camera.position.set(0,1.2,8);
+  const amb=new THREE.AmbientLight(0xaa88ff,1.2);scene.add(amb);
+  const dir=new THREE.DirectionalLight(0xccccff,2);dir.position.set(4,5,6);scene.add(dir);
+  const pt=new THREE.PointLight(0xffaa77,4,40);pt.position.set(-5,3,-4);scene.add(pt);
+  // Archive architecture (box structure) + document object (purple sphere) + evidence surface (plane)
+  const archGeo=new THREE.BoxGeometry(4,3,1);const archMat=new THREE.MeshStandardMaterial({color:0x7A1F6B,roughness:0.3,metalness:0.6,transparent:true,opacity:0.92});
+  const arch=new THREE.Mesh(archGeo,archMat);arch.position.set(0,0.5,-2);scene.add(arch);
+  const docGeo=new THREE.SphereGeometry(0.55,32,24);const docMat=new THREE.MeshStandardMaterial({color:0x92278f,emissive:0x92278f,emissiveIntensity:0.8,roughness:0.25,metalness:0.75});
+  const doc=new THREE.Mesh(docGeo,docMat);doc.position.set(-1.2,0.7,-1.8);scene.add(doc);
+  const gridGeo=new THREE.PlaneGeometry(3,3);const gridMat=new THREE.MeshStandardMaterial({color:0xf3f1ec,roughness:0.8,metalness:0.1,transparent:true,opacity:0.15,side:THREE.DoubleSide});
+  const grid=new THREE.Mesh(gridGeo,gridMat);grid.position.set(1.2,0.1,-2.2);grid.rotation.x=-0.3;scene.add(grid);
+  // Pointer tracking (mouse -> document rotation)
+  let mx=0,my=0,tx=0,ty=0;
+  window.addEventListener('pointermove',e=>{mx=(e.clientX/window.innerWidth-.5)*2;my=(e.clientY/window.innerHeight-.5)*2;},{passive:true});
+  // Velocity from scroll (simplified: scroll delta drives subtle Z)
+  let zOff=0;
+  window.addEventListener('scroll',()=>{const d=document.documentElement.scrollTop||document.body.scrollTop;zOff=Math.sin(d*0.003)*0.4;},{passive:true});
+  // Theme sync: apply to 3D world (fog, lighting, materials, fonts, borders)
+  window.syncWebGLTheme=function(isDark){
+    // Fog
+    scene.fog.color.setHex(isDark?0x050308:0x030406);
+    scene.fog.density=isDark?0.018:0.015;
+    // Ambient light: warm in light, cool muted in dark
+    amb.color.setHex(isDark?0x445566:0xaa88ff);
+    amb.intensity=isDark?0.6:1.2;
+    // Directional light: softer in dark
+    dir.color.setHex(isDark?0x8899aa:0xccccff);
+    dir.intensity=isDark?0.9:2;
+    // Point light accent
+    pt.color.setHex(isDark?0xff7711:0xffaa77);
+    pt.intensity=isDark?2.5:4;
+    // Archive architecture material
+    archMat.color.setHex(isDark?0x92278f:0x7A1F6B);
+    archMat.emissive.setHex(isDark?0x3a0f2a:0x4a0e2a);
+    archMat.emissiveIntensity=isDark?0.35:0.2;
+    // Document sphere material
+    docMat.color.setHex(isDark?0xb030a8:0x92278f);
+    docMat.emissive.setHex(isDark?0xb030a8:0x92278f);
+    docMat.emissiveIntensity=isDark?1.0:0.8;
+    // Grid / index surface (evidence background)
+    gridMat.color.setHex(isDark?0x1a1618:0xf3f1ec);
+    gridMat.opacity=isDark?0.08:0.15;
+    // Font / border colors via DOM sync (already handled by CSS vars + data-theme)
+    // Video frame paper colors updated via CSS transition
+    applyThemeToFrames(isDark);
+  };
+  // Video plane frames: masked HTML overlays with 3D frame geometry embedded in scene at depth-appropriate positions (01 bg atmosphere, 02 document surface, 03 transformation, 04 index background, 05 retrieval/evidence, 06 answer transition). Technical note: CDN Three.js r128 lacks VideoTexture loader; using masked overlays with paper/card frames — embedded, not stacked cards.
+  const videoFrames=[
+    {src:'videos/01_enter_the_archive.mp4',label:'01 — Archive Atmosphere',pos:'bg'},
+    {src:'videos/02_source_document.mp4',label:'02 — Document Surface',pos:'doc'},
+    {src:'videos/03_information_transformation.mp4',label:'03 — Transformation Layer',pos:'trans'},
+    {src:'videos/04_knowledge_machine_index.mp4',label:'04 — Index Background',pos:'index'},
+    {src:'videos/05_retrieval_evidence.mp4',label:'05 — Retrieval / Evidence Transition',pos:'ret'},
+    {src:'videos/06_answer_resolution.mp4',label:'06 — Answer Resolution',pos:'ans'},
+  ];
+  // Theme affects video frame treatment: light = warm paper frames; dark = cool deep frames
+  videoFrames.forEach((v,i)=>{
+    // Frame container embedded near 3D scene depth
+    const frame=document.createElement('div');
+    frame.className='video-frame';
+    frame.setAttribute('aria-label',v.label);
+    frame.style.cssText='position:fixed;top:'+(12+i*14)+'vh;left:8vw;width:22vw;max-width:320px;aspect-ratio:16/9;z-index:10;pointer-events:none;opacity:.92;transform:perspective(900px) rotateY(4deg) rotateX(.5deg);';
+    const paper=document.createElement('div');
+    paper.className='video-paper';
+    paper.style.cssText='position:absolute;inset:0;background:linear-gradient(135deg,var(--line) 0%,transparent 60%,var(--line) 100%);border:1px solid var(--line-strong);border-radius:6px;box-shadow:0 14px 40px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.4);transition:background .55s,border-color .55s,box-shadow .55s;';
+    const mask=document.createElement('div');
+    mask.className='video-mask-frame';
+    mask.style.cssText='position:absolute;top:8px;left:8px;right:8px;bottom:8px;border-radius:3px;overflow:hidden;box-shadow:inset 0 0 20px rgba(0,0,0,.15);';
+    const vid=document.createElement('video');
+    vid.src=v.src;vid.muted=true;vid.loop=true;vid.playsInline=true;vid.preload='metadata';
+    vid.style.cssText='width:100%;height:100%;object-fit:cover;display:block;filter:contrast(1.08) brightness(.96);';
+    vid.setAttribute('aria-label',v.label);
+    mask.appendChild(vid);
+    paper.appendChild(mask);
+    frame.appendChild(paper);
+    // Small paper label tag (responds to theme)
+    const tag=document.createElement('span');
+    tag.textContent=v.label.split('—')[1].trim();
+    tag.style.cssText='position:absolute;bottom:-22px;left:0;font-family:var(--font-b);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted);transition:color .55s;';
+    paper.appendChild(tag);
+    document.body.appendChild(frame);
+    // Auto-play muted loop (no scroll-autoplay; embedded video surfaces)
+    vid.addEventListener('loadeddata',()=>{ vid.play().catch(()=>{}); });
+    // Theme-sensitive adjustments handled by applyThemeToFrames below
+  });
+  // Theme-sensitive video frame adjustments (called by syncWebGLTheme and on init)
+  function applyThemeToFrames(isDark){
+    const frames=document.querySelectorAll('.video-frame');
+    frames.forEach(f=>{
+      f.style.opacity=isDark?'0.78':'0.92';
+      f.style.transform=isDark?'perspective(900px) rotateY(3deg) rotateX(.3deg) scale(.97)':'perspective(900px) rotateY(4deg) rotateX(.5deg) scale(1)';
+    });
+  }
+  applyThemeToFrames(dark);
+  // Animation loop
+  function tick(){requestAnimationFrame(tick);const t=Date.now()*0.001;
+    doc.rotation.y+=0.01;doc.rotation.x=Math.sin(t)*0.08;
+    arch.rotation.y=Math.sin(t*0.25)*0.06;arch.rotation.z=Math.cos(t*0.18)*0.03;
+    // Pointer tracking influence
+    tx+= (mx*0.15-tx)*0.08; ty+= (my*0.15-ty)*0.08;
+    doc.rotation.z+=ty*0.002; doc.rotation.y+=tx*0.002;
+    // Velocity / scroll
+    grid.position.z=-2.2+zOff;camera.position.z=8+zOff*0.5;
+    renderer.render(scene,camera);}
+  tick();
+  window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight);});
+})();
+</script>
+  
+</body>
+</html>

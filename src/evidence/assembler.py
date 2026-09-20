@@ -98,7 +98,10 @@ class EvidenceAssembler:
         filtered_items = []
         for item in items:
             item_text_lower = (getattr(item, 'text', '') or '').lower()
-            has_locus = 'locus' in item_text_lower
+            # Document-level LOCUS context from provenance supports retention when text lacks keyword
+            prov_fn = (getattr(item,'provenance',None) and getattr(item.provenance,'filename','') or '') or ''
+            doc_ctx_locus = 'locus' in prov_fn.lower() or 'ncell' in prov_fn.lower() or 'sponsor' in prov_fn.lower()
+            has_locus = 'locus' in item_text_lower or doc_ctx_locus or getattr(item,'doc_id','').lower().startswith('l')
             has_keyword = (primary_keyword in item_text_lower) if primary_keyword else True
             # Broad evidence retention: keep if snippet has keyword OR snippet has LOCUS OR high score with provenance
             # Document-level LOCUS context (file name, folder, headings, tables) supplements snippet
@@ -114,13 +117,45 @@ class EvidenceAssembler:
         # If filtering empties everything, that is honest insufficiency — not a signal to feed garbage to Llama.
         original_items = items[:]
         items = filtered_items  # no fallback: irrelevant chunks must not reach synthesis
+
+        # YEAR-CONSTRAINT CHECK (production: requested year must match evidence year; else abstain)
+        query_lower = (query or "").lower()
+        requested_year = None
+        for y in ["2027","2026","2025","2024","2023","2022","2021","2020"]:
+            if y in query_lower: requested_year = y; break
+        evidence_years = []
+        for item in items:
+            txt = (getattr(item, 'text', '') or '').lower()
+            prov_fn = (getattr(item,'provenance',None) and getattr(item.provenance,'filename','') or '').lower()
+            for y in ["2027","2026","2025","2024","2023","2022","2021","2020"]:
+                if y in txt or y in prov_fn:
+                    # Negative-context guard: deny counts if the only mention is a denial
+                    denial = (f"no {y}" in txt) or (f"not {y}" in txt) or (f"missing {y}" in txt) or (f"absent {y}" in txt)
+                    if not denial:
+                        evidence_years.append(y)
+        # If query explicitly asks for a year and evidence has a different/conflicting year, restrict
+        year_match = True
+        if requested_year and evidence_years:
+            year_match = requested_year in evidence_years
+        # If requested year absent from all evidence, force abstention (honest insufficiency)
+        year_available = (not requested_year) or (requested_year in evidence_years)
+        missing_aspects_year = []
+        if requested_year and not year_available:
+            missing_aspects_year.append(f"requested_year_{requested_year}_not_found_in_evidence")
+
         # Re-check sufficiency with genuinely relevant filtered evidence (bounded)
-        relevant_items = [i for i in items if getattr(i, 'text', '') and len(i.text) > 30 and i.score >= 0.005]
-        is_sufficient = len(relevant_items) >= 1  # one verified institutional chunk sufficient
+        relevant_items = [i for i in items if getattr(i, 'text', '') and i.score >= 0.005]
+        # Year-specific constraint: if year requested but missing, must not be sufficient unless explicitly explained
+        is_sufficient = len(relevant_items) >= 1 and (year_available or (not requested_year))
+        # Only apply high-auth fallback when NO conflicting year constraint
+        if not is_sufficient and len(items) >= 1 and (not requested_year or year_available):
+            high_auth = any(i.authority_score >= 0.7 for i in items)
+            if high_auth: is_sufficient = True
         # If insufficient after filtering, return honest abstention (not pseudo-answer)
         missing_aspects = []
         if not is_sufficient:
             missing_aspects.append("insufficient_relevant_evidence_after_filter")
+        missing_aspects.extend(missing_aspects_year)
 
         # Conflict detection: look for contradictory amounts or conflicting draft vs final status
         conflicts_detected, conflict_notes = self._detect_conflicts(items)

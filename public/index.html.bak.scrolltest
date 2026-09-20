@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>LOCUS — Institutional Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cormorant+Infinitum:ital,wght@0,300;0,400;1,300&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/arch_sim.css">
+<link rel="stylesheet" href="css/loader_transition.css">
+<style>
+:root{--bg:#030406;--ink:#030406;--paper:#fdfcfb;--paper-d:#f6f2e8;--muted:#cfc8b8;--line:rgba(253,252,251,.12);--accent:#92278f;--font-d:'Cormorant Garamond',Georgia,serif;--font-b:'Space Grotesk',system-ui,sans-serif;--font-s:'Cormorant Infinitum',Georgia,serif;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-b);background:var(--bg);color:var(--paper);line-height:1.35;overflow-x:hidden;}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}}
+/* Persistent WebGL behind */
+#world-canvas{position:fixed;inset:0;z-index:0;width:100%;height:100%;opacity:.92;pointer-events:auto;}
+.read-zone{position:relative;z-index:10;background:rgba(3,4,6,.82);backdrop-filter:blur(14px);}
+section{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10vh 6vw;z-index:5;}
+.hero{flex-direction:column;text-align:center;padding-top:14vh;}
+.header{position:sticky;top:0;z-index:50;background:rgba(3,4,6,.88);backdrop-filter:blur(14px);padding:1.2rem 6vw;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(253,252,251,.08);}
+.header a{color:var(--paper);text-decoration:none;font-family:var(--font-d);font-weight:300;font-size:.85rem;letter-spacing:.08em;}
+.header nav{font-family:var(--font-b);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;display:flex;gap:28px;}
+.header nav a{color:rgba(253,252,251,.55);text-decoration:none;transition:color .3s;}
+.header nav a:hover{color:var(--paper);}
+.logo-animated{width:clamp(160px,20vw,280px);height:auto;display:block;margin:0 auto 2.5rem;filter:drop-shadow(0 0 60px rgba(146,39,143,.35));animation:logoFloat 6s ease-in-out infinite alternate;}
+@keyframes logoFloat{from{transform:translateY(0) scale(1);}to{transform:translateY(-14px) scale(1.02);}}
+h1.hero-title{font-family:var(--font-d);font-weight:300;font-size:clamp(3rem,7vw,7.5rem);line-height:.92;letter-spacing:-.06em;color:var(--paper);}
+h1.hero-title em{font-style:italic;font-family:var(--font-s);font-weight:300;color:rgba(253,252,251,.88);}
+.hero-sub{font-family:var(--font-s);font-style:italic;font-size:1.15rem;color:rgba(253,252,251,.78);max-width:580px;margin:1.2rem auto 0;line-height:1.55;}
+.hero-meta{font-family:var(--font-b);font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(146,39,143,.8);margin-top:2.5rem;}
+.section-label{font-family:var(--font-b);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(146,39,143,.85);margin-bottom:1.5rem;}
+.section-title{font-family:var(--font-d);font-weight:300;font-size:clamp(2.2rem,4vw,4.2rem);line-height:.95;letter-spacing:-.04em;color:var(--paper);margin-bottom:.8rem;text-align:left;}
+.section-body{font-family:var(--font-b);font-size:1.05rem;color:rgba(253,252,251,.85);max-width:720px;line-height:1.65;text-align:left;}
+.search-bar{display:flex;align-items:center;border-bottom:2px solid rgba(253,252,251,.35);gap:1rem;padding:1.1rem 1.2rem;margin-top:3.5rem;max-width:720px;margin-left:auto;margin-right:auto;text-align:left;background:rgba(253,252,251,.03);border-radius:6px;}
+.search-bar input{flex:1;background:rgba(253,252,251,.06);border:1px solid rgba(253,252,251,.25);border-radius:4px;padding:.8rem 1rem;font-family:var(--font-d);font-size:1.25rem;color:var(--paper);letter-spacing:-.01em;}
+.search-bar input::placeholder{color:rgba(253,252,251,.55);font-style:italic;}
+.search-bar button{background:rgba(146,39,143,.9);border:1px solid rgba(146,39,143,.95);color:#fff;font-family:var(--font-b);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;padding:.85rem 2rem;cursor:pointer;border-radius:3px;transition:all .35s ease;font-weight:600;}
+.search-bar button:hover{background:#b13f9f;border-color:#c44aa8;transform:translateY(-1px);}
+.search-bar input:focus{outline:none;border-color:rgba(146,39,143,.7);background:rgba(253,252,251,.1);}
+/* Evidence panel */
+.evidence-panel{max-width:740px;margin:0 auto;padding:6vh 6vw;}
+.evidence-state{background:rgba(10,8,14,.95);border-left:3px solid rgba(146,39,143,.65);padding:3vh 3vw;transition:opacity .35s ease;}
+.evidence-state h3{font-family:var(--font-d);font-weight:300;font-size:1.15rem;color:var(--paper);margin-bottom:.6rem;letter-spacing:-.01em;}
+.evidence-state p{font-family:var(--font-b);font-size:.95rem;line-height:1.6;color:rgba(253,252,251,.82);margin-bottom:1.2rem;}
+.confidence-tag{display:inline-block;border:1px solid rgba(146,39,143,.45);color:rgba(253,252,251,.75);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;padding:.4rem .9rem;margin-bottom:1rem;}
+.source-link{display:block;font-size:.8rem;color:rgba(253,252,251,.5);text-decoration:none;border-bottom:1px solid rgba(253,252,251,.15);padding:.6rem 0;transition:color .2s;}
+.source-link:hover{color:var(--paper);}
+.year-card{background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.22);border-radius:6px;padding:1.4rem 1.6rem;max-width:320px;margin:.6rem;transition:all .2s ease;cursor:pointer;}
+.year-card:hover{border-color:rgba(146,39,143,.7);transform:translateY(-3px);}
+.year-card .year{font-family:var(--font-d);font-size:1.8rem;color:rgba(253,252,251,.92);}
+.year-card .year-label{font-family:var(--font-b);font-size:.75rem;color:rgba(146,39,143,.75);letter-spacing:.15em;text-transform:uppercase;margin-top:.2rem;}
+/* 3D Pipeline visual (Architecture) */
+.pipeline-stage{position:relative;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;border-bottom:1px solid rgba(253,252,251,.08);transition:all .3s;cursor:pointer;}
+.pipeline-stage:hover{background:rgba(146,39,143,.06);}
+.stage-label{font-family:var(--font-d);font-weight:300;font-size:1.3rem;color:var(--paper);letter-spacing:-.02em;}
+.stage-desc{font-family:var(--font-b);font-size:.85rem;color:rgba(253,252,251,.65);max-width:480px;margin-left:1rem;}
+/* Footer */
+footer{position:relative;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:4vh 6vw;border-top:1px solid rgba(253,252,251,.08);font-family:var(--font-b);font-size:.78rem;color:rgba(253,252,251,.45);}
+footer img{width:44px;height:auto;opacity:.8;filter:brightness(.95);}
+@media(max-width:900px){section{padding:8vh 5vw;} .search-bar{max-width:92vw;} h1.hero-title{font-size:clamp(2.8rem,12vw,5rem);}}
+</style>
+</head>
+<body>
+
+<!-- Loader -->
+<div id="loader" class="boot-identity active" aria-label="Boot identity">
+  <img id="boot-logo" class="boot-logo" src="assets/img/A MAIN_LOGO.png" alt="LOCUS 2027" />
+  <div id="boot-sub" class="boot-sub">Initializing institutional intelligence</div>
+</div>
+
+<!-- Persistent WebGL world -->
+<canvas id="world-canvas"></canvas>
+
+<header class="header" aria-label="Site header">
+  <a href="#section-hero" aria-label="LOCUS home" style="display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--paper);">
+    <img src="assets/img/A MAIN_LOGO.png" alt="LOCUS" style="width:52px;height:auto;display:block;filter:brightness(.95);" />
+    <span style="font-family:var(--font-d);font-weight:300;font-size:.8rem;letter-spacing:.08em;color:rgba(253,252,251,.8);line-height:1.3;">LOCUS <span style="display:block;font-size:.6rem;letter-spacing:.16em;color:rgba(253,252,251,.42);margin-top:2px;">Institutional Intelligence</span></span>
+  </a>
+  <nav aria-label="Sections">
+    <a href="#section-hero">Home</a>
+    <a href="#section-rag">About The RAG</a>
+    <a href="#section-architecture">Architecture</a>
+    <a href="#section-locus">About LOCUS</a>
+  </nav>
+</header>
+
+<main>
+
+<!-- HOME -->
+<section class="hero visible" id="section-hero" aria-label="Hero">
+  <img class="logo-animated" src="assets/img/A MAIN_LOGO.png" alt="LOCUS institutional logo" />
+  <h1 class="hero-title">Evidence is not a feature.<br>It is the <em>institution</em>.</h1>
+  <p class="hero-sub">Every claim points to a source. Every answer survives verification. LOCUS searches the indexed archive of institutional knowledge — not approximations.</p>
+  <div class="hero-meta">Evidence-first retrieval · Structured · Verifiable</div>
+  <form class="search-bar" onsubmit="event.preventDefault();performSearch(this);" aria-label="Evidence search">
+    <input id="evidence-query" type="text" placeholder="What requires verification?" aria-label="Evidence query" />
+    <button type="submit">Retrieve</button>
+  </form>
+</section>
+
+
+<!-- CINEMATIC SCROLL — 6 scenes, immersive video integration -->
+<section class="cinematic-scroll" aria-label="Cinematic archive film" style="position:relative;height:720vh;width:100vw;overflow:hidden;z-index:3;display:block;padding:0;">
+  <div id="film-track" style="position:relative;height:720vh;">
+    <div id="film-stage" style="position:sticky;top:0;height:100vh;width:100%;overflow:hidden;background:#030406;z-index:5;">
+      <canvas id="world-canvas" style="position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.92;pointer-events:none;"></canvas>
+      <video id="film-layer" preload="auto" muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:.92;z-index:1;pointer-events:none;background:#030406;" aria-label="Cinematic footage"></video>
+      <div id="vignette" style="position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse 65% 70% at 50% 50%,transparent 55%,rgba(3,4,6,.88) 98%),linear-gradient(to right,rgba(3,4,6,.85),transparent 12%,transparent 88%,rgba(3,4,6,.85));"></div>
+      <div class="caption cap-top" data-in="0.020" data-hold="0.083" data-out="0.146"><h2>Enter the <em>Archive</em></h2><p>01 — Enter the Archive</p></div>
+      <div class="caption cap-left" data-in="0.186" data-hold="0.250" data-out="0.313"><h2>Source <em>Document</em></h2><p>02 — Source Document</p></div>
+      <div class="caption cap-right" data-in="0.353" data-hold="0.417" data-out="0.480"><h2>Information <em>Transformation</em></h2><p>03 — Information Transformation</p></div>
+      <div class="caption cap-bottom" data-in="0.520" data-hold="0.583" data-out="0.646"><h2>Knowledge <em>Machine</em></h2><p>04 — Knowledge Machine / Index</p></div>
+      <div class="caption cap-top" data-in="0.686" data-hold="0.750" data-out="0.813"><h2>Retrieval → <em>Evidence</em></h2><p>05 — Retrieval / Evidence</p></div>
+      <div class="caption cap-top" data-in="0.853" data-hold="0.917" data-out="0.980"><h2>Answer / <em>Resolution</em></h2><p>06 — Answer Resolution</p></div>
+      <div id="scroll-cue" style="position:absolute;bottom:4.5vh;left:50%;transform:translateX(-50%);z-index:10;display:flex;flex-direction:column;align-items:center;gap:8px;color:rgba(242,239,233,.4);font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:.3em;text-transform:uppercase;"><div>Scroll</div><div style="width:1px;height:28px;background:linear-gradient(to bottom,#92278f,transparent);animation:cue 1.8s ease-in-out infinite;"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT THE RAG -->
+<section id="section-rag" aria-label="About The RAG">
+  <div class="read-zone" style="padding:8vh 6vw;max-width:800px;">
+    <div class="section-label">About The RAG</div>
+    <h2 class="section-title">About The RAG — the retrieval system we built using LOCUS data.</h2>
+    <p class="section-body">The RAG (retrieval-augmented generation system) is a separate system built on verified LOCUS institutional data. LOCUS provides the archive; the RAG provides evidence-first retrieval, verification, and structured analysis.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.2rem;margin-top:2rem;">
+      <div style="background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.18);border-radius:6px;padding:1.2rem;">
+        <h3 style="font-family:var(--font-d);font-size:1.1rem;color:var(--paper);margin-bottom:.4rem;">Ingestion → Extraction / OCR</h3>
+        <p style="font-family:var(--font-b);font-size:.85rem;color:rgba(253,252,251,.75);line-height:1.55;">Documents enter via <code>src/ingestion/client.py</code>; extraction via <code>src/extraction/router.py</code> with OCR from <code>src/ocr/engine.py</code> (PDF/DOCX/Pages/CSV).</p>
+      </div>
+      <div style="background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.18);border-radius:6px;padding:1.2rem;">
+        <h3 style="font-family:var(--font-d);font-size:1.1rem;color:var(--paper);margin-bottom:.4rem;">Normalization → Dedup → Chunking</h3>
+        <p style="font-family:var(--font-b);font-size:.85rem;color:rgba(253,252,251,.75);line-height:1.55;">Integrity audit (<code>src/integrity/audit.py</code>), normalization (<code>src/normalization/text.py</code>), dedup (<code>src/dedup/deduplicator.py</code>), structural chunking (<code>src/chunking/structural.py</code>).</p>
+      </div>
+      <div style="background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.18);border-radius:6px;padding:1.2rem;">
+        <h3 style="font-family:var(--font-d);font-size:1.1rem;color:var(--paper);margin-bottom:.4rem;">Provenance → Structured Data</h3>
+        <p style="font-family:var(--font-b);font-size:.85rem;color:rgba(253,252,251,.75);line-height:1.55;">Source provenance preserved; structured data engine (<code>src/structured_data/engine.py</code>) with DuckDB/Parquet querying.</p>
+      </div>
+      <div style="background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.18);border-radius:6px;padding:1.2rem;">
+        <h3 style="font-family:var(--font-d);font-size:1.1rem;color:var(--paper);margin-bottom:.4rem;">Dense + BM25 + Exact Index</h3>
+        <p style="font-family:var(--font-b);font-size:.85rem;color:rgba(253,252,251,.75);line-height:1.55;">Dense embeddings (<code>DenseVectorIndex</code>), BM25 lexical (<code>BM25Index</code>), exact entity (<code>ExactEntityIndex</code>), metadata filter — all in <code>src/indexing/vector.py</code>.</p>
+      </div>
+      <div style="background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.18);border-radius:6px;padding:1.2rem;">
+        <h3 style="font-family:var(--font-d);font-size:1.1rem;color:var(--paper);margin-bottom:.4rem;">Hybrid Retrieval + Ranking</h3>
+        <p style="font-family:var(--font-b);font-size:.85rem;color:rgba(253,252,251,.75);line-height:1.55;">Hybrid retrieval (<code>src/retrieval/hybrid.py</code>) combines dense + BM25 + exact via RRF fusion; query routing (<code>src/retrieval/query_router.py</code>); recall safety net (<code>recall_safety_net.py</code>).</p>
+      </div>
+      <div style="background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.18);border-radius:6px;padding:1.2rem;">
+        <h3 style="font-family:var(--font-d);font-size:1.1rem;color:var(--paper);margin-bottom:.4rem;">Evidence → Context → Generation</h3>
+        <p style="font-family:var(--font-b);font-size:.85rem;color:rgba(253,252,251,.75);line-height:1.55;">Evidence assembly (<code>EvidenceAssembler</code>, <code>src/evidence/assembler.py</code>), context assembly, synthesis (<code>synthesizer.py</code>), answer building (<code>answer_builder.py</code>) — evidence-first, never raw dumps.</p>
+      </div>
+      <div style="background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.18);border-radius:6px;padding:1.2rem;">
+        <h3 style="font-family:var(--font-d);font-size:1.1rem;color:var(--paper);margin-bottom:.4rem;">Verification + Citations + Abstention</h3>
+        <p style="font-family:var(--font-b);font-size:.85rem;color:rgba(253,252,251,.75);line-height:1.55;">Claim extraction/verification (<code>claim_extractor.py</code>, <code>claim_verifier.py</code>); answer builder abstains when evidence insufficient (<code>ABSTAIN</code>); provenance repair (<code>provenance_repair.py</code>); 112,421 chunks (exact.db rebuilt).</p>
+      </div>
+    </div>
+
+    <p style="font-family:var(--font-b);font-size:.82rem;color:rgba(253,252,251,.55);margin-top:2rem;line-height:1.55;">Not implemented (verified empty): standalone reranker (<code>src/reranking/</code> empty); standalone citation module (<code>src/citation/</code> empty; citations handled in <code>claim_citation/</code>). Ranking is embedded in assembly/verification. No fabrication — answers emerge only from verified evidence.</p>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="section-architecture" aria-label="Architecture">
+  <div class="read-zone" style="padding:8vh 6vw;max-width:900px;">
+    <div class="section-label">Architecture</div>
+    <h2 class="section-title">The pipeline — physical, procedural, interactive.</h2>
+    <p class="section-body">Not cards. Documents enter machines, split into chunks, vectors form fields, BM25 forms a lattice, exact paths trace deterministically, metadata forms constellations, candidates converge, evidence assembles, verification traces claims back to sources.</p>
+
+    <div id="arch-3d" aria-label="Interactive architecture pipeline">
+      <div class="stage-grid" id="stage-grid" aria-label="Pipeline stages">
+        <div class="stage-card" onclick="openArch('SOURCE')" onmouseenter="this.style.borderColor='rgba(146,39,143,.7)'" onmouseleave="this.style.borderColor='rgba(253,252,251,.10)'" tabindex="0"><div class="s-label">SOURCE</div><div class="s-sub">Drive ~29k · SQLite catalog</div></div>
+        <div class="stage-card" onclick="openArch('INGEST')"><div class="s-label">INGEST</div><div class="s-sub">Ingestion client</div></div>
+        <div class="stage-card" onclick="openArch('EXTRACT')"><div class="s-label">EXTRACT</div><div class="s-sub">Extraction + OCR</div></div>
+        <div class="stage-card" onclick="openArch('NORMALIZE')"><div class="s-label">NORMALIZE</div><div class="s-sub">Text + schema quality</div></div>
+        <div class="stage-card" onclick="openArch('DEDUP')"><div class="s-label">DEDUP</div><div class="s-sub">Canonical dedup index</div></div>
+        <div class="stage-card" onclick="openArch('CHUNK')"><div class="s-label">CHUNK</div><div class="s-sub">Structural chunking</div></div>
+        <div class="stage-card" onclick="openArch('INDEX')"><div class="s-label">INDEX</div><div class="s-sub">Dense / BM25 / Exact / Metadata</div></div>
+        <div class="stage-card" onclick="openArch('HYBRID RETRIEVAL')"><div class="s-label">HYBRID RETRIEVAL</div><div class="s-sub">Dense + BM25 + RRF (k=60)</div></div>
+        <div class="stage-card" onclick="openArch('RANK')"><div class="s-label">RANK</div><div class="s-sub">Embedded ranking</div></div>
+        <div class="stage-card" onclick="openArch('EVIDENCE')"><div class="s-label">EVIDENCE</div><div class="s-sub">Evidence assembly</div></div>
+        <div class="stage-card" onclick="openArch('CONTEXT')"><div class="s-label">CONTEXT</div><div class="s-sub">Context assembly</div></div>
+        <div class="stage-card" onclick="openArch('GENERATION')"><div class="s-label">GENERATION</div><div class="s-sub">Synthesis / Answer build</div></div>
+        <div class="stage-card" onclick="openArch('VERIFICATION')"><div class="s-label">VERIFICATION</div><div class="s-sub">Claim verification (ABSTAIN/HIGH)</div></div>
+        <div class="stage-card" onclick="openArch('ANSWER')"><div class="s-label">ANSWER</div><div class="s-sub">Verified, cited, or abstain</div></div>
+      </div>
+    </div>
+
+    <div id="arch-overlay" role="dialog" aria-modal="true" aria-label="Pipeline stage detail">
+      <div class="overlay-inner" id="arch-inner">
+        <button class="close-btn" onclick="closeArch()" aria-label="Close stage detail">Back to overview</button>
+        <h3 id="arch-title">Stage</h3>
+        <div class="stage-meta" id="arch-meta"></div>
+        <div class="stage-refs" id="arch-refs"></div>
+      </div>
+    </div>
+
+    <div id="minimap" aria-label="Pipeline position"><strong>Pipeline:</strong> <span id="minimap-pos">Overview</span></div>
+
+    <p style="font-family:var(--font-b);font-size:.82rem;color:rgba(253,252,251,.55);margin-top:2rem;line-height:1.55;">Hover cards for preview. Click to focus. Back returns to overview. Based on verified RAG architecture (<code>src/indexing/vector.py</code>, <code>ARCHITECTURE.md</code>).</p>
+  </div>
+</section>
+
+<!-- ABOUT LOCUS -->
+<section id="section-locus" aria-label="About LOCUS">
+  <div class="read-zone" style="padding:8vh 6vw;max-width:800px;">
+    <div class="section-label">About LOCUS</div>
+    <h2 class="section-title">The institution — verified, not invented.</h2>
+
+    <p class="section-body">LOCUS is a non-profit organization led by undergraduate students of Electrical, Electronics, and Computer Engineering departments from IOE, Pulchowk Campus. Since its inception in 2003, LOCUS has been providing a platform for young innovators from schools and colleges all over Nepal to showcase their skills and knowledge. LOCUS 2027 is the 23rd edition of the National Level Technological Exhibition. All its activities are guided by a single compass: fostering collaboration, promoting individual development and facilitating innovation.</p>
+
+    <div style="margin-top:1.5rem;padding:1.2rem 1.4rem;background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.18);border-radius:6px;max-width:320px;">
+      <div style="font-family:var(--font-d);font-size:1.6rem;color:rgba(253,252,251,.92);letter-spacing:-.02em;">LOCUS 2027</div>
+      <div style="font-family:var(--font-b);font-size:.75rem;color:rgba(146,39,143,.85);letter-spacing:.15em;text-transform:uppercase;margin-top:.2rem;">23rd National Technology Fest</div>
+      <div style="font-family:var(--font-b);font-size:.8rem;color:rgba(253,252,251,.65);margin-top:.4rem;line-height:1.4;">IOE Pulchowk Engineering Campus, Nepal</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.2rem;margin-top:2rem;">
+      <div style="background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.18);border-radius:6px;padding:1.2rem;">
+        <h3 style="font-family:var(--font-d);font-size:1.1rem;color:var(--paper);margin-bottom:.4rem;">What LOCUS is</h3>
+        <p style="font-family:var(--font-b);font-size:.85rem;color:rgba(253,252,251,.75);line-height:1.55;">LOCUS is a non-profit organized by IOE Pulchowk Campus engineering students, active since 2003. LOCUS 2027 (23rd edition) is the National Level Technological Exhibition.</p>
+      </div>
+      <div style="background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.18);border-radius:6px;padding:1.2rem;">
+        <h3 style="font-family:var(--font-d);font-size:1.1rem;color:var(--paper);margin-bottom:.4rem;">Archive scale</h3>
+        <p style="font-family:var(--font-b);font-size:.85rem;color:rgba(253,252,251,.75);line-height:1.55;">Indexed from Google Drive catalog (~29,252 items); SQLite catalog at <code>~/locus_drive/locus_drive.db</code>; 112,421 chunks in rebuilt exact index (<code>exact.db</code>); read-only, never modified.</p>
+      </div>
+      <div style="background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.18);border-radius:6px;padding:1.2rem;">
+        <h3 style="font-family:var(--font-d);font-size:1.1rem;color:var(--paper);margin-bottom:.4rem;">About LOCUS 2027</h3>
+        <p style="font-family:var(--font-b);font-size:.85rem;color:rgba(253,252,251,.75);line-height:1.55;">LOCUS is an annual technology festival organized by Pulchowk Campus students. It brings participants from across Nepal. The exhibition showcases software, AI, electronics, robotics and other technology. The committee consists of Computer, Electronics and Electrical Engineering students working across exhibitions, workshops and competitions.</p>
+      </div>
+      <div style="background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.18);border-radius:6px;padding:1.2rem;">
+        <h3 style="font-family:var(--font-d);font-size:1.1rem;color:var(--paper);margin-bottom:.4rem;">Activities / Events</h3>
+        <p style="font-family:var(--font-b);font-size:.85rem;color:rgba(253,252,251,.75);line-height:1.55;">Robotics, exhibitions, hackathons, coding, institutional verification — documented in archive only when indexed; never invented. Each event connects to verified sources.</p>
+      </div>
+    </div>
+
+    <p style="font-family:var(--font-s);font-style:italic;font-size:1rem;color:rgba(253,252,251,.55);margin-top:2rem;line-height:1.55;">"The world transforms into the search space." — evidence nodes illuminate; irrelevant nodes recede. The archive is the authority. The retrieval layer respects it.</p>
+  </div>
+</section>
+
+<!-- SEARCH / ANSWER -->
+<section id="section-search" aria-label="Search the Archive" style="padding-top:6vh;">
+  <div class="read-zone" style="padding:6vh 6vw;max-width:720px;text-align:center;">
+    <div class="section-label">Search</div>
+    <h2 class="section-title">Search the archive</h2>
+    <form class="search-bar" onsubmit="event.preventDefault();performSearch(this);" aria-label="Archive search" style="margin-top:2rem;">
+      <input id="evidence-query" type="text" placeholder="Query institutional knowledge..." aria-label="Evidence query" />
+      <button type="submit">Retrieve</button>
+    </form>
+    <p style="font-family:var(--font-b);font-size:.82rem;color:rgba(253,252,251,.55);margin-top:1rem;">Retrieving institutional knowledge from the indexed archive at <code>localhost:8765/search</code>.</p>
+  </div>
+</section>
+
+<section id="section-answer" aria-label="Answer" style="padding-top:4vh;">
+  <div class="read-zone" style="padding:6vh 6vw;max-width:720px;text-align:center;">
+    <div class="section-label">Answer</div>
+    <h2 class="section-title">Evidence Resolution</h2>
+    <div id="evidence-display" class="evidence-state empty" aria-live="polite" style="margin-top:2rem;text-align:left;">
+      <p style="font-family:var(--font-s);font-style:italic;font-weight:300;font-size:1.25rem;line-height:1.55;color:rgba(253,252,251,.55);margin-bottom:1.5rem;">Awaiting verified retrieval.</p>
+      <p style="font-family:var(--font-b);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(253,252,251,.35);">Query the archive to initiate retrieval.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div>
+    <div style="font-family:var(--font-d);font-weight:300;font-size:.9rem;color:rgba(253,252,251,.75);letter-spacing:-.03em;">LOCUS</div>
+    <div style="font-family:var(--font-b);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(253,252,251,.35);margin-top:2px;">Institutional Intelligence System</div>
+  </div>
+  <a href="#section-hero" aria-label="LOCUS home"><img src="assets/img/A MAIN_LOGO.png" alt="LOCUS" /></a>
+</footer>
+
+<script>
+(function bootSequence(){
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const loader = document.getElementById('loader');
+  const logo = document.getElementById('boot-logo');
+  const sub = document.getElementById('boot-sub');
+  const canvas = document.getElementById('world-canvas');
+  const hero = document.getElementById('section-hero');
+  const MAX = 4200;
+  let done = false, t0 = Date.now();
+
+  function finish(){ if(done) return; done = true;
+    if(loader){ loader.style.pointerEvents='none'; loader.style.opacity='0'; setTimeout(()=>{loader.style.display='none';},800); }
+    if(logo){ logo.classList.add('move'); }
+    if(sub){ sub.classList.add('fade'); }
+    if(canvas){ canvas.classList.add('wake'); }
+    // Hero already has .visible; ensure search visible
+  }
+
+  // Phase 1: identity holds (1s)
+  setTimeout(()=>{
+    // Phase 2: world wake + logo transition (1.2s)
+    if(canvas) canvas.style.filter = 'brightness(1) contrast(1.05)';
+    if(logo) logo.style.transform = 'scale(.75) translateY(-25px)';
+    if(sub) sub.style.opacity = '0';
+  }, 1200);
+
+  // Phase 3: camera handoff + typography reveal (3.2s total)
+  setTimeout(()=>{
+    if(loader) loader.style.opacity = '0';
+    setTimeout(finish, 600);
+  }, 3400);
+
+  // Reduced motion: skip choreography, jump to finished state quickly
+  if(prefersReduced){ setTimeout(()=>{ finish(); }, 300); return; }
+})();
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+<script src="js/3d_world.js" type="module"></script>
+<script src="js/film_scrubber.js"></script>
+<script>
+function performSearch(form){
+  const panel=document.getElementById('evidence-display');
+  const input=document.getElementById('evidence-query');
+  const query=(input?input.value.trim():'');
+  if(panel) panel.innerHTML='<p style="font-family:var(--font-s);font-style:italic;color:rgba(253,252,251,.55);font-size:1.1rem;">Retrieving from institutional records...</p>';
+  // Trigger 3D world reaction
+  if(typeof window.LOCUS_3D!=='undefined' && window.LOCUS_3D.performRetrievalAnimation) window.LOCUS_3D.performRetrievalAnimation(query);
+  fetch('http://localhost:8765/search?q='+encodeURIComponent(query),{method:'GET',mode:'no-cors'})
+    .then(r=>r.json()).catch(e=>({}))
+    .then(data=>{
+      const hasResults=data&&(data.results||data.answer_text||data.sources);
+      if(hasResults){
+        if(panel) panel.innerHTML='<div class="evidence-state result"><h3>Verified Retrieval</h3><p>'+(data.answer_text||'Evidence retrieved.')+'</p><span class="confidence-tag">Evidence verified</span><a href="#" class="source-link">View retrieval log →</a></div>';
+      }else{
+        if(panel) panel.innerHTML='<div class="evidence-state result"><h3>Verification Required</h3><p>The system returned no confirmed institutional records for this query. Evidence is insufficient to produce a verified answer.</p><span class="confidence-tag">Evidence insufficient · No fabrication</span><a href="#" class="source-link">Related institutional sources →</a></div>';
+      }
+    });
+}
+window.addEventListener('keydown',function(e){ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); var i=document.getElementById('evidence-query'); if(i) i.focus(); }});
+function hoverStage(el){ el.style.borderColor='rgba(146,39,143,.7)'; el.style.transform='translateY(-2px)'; }
+function leaveStage(el){ el.style.borderColor='rgba(146,39,143,.25)'; el.style.transform='translateY(0)'; }
+function focusStage(el){ el.style.background='rgba(146,39,143,.15)'; el.style.borderColor='rgba(146,39,143,.9)'; setTimeout(()=>{el.style.background='rgba(146,39,143,.08)'; el.style.borderColor='rgba(146,39,143,.25)';},1200); }
+const stageData={SOURCE:{meta:"Google Drive read-only catalog (~29,252 items); SQLite at ~/locus_drive/locus_drive.db. Verified: drive untouched.",refs:"ARCHITECTURE.md §1 · src/ingestion/ · locus_drive.db"},INGEST:{meta:"Ingestion client; document + structured (PDF/DOCX/Pages + XLS/CSV/Sheets). Source: verified catalog only.",refs:"src/ingestion/ · ARCHITECTURE.md §1"},EXTRACT:{meta:"Extraction + OCR pipeline (text/table blocks). Candidate engines: Docling / Tesseract / Surya (ADR-002). Not aspirational.",refs:"src/extraction/ · src/ocr/ · ADR-002"},NORMALIZE:{meta:"Text normalization; schema/quality checks; integrity audit. Deterministic, never LLM-only.",refs:"src/normalization/ · src/integrity/"},DEDUP:{meta:"Canonical dedup via content_hash / canonical_doc_id. Verified: dedup unwired in current build (honest gap).",refs:"src/dedup/ · ARCHITECTURE.md §2"},CHUNK:{meta:"Structural chunking (heading/page/table aware; chunk_id = sha16; contextual prefixes). 112,421 chunks rebuilt.",refs:"src/chunking/structural.py · data/chunks/"},INDEX:{meta:"Dense embeddings (dense.db 938M) + BM25 (769M) + Exact (641M) + Metadata. All verified sizes.",refs:"src/indexing/vector.py · data/indexes/"},'HYBRID RETRIEVAL':{meta:"Dense + BM25 + exact/entity + metadata → union → dedup → RRF fusion (k=60, provenance +0.015). QueryRouter.execute() currently pass (honest gap).",refs:"src/retrieval/hybrid.py · src/retrieval/query_router.py"},RANK:{meta:"Embedded ranking; reranker integrated in assembly/verification (standalone reranker dir empty — verified gap).",refs:"ARCHITECTURE.md §3.1 · src/retrieval/"},EVIDENCE:{meta:"Evidence assembler (parent / neighbor / table); recall safety net (expanded pool → exact phrase → broadened lexical → document-level).",refs:"src/evidence/assembler.py · ARCHITECTURE.md §3.2"},CONTEXT:{meta:"Context assembly from verified evidence set; proof-of-evidence only — never raw dumps.",refs:"src/evidence/ · ARCHITECTURE.md §5"},GENERATION:{meta:"Evidence-only synthesis (Synthesizer routes by query intent); answer builder requires EvidenceSet.",refs:"src/generation/ · src/evidence/"},VERIFICATION:{meta:"Claim extractor + claim verifier; ABSTAIN / LOW / MED / HIGH; deterministic arithmetic preferred over LLM for numbers.",refs:"src/verification/ · src/claim_citation/"},ANSWER:{meta:"Final verified answer or honest abstain (\"Evidence insufficient — No fabrication\"). Every claim traces to source.",refs:"ARCHITECTURE.md §9 · index.html #evidence-display"}};
+function openArch(name){const d=stageData[name]||stageData['SOURCE']; document.getElementById('arch-title').textContent=name; document.getElementById('arch-meta').textContent=d.meta; document.getElementById('arch-refs').textContent=d.refs; document.getElementById('minimap-pos').textContent=name; const o=document.getElementById('arch-overlay'); o.classList.add('open'); o.style.pointerEvents='auto';}
+function closeArch(){const o=document.getElementById('arch-overlay'); if(o){o.classList.remove('open'); o.style.pointerEvents='none';}}
+window.addEventListener('keydown',function(e){if(e.key==='Escape'){closeArch();}});
+</script>
+
+<!-- Loader state machine -->
+<script>
+(function(){
+  const loader=document.getElementById('loader');
+  const MAX_TOTAL=5000, STAGE_MAX=2000;
+  let stage='BOOT', t0=Date.now(), finished=false;
+  function exitLoader(reason){ if(finished) return; finished=true; if(loader){ loader.style.display='none'; loader.style.opacity='0'; loader.style.pointerEvents='none'; } document.querySelectorAll('main, header, #world-canvas').forEach(el=>{if(el)el.style.opacity='1';}); }
+  function advance(s){ stage=s; }
+  function timeoutStage(s,delay){ setTimeout(()=>{ if(stage===s && !finished){ exitLoader('timeout-'+s); } }, delay); }
+  function bootSequence(){ advance('BOOT'); timeoutStage('BOOT', STAGE_MAX); advance('ASSETS'); timeoutStage('ASSETS', STAGE_MAX); const img=new Image(); img.onload=()=>{ advance('3D INIT'); timeoutStage('3D INIT', STAGE_MAX); setTimeout(nextStage, 300); }; img.onerror=()=>{ advance('3D INIT'); timeoutStage('3D INIT', STAGE_MAX); setTimeout(nextStage, 300); }; img.src='assets/img/A MAIN_LOGO.png'; }
+  let stageTimer=null;
+  function nextStage(){ if(finished) return; if(Date.now()-t0>MAX_TOTAL){ exitLoader('max-total'); return; } if(stage==='ASSETS'){ advance('3D INIT'); timeoutStage('3D INIT', STAGE_MAX); try{ const s=document.createElement('script'); s.src='js/3d_world.js'; s.type='module'; s.onerror=()=>nextStage(); s.onload=()=>{ setTimeout(nextStage, 200); }; document.head.appendChild(s); setTimeout(()=>{ if(stage==='3D INIT' && !finished) nextStage(); }, 1800); }catch(e){ nextStage(); } } else if(stage==='3D INIT'){ advance('UI READY'); timeoutStage('UI READY', STAGE_MAX); setTimeout(()=>{ advance('ENTER EXPERIENCE'); exitLoader('complete'); }, 300); } }
+  setTimeout(()=>{ if(!finished) exitLoader('hard-max'); }, MAX_TOTAL);
+  window.addEventListener('load', bootSequence);
+  if(document.readyState==='complete') setTimeout(bootSequence, 100);
+})();
+</script>
+
+</body>
+</html>

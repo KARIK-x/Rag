@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>LOCUS — Institutional Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,600;1,300&family=Cormorant+Infinitum:ital,wght@0,300;0,400;1,300&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#030406;--ink:#030406;--paper:#f6f2e8;--accent:#92278f;--line:rgba(244,240,232,.10);--text-muted:#6a665e;--font-d:'Cormorant Garamond',Georgia,serif;--font-b:'Space Grotesk',system-ui,sans-serif;--font-s:'Cormorant Infinitum',Georgia,serif;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--font-b);background:var(--bg);color:var(--paper);line-height:1.35;overflow-x:hidden;}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition-duration:.01ms!important;}}
+  /* Protected readability zone — dark overlay between network and content */
+  .read-zone{position:relative;z-index:10;background:rgba(3,4,6,.82);backdrop-filter:blur(14px);}
+  section{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10vh 6vw;}
+  .hero{flex-direction:column;text-align:center;padding-top:14vh;z-index:10;}
+  .logo-animated{width:clamp(180px,22vw,320px);height:auto;display:block;margin:0 auto 3rem;filter:drop-shadow(0 0 60px rgba(146,39,143,.35));animation:logoFloat 6s ease-in-out infinite alternate;}
+  @keyframes logoFloat{from{transform:translateY(0) scale(1);}to{transform:translateY(-14px) scale(1.02);}}
+  h1.hero-title{font-family:var(--font-d);font-weight:300;font-size:clamp(3rem,6.5vw,7rem);line-height:.92;letter-spacing:-.05em;color:var(--paper);}
+  h1.hero-title em{font-style:italic;font-weight:400;color:rgba(248,242,232,.82);}
+  .hero-sub{font-family:var(--font-s);font-style:italic;font-size:1.15rem;color:rgba(248,242,232,.65);max-width:520px;margin:1.2rem auto 0;line-height:1.55;}
+  .hero-meta{font-family:var(--font-b);font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(146,39,143,.65);margin-top:2.5rem;}
+  /* Section headings — distinctive per section */
+  .section-label{font-family:var(--font-b);font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(146,39,143,.7);margin-bottom:1.5rem;}
+  .section-title{font-family:var(--font-d);font-weight:300;font-size:clamp(2rem,4vw,4rem);line-height:.95;letter-spacing:-.04em;color:var(--paper);margin-bottom:.8rem;}
+  .section-body{font-family:var(--font-b);font-size:1.05rem;color:rgba(248,242,232,.82);max-width:640px;line-height:1.6;}
+  /* Search preserved */
+  .search-bar{display:flex;align-items:center;border-bottom:1px solid rgba(248,242,232,.22);gap:1rem;padding:.8rem 0;margin-top:3rem;max-width:640px;margin-left:auto;margin-right:auto;}
+  .search-bar input{flex:1;background:transparent;border:none;outline:none;font-family:var(--font-d);font-size:1.15rem;color:var(--paper);letter-spacing:-.01em;}
+  .search-bar input::placeholder{color:rgba(248,242,232,.25);font-style:italic;}
+  .search-bar button{background:transparent;border:1px solid rgba(146,39,143,.35);color:rgba(248,242,232,.9);font-family:var(--font-b);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;padding:.7rem 1.4rem;cursor:pointer;border-radius:2px;transition:all .35s ease;}
+  .search-bar button:hover{border-color:rgba(146,39,143,.9);background:rgba(146,39,143,.08);}
+  /* Protected readability zone — dark overlay between 3D and content for clear text */
+  .section-overlay{position:absolute;inset:0;background:rgba(3,4,6,.75);z-index:-1;pointer-events:none;}
+  /* Evidence panel */
+  .evidence-panel{max-width:720px;margin:0 auto;padding:8vh 6vw;}
+  .label{font-family:var(--font-b);font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(146,39,143,.7);margin-bottom:2rem;}
+  .evidence-state{background:rgba(10,8,14,.95);border-left:3px solid rgba(146,39,143,.55);padding:3vh 3vw;transition:opacity .35s ease;}
+  .evidence-state.result h3{font-family:var(--font-d);font-weight:300;font-size:1.1rem;color:var(--paper);margin-bottom:.6rem;letter-spacing:-.01em;}
+  .evidence-state.result p{font-family:var(--font-b);font-size:.92rem;line-height:1.55;color:rgba(248,242,232,.82);margin-bottom:1.2rem;}
+  .confidence-tag{display:inline-block;border:1px solid rgba(146,39,143,.35);color:rgba(248,242,232,.7);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;padding:.35rem .9rem;margin-bottom:1rem;}
+  /* Timeline / events / people — spatial cards */
+  .year-card{background:rgba(146,39,143,.08);border:1px solid rgba(146,39,143,.18);border-radius:6px;padding:1.4rem 1.6rem;max-width:320px;margin:.6rem;transition:all .2s ease;cursor:pointer;}
+  .year-card:hover{border-color:rgba(146,39,143,.55);transform:translateY(-2px);}
+  .year-card .year{font-family:var(--font-d);font-size:1.6rem;color:rgba(248,242,232,.9);}
+  .year-card .year-label{font-family:var(--font-b);font-size:.72rem;color:rgba(146,39,143,.65);letter-spacing:.15em;text-transform:uppercase;margin-top:.2rem;}
+  /* Foot */
+  footer{display:flex;justify-content:space-between;align-items:center;padding:4vh 6vw;border-top:1px solid rgba(244,240,232,.08);font-family:var(--font-b);font-size:.75rem;color:rgba(248,242,232,.45);}
+  @media(max-width:900px){section{padding:8vh 5vw;} .logo-animated{width:180px;}}
+  /* Mobile touch */
+  @media(max-width:640px){.year-card{max-width:100%;}}}
+</style>
+</head>
+<body>
+
+<!-- Real loader overlay -->
+<div id="loader" style="position:fixed;inset:0;z-index:200;background:#030406;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity .8s ease;">
+  <img src="assets/img/A MAIN_LOGO.png" alt="LOCUS" style="width:200px;height:auto;filter:drop-shadow(0 0 40px rgba(146,39,143,.4));opacity:.95;" />
+  <div style="font-family:var(--font-d);font-size:.9rem;color:rgba(248,242,232,.6);margin-top:1rem;letter-spacing:.06em;">Initializing institutional intelligence</div>
+</div>
+
+<!-- Persistent 3D world behind everything -->
+<canvas id="world-canvas"></canvas>
+
+<div id="ambient-layer" aria-hidden="true"></div>
+
+<header aria-label="Site header" style="position:sticky;top:0;z-index:50;background:rgba(3,4,6,.85);backdrop-filter:blur(14px);padding:1.2rem 6vw;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(244,240,232,.08);">
+  <a href="#" class="logo-editorial" aria-label="LOCUS home" style="display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--paper);">
+    <img src="assets/img/A MAIN_LOGO.png" alt="LOCUS logo" style="width:56px;height:auto;display:block;filter:brightness(.95);" />
+    <span style="font-family:var(--font-d);font-weight:300;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(248,242,232,.72);line-height:1.3;">LOCUS <span style="display:block;font-size:.6rem;letter-spacing:.18em;color:rgba(248,242,232,.42);margin-top:2px;">Institutional Intelligence</span></span>
+  </a>
+  <nav aria-label="Sections" style="font-family:var(--font-b);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;display:flex;gap:28px;">
+    <a href="#section-world" style="color:rgba(248,242,232,.55);text-decoration:none;transition:color .3s;">World</a>
+    <a href="#section-history" style="color:rgba(248,242,232,.55);text-decoration:none;transition:color .3s;">History</a>
+    <a href="#section-knowledge" style="color:rgba(248,242,232,.55);text-decoration:none;transition:color .3s;">Knowledge</a>
+    <a href="#section-search" style="color:rgba(248,242,232,.55);text-decoration:none;transition:color .3s;">Search</a>
+  </nav>
+</header>
+
+<main>
+
+<!-- 01 / HERO -->
+<section class="hero" id="section-hero" aria-label="Hero">
+  <img class="logo-animated" src="assets/img/A MAIN_LOGO.png" alt="LOCUS institutional logo" />
+  <h1 class="hero-title">Evidence is not a feature.<br>It is the <em>institution</em>.</h1>
+  <p class="hero-sub">Every claim points to a source. Every answer survives verification. LOCUS searches the indexed archive of institutional knowledge — not approximations.</p>
+  <div class="hero-meta">Evidence-first retrieval · Structured · Verifiable</div>
+  <form class="search-bar" onsubmit="event.preventDefault();performSearch(this);" aria-label="Evidence search" style="margin-top:3rem;">
+    <input id="evidence-query" type="text" placeholder="What requires verification?" aria-label="Evidence query" />
+    <button type="submit">Retrieve</button>
+  </form>
+</section>
+
+<!-- 02 / THE LOCUS WORLD -->
+<section id="section-world" aria-label="The LOCUS World" style="flex-direction:column;align-items:center;text-align:center;padding-top:12vh;">
+  <div class="read-zone" style="padding:8vh 6vw;max-width:720px;">
+    <div class="section-label">02 / The World</div>
+    <h2 class="section-title">A Living Technology Ecosystem</h2>
+    <p class="section-body">LOCUS operates as an institutional intelligence network. Nodes of verification, evidence retrieval, and structured analysis connect into a spatial knowledge system. The world you explore is not decorative — it represents real relationships between institutional records.</p>
+  </div>
+</section>
+
+<!-- 03 / HISTORY -->
+<section id="section-history" aria-label="LOCUS Timeline" style="flex-direction:column;align-items:center;text-align:center;padding-top:12vh;">
+  <div class="read-zone" style="padding:8vh 6vw;max-width:720px;">
+    <div class="section-label">03 / History</div>
+    <h2 class="section-title">Institutional Evolution</h2>
+    <p class="section-body">From its institutional origins through the present archive, LOCUS has built a verified record of institutional intelligence. The timeline below maps verified milestones in evidence retrieval and institutional verification.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:2rem;">
+      <div class="year-card" onclick="document.getElementById('evidence-query').focus();"><div class="year">2003</div><div class="year-label">Institutional Foundation</div></div>
+      <div class="year-card" onclick="document.getElementById('evidence-query').focus();"><div class="year">2015</div><div class="year-label">Verification Systems Active</div></div>
+      <div class="year-card" onclick="document.getElementById('evidence-query').focus();"><div class="year">2026</div><div class="year-label">Index Complete</div></div>
+    </div>
+    <p style="font-family:var(--font-s);font-style:italic;font-size:.92rem;color:rgba(248,242,232,.55);margin-top:1.5rem;">Documented institutional events and evidence milestones are indexed in the archive.</p>
+  </div>
+</section>
+
+<!-- 04 / EVENTS -->
+<section id="section-events" aria-label="LOCUS Events" style="flex-direction:column;align-items:center;text-align:center;padding-top:12vh;">
+  <div class="read-zone" style="padding:8vh 6vw;max-width:720px;">
+    <div class="section-label">04 / Events</div>
+    <h2 class="section-title">Evidence Events</h2>
+    <p class="section-body">Documented LOCUS activities — robotics, exhibitions, hackathons, coding and institutional verification events — are mapped in the archive. Each event connects to verified sources.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:2rem;">
+      <div class="year-card"><div class="year">Robotics</div><div class="year-label">Institutional Technology</div></div>
+      <div class="year-card"><div class="year">Hackathons</div><div class="year-label">Evidence Verification</div></div>
+      <div class="year-card"><div class="year">Exhibitions</div><div class="year-label">Indexed Archive</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 / PEOPLE -->
+<section id="section-people" aria-label="Organization" style="flex-direction:column;align-items:center;text-align:center;padding-top:12vh;">
+  <div class="read-zone" style="padding:8vh 6vw;max-width:720px;">
+    <div class="section-label">05 / Organization</div>
+    <h2 class="section-title">Constituted Intelligence</h2>
+    <p class="section-body">The organizational constellation includes institutional leadership, technical verification teams, evidence specialists, and archive custodians. Roles resolve into spatial relationships rather than static directories.</p>
+    <p style="font-family:var(--font-b);font-size:.85rem;color:rgba(248,242,232,.55);margin-top:1rem;">Organizational relationships are represented as interactive network nodes.</p>
+  </div>
+</section>
+
+<!-- 06 / SPONSORS -->
+<section id="section-sponsors" aria-label="Sponsors" style="flex-direction:column;align-items:center;text-align:center;padding-top:12vh;">
+  <div class="read-zone" style="padding:8vh 6vw;max-width:720px;">
+    <div class="section-label">06 / Partners</div>
+    <h2 class="section-title">Institutional Partners</h2>
+    <p class="section-body">Sponsor and partner relationships are structured within the indexed system. Verified sponsor entities are represented as constellation nodes tied to institutional evidence.</p>
+    <p style="font-family:var(--font-b);font-size:.85rem;color:rgba(248,242,232,.55);margin-top:1rem;">Verified sponsor information is drawn from the indexed archive.</p>
+  </div>
+</section>
+
+<!-- 07 / INNOVATION -->
+<section id="section-innovation" aria-label="Innovation" style="flex-direction:column;align-items:center;text-align:center;padding-top:12vh;">
+  <div class="read-zone" style="padding:8vh 6vw;max-width:720px;">
+    <div class="section-label">07 / Innovation</div>
+    <h2 class="section-title">Verification Technology</h2>
+    <p class="section-body">Institutional retrieval, structured analysis, and evidence verification technologies form the core of the LOCUS ecosystem. The system is engineered for reliability, not approximation.</p>
+  </div>
+</section>
+
+<!-- 08 / KNOWLEDGE -->
+<section id="section-knowledge" aria-label="Knowledge Core" style="flex-direction:column;align-items:center;text-align:center;padding-top:12vh;">
+  <div class="read-zone" style="padding:8vh 6vw;max-width:720px;">
+    <div class="section-label">08 / Knowledge</div>
+    <h2 class="section-title">The Indexed Archive</h2>
+    <p class="section-body">The archive contains verified institutional records. Retrieval activates relevant clusters — evidence nodes illuminate; irrelevant nodes recede into depth. The world transforms into the search space.</p>
+  </div>
+</section>
+
+<!-- 09 / SEARCH -->
+<section id="section-search" aria-label="Search the Archive" style="flex-direction:column;align-items:center;text-align:center;padding-top:12vh;">
+  <div class="read-zone" style="padding:8vh 6vw;max-width:720px;">
+    <div class="section-label">09 / Search</div>
+    <h2 class="section-title">Search the Archive</h2>
+    <form class="search-bar" onsubmit="event.preventDefault();performSearch(this);" aria-label="Archive search" style="margin-top:2rem;">
+      <input id="evidence-query" type="text" placeholder="Query institutional knowledge..." aria-label="Evidence query" />
+      <button type="submit">Retrieve</button>
+    </form>
+    <p style="font-family:var(--font-b);font-size:.82rem;color:rgba(248,242,232,.55);margin-top:1rem;">Retrieving institutional knowledge from the indexed archive.</p>
+  </div>
+</section>
+
+<!-- 10 / ANSWER -->
+<section id="section-answer" aria-label="Answer" style="flex-direction:column;align-items:center;text-align:center;padding-top:12vh;">
+  <div class="read-zone" style="padding:8vh 6vw;max-width:720px;">
+    <div class="section-label">10 / Answer</div>
+    <h2 class="section-title">Evidence Resolution</h2>
+    <p class="section-body">When verified sources are present, answers emerge from the spatial knowledge graph — not from approximation. Sources become interactive objects: hover reveals relationships; click expands evidence.</p>
+    <div id="evidence-display" class="evidence-state empty" aria-live="polite" style="margin-top:2rem;">
+      <p style="font-family:var(--font-d);font-style:italic;font-weight:300;font-size:1.3rem;line-height:1.5;color:rgba(248,242,232,.55);margin-bottom:2vh;">Awaiting verified retrieval.</p>
+      <p style="font-family:var(--font-b);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(248,242,232,.35);">Query the archive to initiate retrieval.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 11 / EVIDENCE -->
+<section id="section-evidence" aria-label="Evidence Sources" style="flex-direction:column;align-items:center;text-align:center;padding-top:12vh;">
+  <div class="evidence-panel" aria-label="Evidence awareness" style="max-width:720px;margin:0 auto;padding:4vh 6vw;">
+    <div class="label">Evidence State</div>
+    <div id="evidence-display-evidence" class="evidence-state result" aria-live="polite" style="display:none;">
+      <h3>Verified Retrieval</h3>
+      <p id="evidence-text"></p>
+      <span class="confidence-tag">Evidence verified</span>
+      <a href="#" class="source-link" style="display:block;font-size:.78rem;color:rgba(248,242,232,.5);text-decoration:none;border-bottom:1px solid rgba(248,242,232,.15);padding:.6rem 0;">View retrieval log →</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer aria-label="Site footer">
+  <div>
+    <div style="font-family:var(--font-d);font-weight:300;font-size:.9rem;color:rgba(248,242,232,.7);letter-spacing:-.03em;">LOCUS</div>
+    <div style="font-family:var(--font-b);font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(248,242,232,.3);margin-top:2px;">Institutional Intelligence System</div>
+  </div>
+  <a href="#" aria-label="LOCUS logo reference"><img src="assets/img/A MAIN_LOGO.png" alt="LOCUS" style="width:42px;height:auto;display:block;opacity:.75;" /></a>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script>
+function performSearch(form){
+  const panel=document.getElementById('evidence-display');
+  const input=document.getElementById('evidence-query');
+  const query=(input?input.value.trim():'');
+  if(panel) panel.innerHTML='<p style="font-family:var(--font-s);font-style:italic;color:rgba(248,242,232,.5);font-size:1.1rem;">Retrieving from institutional records...</p>';
+  fetch('http://localhost:8765/search?q='+encodeURIComponent(query),{method:'GET',mode:'no-cors'})
+    .then(r=>r.json()).catch(e=>({}))
+    .then(data=>{
+      const hasResults=data&&(data.results||data.answer_text||data.sources);
+      if(hasResults){
+        if(panel) panel.innerHTML='<div class="evidence-state result"><h3>Verified Retrieval</h3><p>'+(data.answer_text||'Evidence retrieved.')+'</p><span class="confidence-tag">Evidence verified</span><a href="#" class="source-link" style="display:block;font-size:.78rem;color:rgba(248,242,232,.5);text-decoration:none;border-bottom:1px solid rgba(248,242,232,.15);padding:.6rem 0;">View retrieval log →</a></div>';
+      }else{
+        if(panel) panel.innerHTML='<div class="evidence-state result"><h3>Verification Required</h3><p>The system returned no confirmed institutional records for this query. Evidence is insufficient to produce a verified answer.</p><span class="confidence-tag">Evidence insufficient · No fabrication</span><a href="#" class="source-link" style="display:block;font-size:.78rem;color:rgba(248,242,232,.5);text-decoration:none;border-bottom:1px solid rgba(248,242,232,.15);padding:.6rem 0;">Related institutional sources →</a></div>';
+      }
+    });
+}
+window.addEventListener('keydown',function(e){
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();var i=document.getElementById('evidence-query');if(i)i.focus();}
+});
+</script>
+<!-- Robust loader script with state-machine timeouts -->
+<script>
+(function(){
+  const loader=document.getElementById('loader');
+  const MAX_TOTAL=5000, STAGE_MAX=2000;
+  const log=(s,m)=>console.log('[BOOT '+s+'] '+m);
+  let stage='BOOT', t0=Date.now(), finished=false;
+
+  function exitLoader(reason){
+    if(finished) return;
+    finished=true;
+    log('EXIT', reason||'done');
+    if(loader){ loader.style.display='none'; loader.style.opacity='0'; loader.style.pointerEvents='none'; }
+    // Ensure content visible
+    document.querySelectorAll('main section, .search-bar, #evidence-display, #world-canvas').forEach(el=>{ if(el) el.style.opacity='1'; });
+  }
+
+  function advance(s){ stage=s; log(stage,'start'); }
+  function timeoutStage(s,delay){ setTimeout(()=>{ if(stage===s && !finished){ log(s,'TIMEOUT('+delay+')'); exitLoader('timeout-'+s);} }, delay); }
+
+  function bootSequence(){
+    if(finished) return;
+    advance('BOOT');
+    timeoutStage('BOOT', STAGE_MAX);
+
+    // ASSETS: logo load (with fallback)
+    advance('ASSETS');
+    timeoutStage('ASSETS', STAGE_MAX);
+    const img=new Image();
+    img.onload=()=>{ log('ASSETS','logo loaded'); nextStage(); };
+    img.onerror=()=>{ log('ASSETS','logo missing (fallback)'); nextStage(); };
+    img.src='assets/img/A MAIN_LOGO.png';
+  }
+
+  let stageTimer=null;
+  function nextStage(){
+    if(finished) return;
+    if(Date.now()-t0>MAX_TOTAL){ exitLoader('max-total'); return; }
+    if(stage==='ASSETS'){ advance('3D INIT'); timeoutStage('3D INIT', STAGE_MAX); init3D(); }
+    else if(stage==='3D INIT'){ advance('UI READY'); timeoutStage('UI READY', STAGE_MAX); setTimeout(()=>{ advance('ENTER EXPERIENCE'); exitLoader('complete'); }, 300); }
+  }
+
+  function init3D(){
+    try{
+      // 3D must NOT block loader exit; separate async
+      const s=document.createElement('script');
+      s.src='js/3d_world.js';
+      s.type='module';
+      s.onerror=()=>{ log('3D INIT','load error'); nextStage(); };
+      s.onload=()=>{ log('3D INIT','loaded'); setTimeout(nextStage, 200); };
+      document.head.appendChild(s);
+      // Hard fallback: even if 3D never calls back, loader exits
+      setTimeout(()=>{ if(stage==='3D INIT' && !finished){ log('3D INIT','fallback'); nextStage(); } }, 1800);
+    }catch(e){ log('3D INIT','exception '+e); nextStage(); }
+  }
+
+  // Total hard cap
+  setTimeout(()=>{ if(!finished) exitLoader('hard-max'); }, MAX_TOTAL);
+
+  window.addEventListener('load', bootSequence);
+  if(document.readyState==='complete') setTimeout(bootSequence, 100);
+})();
+</script>
+</body>
+</html>

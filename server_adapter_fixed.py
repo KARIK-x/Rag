@@ -191,6 +191,28 @@ class Handler(BaseHTTPRequestHandler):
             payload['results'] = out
             payload['backend'] = 'HybridRetriever (validated V1) - claim pipeline error'
         self.wfile.write(json.dumps(payload).encode())
+    def do_GET(self):
+        from urllib.parse import urlparse, parse_qs
+        if self.path.startswith('/search'):
+            qs = parse_qs(urlparse(self.path).query)
+            q = qs.get('q', [''])[0]
+            # Delegate same retrieve logic as POST with empty body
+            # For simplicity: call internal retrieve helper directly
+            try:
+                self._ensure_init()
+                from src.retrieval.hybrid import HybridRetriever, retrieve
+                retriever = HybridRetriever(dense=DENSE, bm25=BM25, exact=EXACT)
+                results = retriever.retrieve(q, top_k=20) if q else []
+                out = {'query': q, 'results': [{'chunk_id': r.chunk_id, 'score': r.score} for r in results], 'answer_text': 'Retrieved ' + str(len(results)) + ' chunks.', 'sources': [], 'evidence_sufficient': False}
+            except Exception as e:
+                out = {'error': str(e)}
+            self.send_response(200)
+            self.send_header('Access-Control-Allow-Origin','*')
+            self.send_header('Content-Type','application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(out).encode())
+            return
+        self.send_error(404)
     def log_message(self, fmt, *a): pass  # silent
 
 if __name__ == '__main__':

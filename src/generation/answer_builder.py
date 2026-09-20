@@ -63,8 +63,19 @@ class AnswerBuilder:
 
         # Synthesize answer text from evidence items — natural language, not chunk dump
         from src.generation.synthesizer import synthesize as synthesize_answer
-        synth = synthesize_answer(query="", evidence_items=evidence.items, is_sufficient=verification.confidence_level != "ABSTAIN" and evidence.is_sufficient)
-        synthesized_text = synth["answer_text"]
+        synth = synthesize_answer(query=evidence.query or "", evidence_items=evidence.items, is_sufficient=verification.confidence_level != "ABSTAIN" and evidence.is_sufficient)
+        synthesized_text = synth.get("answer_text") or synth.get("text", "")
+        # Fallback: if synthesis returns empty due to intent mismatch, use bounded quick synthesis
+        if not synthesized_text or len(str(synthesized_text).strip()) < 10:
+            from src.generation.synthesizer import quick_synth
+            synthesized_text = quick_synth(query=evidence.query or "", evidence_items=evidence.items)
+        # Preserve grounded citations in answer: add numbered refs matching provenance
+        citation_refs = ""
+        for idx, item in enumerate(evidence.items[:5], 1):
+            fn = (item.provenance.filename or item.provenance.drive_file_id or "source") if item.provenance else "source"
+            citation_refs += f" [{idx}:{fn}]"
+        if synthesized_text and citation_refs and "[" not in synthesized_text:
+            synthesized_text = synthesized_text.rstrip(".") + citation_refs + "."
 
         return {
             "answer_type": "FACTUAL",

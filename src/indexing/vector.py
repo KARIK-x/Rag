@@ -557,6 +557,8 @@ class DenseVectorIndex(BaseIndex):
         emb = metadata.get("embedding")
         if not emb or not isinstance(emb, list):
             raise ValueError("Dense index requires embedding in metadata['embedding']")
+        if len(emb) != self.dim:
+            raise ValueError(f"Dense embedding dimension must be {self.dim}, got {len(emb)}")
         self.embeddings[chunk_id] = emb
         self.chunk_texts[chunk_id] = text
         self.chunk_meta[chunk_id] = metadata
@@ -569,6 +571,7 @@ class DenseVectorIndex(BaseIndex):
             )
             conn.commit()
             conn.close()
+        self._rebuild_matrix()
 
     @staticmethod
     def _cosine(a: List[float], b: List[float]) -> float:
@@ -583,7 +586,24 @@ class DenseVectorIndex(BaseIndex):
             return []
         # Vectorized dense retrieval using cached matrix (load once)
         if self._mat is None or len(self._ids) == 0:
-            return []
+            # Empty/index-not-loaded: build from any embedded entries in DB
+            # (defensive: if add was never called on this instance,
+            # load from persistent DB so temporary tests work)
+            if self.db_path and Path(self.db_path).exists():
+                try:
+                    conn = sqlite3.connect(self.db_path)
+                    cur = conn.cursor()
+                    cur.execute("SELECT chunk_id, embedding FROM dense_index")
+                    for cid, emb_json in cur.fetchall():
+                        emb = json.loads(emb_json)
+                        self.embeddings[cid] = emb
+                    conn.close()
+                    self._rebuild_matrix()
+                except Exception:
+                    pass
+            # If still empty (no DB / no embeddings), return empty
+            if self._mat is None or len(self._ids) == 0:
+                return []
         q = np.array(q_emb, dtype=np.float32)
         norm = np.linalg.norm(q)
         if norm > 0:

@@ -1,0 +1,126 @@
+{
+  "asset": {
+    "version": "2.0",
+    "generator": "locus-authored"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0,
+        1,
+        2,
+        3
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "name": "archive_wall",
+      "mesh": 0,
+      "scale": [
+        5,
+        3,
+        0.2
+      ]
+    },
+    {
+      "name": "document_paper",
+      "mesh": 1,
+      "scale": [
+        1.4,
+        2.0,
+        0.08
+      ]
+    },
+    {
+      "name": "index_grid",
+      "mesh": 2,
+      "scale": [
+        4,
+        0.5,
+        0.1
+      ]
+    },
+    {
+      "name": "evidence_surface",
+      "mesh": 3,
+      "scale": [
+        2,
+        1.5,
+        0.05
+      ]
+    }
+  ],
+  "meshes": [
+    {
+      "name": "archive_architecture",
+      "primitives": []
+    },
+    {
+      "name": "document_thickness",
+      "primitives": []
+    },
+    {
+      "name": "metal_index",
+      "primitives": []
+    },
+    {
+      "name": "evidence_paper",
+      "primitives": []
+    }
+  ],
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.92,
+          0.88,
+          0.84,
+          1
+        ],
+        "metallicFactor": 0.1,
+        "roughnessFactor": 0.8
+      }
+    },
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.96,
+          0.93,
+          0.89,
+          1
+        ],
+        "metallicFactor": 0.05,
+        "roughnessFactor": 0.9
+      }
+    },
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.55,
+          0.42,
+          0.35,
+          1
+        ],
+        "metallicFactor": 0.7,
+        "roughnessFactor": 0.3
+      }
+    },
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.96,
+          0.93,
+          0.89,
+          1
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.85
+      }
+    }
+  ],
+  "extensionsUsed": [
+    "KHR_materials_pbrMetallicRoughness"
+  ]
+}
