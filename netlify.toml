@@ -1,2 +1,2 @@
 [build]
-  publish = "stitch_site_10000"
+  publish = "."
